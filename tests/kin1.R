@@ -19,7 +19,7 @@ test1 <- data.frame(id  =c(1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14),
                     mom =c(0, 0, 0, 0, 2, 2, 4, 4, 6,  2,  0,  0, 12, 13),
                     dad =c(0, 0, 0, 0, 1, 1, 3, 3, 3,  7,  0,  0, 11, 10),
                     sex =c(0, 1, 0, 1, 0, 1, 0, 1, 0,  0,  0,  1,  1,  1))
-with(test1, plot(pedigree(id, dad, mom, sex)))
+#with(test1, plot(pedigree(id, dad, mom, sex)))
 
 temp <- diag(14)
 temp[1:2, 5:6] <- temp[3:4, 7:8] <- temp[c(3,6),9] <- 4  #children

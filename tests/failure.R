@@ -1,5 +1,5 @@
 
-library(kinship2)
+require(kinship2)
 #
 # Here is a case where the levels fail to line up properly
 #

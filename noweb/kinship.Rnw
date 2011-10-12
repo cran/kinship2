@@ -1,0 +1,242 @@
+\section{Kinship matrices}
+The kinship matrix is foundational for random effects models with family
+data.  
+For $n$ subjects it is an $n \times n$ matrix whose $ij$ element contains
+the expected fraction of alleles that are identical by descent (IBD)for subject
+$i$ and $j$.
+Note that the diagonal elements of the matrix will be 0.5 not 1: if I randomly
+sample two alleles of one of your genes, with replacement, 1/2 the time I get
+a father/father or mother/mother pair (IBD) and the other 1/2 the time get
+one of each.  
+The truely astute reader will recognize that values >.5 can occur due to
+inbreeding, but I'll leave that discussion for others.                    %'
+
+The algorithm used is that found in K Lange, 
+\emph{Mathematical and Statistical  Methods for Genetic Analysis}, 
+Springer 1997, page 71--72.
+It starts by setting the rows/columns for founders to .5 time the identity
+matrix, they require no further processing.  
+Parents must be processed before their children, and then a child's        %'
+kinship is a sum of the kinship's for his/her parents.                     %'
+
+Start by using the [[kindepth]] routine to label each subject's depth in   %'
+the pedigree.  
+The initial matrix suffices for all those of depth 0, then process
+depth 1, etc.
+This guarrantees that parent's precede children.                            %'
+Founders are given a fake parent with id of n+1 who is unrelated to 
+himself -- a little trick that avoids some if-else logic.
+
+The most non-obvious part of the algorithm is the inner loop over [[i]].
+It looks like a natural candidate for S-vectorization, but you cannot.
+The key is [[kmat[mom,] + kmat[dad,] ]]: as we walk through a set of
+siblings these vectors change, the $i$th element goes from 0 to the
+appropriate value for that sib.  The dependence of each sib on prior
+ones is what creates the correct between-sib correlation terms. 
+The impact of the inner loop is not so dreadful, however, since this
+function is run once per family.  A study may have thousands of
+subjects but individual families within it are more modest in size.
+
+The program can be called with a pedigree, a pedigree list, or
+raw data.  The first argument is [[id]] instead of the more generic [[x]]
+for backwards compatability.
+<<kinship>>=
+kinship <- function(id, ...) {
+    UseMethod('kinship')
+    }
+
+kinship.default <- function(id, dadid, momid, ...) {
+    n <- length(id)
+    if (any(duplicated(id))) stop("All id values must be unique")
+    kmat <- diag(n+1) /2
+    kmat[n+1,n+1]    <- 0 
+
+    pdepth <- kindepth(id, dadid, momid)
+    mrow <- match(momid, id, nomatch=n+1) #row number of the mother
+    drow <- match(dadid, id, nomatch=n+1) #row number of the dad 
+
+    for (depth in 1:max(pdepth)) {
+        indx <- (1:n)[pdepth==depth]
+        for (i in indx) {
+            mom <- mrow[i]
+            dad <- drow[i]
+            kmat[i,]  <- kmat[,i] <- (kmat[mom,] + kmat[dad,])/2
+            kmat[i,i] <- (1+ kmat[mom,dad])/2
+            }
+        }
+    
+    kmat <- forceSymmetric(Matrix(kmat[1:n,1:n]))
+    dimnames(kmat) <- list(id, id)
+    kmat
+    }
+@ 
+
+The method for a pedigree object is and almost trivial modification.  Since the
+mother and father are already indexed into the id list it has 
+two lines that are different, those that create mrow and drow.
+Otherwise it is a complete repeat.
+<<kinship>>=
+kinship.pedigree <- function(id, ...) {
+    n <- length(id$id)
+    if (any(duplicated(id$id))) stop("All id values must be unique")
+    kmat <- diag(n+1) /2
+    kmat[n+1,n+1]    <- 0 
+
+    pdepth <- kindepth(id)
+    mrow <- ifelse(id$mindex ==0, n+1, id$mindex)
+    drow <- ifelse(id$findex ==0, n+1, id$findex)
+
+    for (depth in 1:max(pdepth)) {
+        indx <- (1:n)[pdepth==depth]
+        for (i in indx) {
+            mom <- mrow[i]
+            dad <- drow[i]
+            kmat[i,]  <- kmat[,i] <- (kmat[mom,] + kmat[dad,])/2
+            kmat[i,i] <- (1+ kmat[mom,dad])/2
+            }
+        }
+    
+    kmat <- forceSymmetric(Matrix(kmat[1:n,1:n]))
+    dimnames(kmat) <- list(id$id, id$id)
+    kmat
+    }    
+@ 
+For the Minnesota Family Cancer Study there are 461 families and 26050
+subjects.  The raw kinship matrix would be 26050 by 26050 which is over
+5 terabytes of memory, something that clearly won't work within S.       %'
+The solution is to store the overall matrix as a sparse Matrix object.
+Each family forms a single block.  For this study we have
+[[n <- table(minnbreast$famid); sum(n*(n+1)/2)]] or 1.07 million entries;
+only the lower half of each matrix is stored.
+
+The result of each call to kinship will be a symmetric matrix, stored in
+either dense or sparse form depending on the number of zeros.
+The sparse form (dsCMatrix class) keeps only the
+non-zero elements along with two vectors of indices; this is the form 
+we want for the final result.
+The work is to simply string together the components of the individual 
+dsCMatrix objects with appropriate updates to the indices, i.e., the
+second matrix does not start at row 1.
+The code is actually even more frugal: subjects in the pedigree who have
+no genetic connections, i.e., those who have married in but have no children
+in the data set, can be treated as individual $1 \times 1$ blocks, and are
+placed at the tail of each family.  
+(This last is useful to the coxme function which uses bdsmatrix objects,
+it is not clear that it adds value for functions in the Matrix 
+library and it may be dropped at a later date).
+
+
+Why don't we use [[(i in famlist)]] below?  A numeric subscript of [[[9]]] %'
+selects the ninth family, not the family labeled as 9, so a numeric
+family id would not act as we wished.
+If all of the subject ids are unique, across all families, the final
+matrix is labeled with the subject id, otherwise it is labeled with
+family/subject.
+<<kinship>>=
+kinship.pedigreeList <- function(id, ...) {
+    plist <- id  #rename, to make the code below easier to read
+    if (any(duplicated(plist$id))) addfamid <- TRUE
+    else                           addfamid <- FALSE
+    famlist <- unique(plist$famid)
+    rowindex <- integer(0)
+    nrows <- integer(0)
+    currentrow <- 0L
+    elements <- NULL
+    newid <- NULL
+    for (i in 1:length(famlist)) {
+        tped <- plist[i]  #pedigree for this family
+        temp <- try(kinship(tped), silent=TRUE)
+        if (class(temp)=="try-error") 
+            stop(paste("In family", famlist[i], ":", temp))
+        else kmat <- as(temp, "dsCMatrix")
+        related <- (rowSums(kmat>0) >1) #this person is related to someone else
+        if (any(related)) {
+            temp <- kmat[related, related, drop=FALSE]
+            elements <- c(elements, temp@x)
+            rowindex <- c(rowindex, temp@i + currentrow)
+            nrows <- c(nrows, diff(temp@p))
+            currentrow <- currentrow + nrow(temp)
+            }
+        if (any(!related)) {
+            temp <- kmat[!related, !related, drop=FALSE]
+            elements <- c(elements, temp@x)
+            rowindex <- c(rowindex, temp@i + currentrow)
+            nrows <- c(nrows, diff(temp@p))
+            currentrow <- currentrow + nrow(temp)
+            }
+
+        if (addfamid) {
+            temp <- paste(famlist[i], c(tped$id[related], tped$id[!related]), 
+                          sep='/')
+            newid <- c(newid, temp)
+            }
+        else newid <- c(newid, tped$id[related], tped$id[!related])
+        }
+    new("dsCMatrix", i=rowindex, p=cumsum(c(0L, nrows)), 
+        Dim=c(currentrow, currentrow), Dimnames=list(newid, newid),
+        x=elements, uplo="U", factors=list())
+
+    }                           
+@ 
+
+The older [[makekinship]] function,
+from before the creation of pedigreeList objects,
+accepts the raw identifier data, along with a special family code
+for unrelated subjects, as produced by the [[makefamid]] function.
+All the unrelated subjects are put at the front of the kinship matrix
+in this case rather than at the end of a family.
+Because unrelateds get put into a fake family, we cannot create a
+rational family/subject identifier; the id must be unique across
+families.
+Like most routines, this starts out with a collection of error checks.
+<<makekinship>>=
+makekinship <- function(famid, id, father.id, mother.id, unrelated=0) {
+    n <- length(famid)
+    if (length(id)    != n) stop("Mismatched lengths: famid and id")
+    if (length(mother.id) != n) stop("Mismatched lengths: famid and mother.id")
+    if (length(father.id) != n) stop("Mismatched lengths: famid and father.id")
+    if (any(is.na(famid)))  stop("One or more subjects with missing family id")
+    if (any(is.na(id)))     stop("One or more subjects with a missing id")
+    if (is.numeric(famid)) {
+        if (any(famid <0))      stop("Invalid family id, must be >0")
+        }
+
+    if (any(duplicated(id))) stop("Subject ids must be unique")
+
+    famlist <- sort(unique(famid))  #same order as the counts table
+    idlist <- id            # will be overwritten, but this makes it the
+                            #  correct data type and length
+    counts <- table(famid)
+    cumcount <- cumsum(counts)    
+     if (any(famid==unrelated)) {
+	# Assume that those with famid of 0 are unrelated uniques
+	#   (usually the marry-ins)
+        temp <- match(unrelated, names(counts))
+	nzero <- counts[temp]    
+	counts <- counts[-temp]
+	famlist <- famlist[famlist != unrelated]
+	idlist[1:nzero] <- id[famid== unrelated]
+	cumcount <- cumsum(counts) + nzero
+	}
+    else nzero <- 0
+    
+    mlist <- vector('list', length(counts))
+    for (i in 1:length(counts)) {
+	who <- (famid == famlist[i])
+        if (sum(who) ==1) mlist[[i]] <- Matrix(0.5)  # family of size 1
+        else {
+            mlist[[i]] <- kinship(id[who], mother.id[who], father.id[who])
+            }
+	idlist[seq(to=cumcount[i], length=counts[i])] <- id[who]
+	}
+
+    if (nzero>0) mlist <- c(list(Diagonal(nzero)), mlist)
+    kmat <- bdiag(mlist)
+    dimnames(kmat) <- list(idlist, idlist)
+    kmat
+}
+@ 
+
+
+
+

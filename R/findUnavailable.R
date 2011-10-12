@@ -58,9 +58,10 @@ findUnavailable <-function(ped, avail) {
       }
 
     if(num.found > 0) {
-      
+
       pedData <- pedData[-idx.to.remove, ]
-      
+      ## re-index parents, which varies depending on if the removed indx is
+      ## prior to parent index
       for(k in 1:nrow(pedData)){
         if(pedData$father[k] > 0) {
           pedData$father[k] <- pedData$father[k] -
@@ -81,14 +82,19 @@ findUnavailable <-function(ped, avail) {
     iter <- iter + 1   
     
   }
-    
-  ## a few more clean up steps
+  
+  ## A few more clean up steps
+
+  ## remove unavailable founders
   tmpPed <- excludeUnavailFounders(pedData$id, 
                         pedData$father, pedData$mother, pedData$avail)
-  
+
+  ## 
   tmpPed <- excludeStrayMarryin(tmpPed$id, tmpPed$father, tmpPed$mother)
+
   
   id.remove <- ped$id[is.na(match(ped$id, tmpPed$id))]
+
   return(id.remove)
   
 }
@@ -125,15 +131,18 @@ excludeUnavailFounders <- function(id, father, mother, avail)
     ##  Want to look at parents with only one child.
     ##  Look for parents with > 1 marriage.  If any
     ##  marriage has > 1 child then skip this mom/dad pair.
+    
     nmarr.dad <- table(dad)
     nmarr.mom <- table(mom)
     skip <- NULL
+    
     if(any(nmarr.dad > 1)) {
       ## Dads in >1 marriage
       ckdad <- which(as.logical(match(dad,
                       names(nmarr.dad)[which(nmarr.dad > 1)],nomatch=FALSE)))
       skip <- unique(c(skip, ckdad))
     }
+    
     if(any(nmarr.mom > 1)) {
       ## Moms in >1 marriage
       ckmom <- which(as.logical(match(mom,
@@ -148,11 +157,13 @@ excludeUnavailFounders <- function(id, father, mother, avail)
     } else {
       zed <- (sibship==1)
     }
+
     
     n <- sum(zed)
     idTrimmed <- NULL
     if(n>0)
       {
+        
         # dad and mom are the parents of sibships of size 1
         dad <- dad[zed]
         mom <- mom[zed]
@@ -172,7 +183,8 @@ excludeUnavailFounders <- function(id, father, mother, avail)
           if(both.founder & not.avail)   {
               ## remove mom and dad from ped, and zero-out parent 
               ## ids of their child
-            child <- father==dad[i] & mother==mom[i]
+                        
+            child <- which(father==which(id==dad[i]))          
             father[child] <- 0
             mother[child] <- 0
             
@@ -182,32 +194,26 @@ excludeUnavailFounders <- function(id, father, mother, avail)
             id <- id[excludeParents]
             father <- father[excludeParents]
             mother <- mother[excludeParents]
+
+            ## re-index father and mother, assume len(excludeParents)==2
+            father <- father - 1*(father > which(!excludeParents)[1]) -
+              1*(father > which(!excludeParents)[2])
             
+            mother <- mother - 1*(mother > which(!excludeParents)[1]) -
+              1*(mother > which(!excludeParents)[2])
+
             avail <- avail[excludeParents]
           } 
         }
       }
     
     nFinal <- length(id)
-    nTrimmed = nOriginal - nFinal
-
-    ## re-index father and mother
-    for(k in 1:length(father)) {
-
-      if(father[k] > 0) {
-      
-        father[k] <- father[k] - 
-                     sum(as.numeric(idTrimmed) < idOriginal[father[k]])
-      }
-      if(mother[k] > 0) {
-        mother[k] <- mother[k] -
-                     sum(as.numeric(idTrimmed) < idOriginal[mother[k]])
-                      
-      }
-    }
+    nTrimmed = nOriginal - nFinal 
+  
     
     return(list(nTrimmed = nTrimmed, idTrimmed=idTrimmed,
                 id=id, father=father, mother=mother))
   }
+
 
 

@@ -13,32 +13,23 @@
 #Initial revision
 #
 
-plot.pedigree.shrink <- function(x, bigped=FALSE, title="", ...){
+plot.pedigree.shrink <- function(x, bigped=FALSE, title="", 
+                                 xlegend="topright", ...){
 
-  ##  Plot pedigrees, coloring available subjects according
-  ##   to affection status.
+  ##  Plot pedigrees, coloring subjects according
+  ##   to availability, shaded by affected status used in shrink
 
-  #col.subj <- ifelse(x$avail==TRUE & is.na(x$pedObj$affected==0), 3, 1)
-  #col.subj <- ifelse(x$avail==TRUE & x$pedObj$affected==0, 4, col.subj)
-  #col.subj <- ifelse(x$avail==TRUE & x$pedObj$affected==1, 2, col.subj)
-  #col.subj <- ifelse(x$avail==TRUE & x$pedObj$affected==1, 5, col.subj)
-  
-  col.subj <- ifelse(x$avail==TRUE & is.na(x$pedObj$affected==0), 3, 1)
-  col.subj <- ifelse(x$avail==TRUE & x$pedObj$affected==0, 4, col.subj)
-  col.subj <- ifelse(x$avail==TRUE & x$pedObj$affected==1, 2, col.subj)
-  col.subj <- ifelse(x$avail==FALSE & x$pedObj$affected==1, 5, col.subj)
-  
   if(bigped==FALSE){
-    tmp <- plot(x$pedObj, col=col.subj)
+    tmp <- plot(x$pedObj, col=x$avail+1)
+  } else {
+    tmp <- plot.pedigree(x$pedObj, align=FALSE, packed=FALSE,
+                         col=x$avail+1, cex=0.5,symbolsize=0.5)
   }
-
-  if(bigped==TRUE){
-    tmp <- plot.pedigree(x$pedObj, align=FALSE, packed=F,symbolsize=0.5,col=col.subj) #cex=0.25)
-  }
-#  browser()
-#  legend(c(max(tmp$x)*.75, max(tmp$y)*.9), 
-#         legend=c("Unavail+Unaff", "Avail+Aff","Avail+Unaff","Avail+Unk","UnAvail+Aff"),
-#         pch=c("*","*","*","*", "*"), col=c(1,2,4,3,5), lty=rep(1,5),bty="n")
+  
+  legend(x=xlegend,
+         legend=c("Available","UnAvailable"),
+         pch=c(1,1), col=c(2,1),bty="n")
+  
   
   title(paste(title, "\nbits = ", x$bitSize[length(x$bitSize)]))
 }

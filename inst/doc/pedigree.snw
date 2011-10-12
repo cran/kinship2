@@ -252,6 +252,7 @@ through the shape. The twin relationships are both represented with
 diverging lines from a single point.  The monozygotic twins have an 
 additional line connecting the diverging lines, while the other twins have 
 a question mark to indicate unknown zygosity.
+
 We also show how the subjects can be colored individually, where we 
 color a subject's shape red if their $avail$ indicator is 1, which can 
 represent their DNA availability, a useful indicator in genetic studies.
@@ -260,6 +261,11 @@ additional information under each subject. In the example below, we add
 names to the existing $id$ vector using the newline character as the 
 $sep$ argument in $paste()$.  As space permits, more lines 
 and characters per line can be made using the $id$ argument.
+
+Finally, we show how a pedigree.legend can place a simple legend in one
+of the corners of the pedigree plot to show the sections of the plot 
+symbols corresponding to the multiple affected indicators.
+
 
 \begin{figure}[h]
   \begin{center}
@@ -271,6 +277,7 @@ id2 <- paste(df2$id, c("John", "Linda", "Jack", "Rachel", "Joe", "Deb",
 plot(ped2, col=ifelse(df2$avail, 2, 1),
      id=id2)
 
+pedigree.legend(ped2, location="topright", radius=.3) 
 @ 
    \caption{Updated plot: pedigree 2} \label{updatePed2}
   \end{center}

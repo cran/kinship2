@@ -9,17 +9,20 @@
 Create pedigree structure in the format needed for plotting.
 }
 \usage{
-pedigree(id, dadid, momid, sex, affected, status, relation, famid)
+pedigree(id, dadid, momid, sex, affected, status, relation, famid,
+missid)
 }
 \arguments{
 \item{id}{
 Identification variable for individual
 }
 \item{dadid}{
-Identification variable for father
+  Identification variable for father. Founders' parents should be coded
+  to NA, or another value specified by missid.
 }
 \item{momid}{
-Identification variable for mother
+  Identification variable for mother. Founders' parents should be coded
+  to NA, or another value specified by missid. 
 }
 \item{sex}{
 Gender of individual noted in
@@ -50,7 +53,16 @@ An optional vector of family identifiers.  If it is present the
 result will contain individual pedigrees for each family in the set,
 which can be extacted using subscripts.
 Individuals need to have a unique id \emph{within} family.
-}}
+}
+
+\item{missid}{
+  The founders are those with no father or mother in the pedigree.  The
+  \code{dadid} and \code{momid} values for these subjects will either be
+  NA or the value of this variable.  The default for \code{missid} is 0
+  if the \code{id} variable is numeric, and "" (the empty string)
+  otherwise.}
+}
+
 \value{
   An object of class \code{pedigree} or \code{pedigreeList}
   Containing the following items:
@@ -60,28 +72,24 @@ Individuals need to have a unique id \emph{within} family.
 \code{\link{plot.pedigree}}, \code{\link{autohint}}
 }
 \examples{
-data(breast)
-unknowncancer <- is.na(breast$cancer)
+data(minnbreast)
 
-breast$cancer[is.na(breast$cancer)] <- 0
+bpeds <- with(minnbreast,
+    pedigree(id, fatherid, motherid, sex, affected=proband, famid=famid))
 
-breastPeds <- pedigree(breast$id, breast$dadid, breast$momid, breast$sex,
-           affected=cbind(breast$cancer, unknowncancer),
-           famid=breast$family)
+## pedigree with id=8
+bped.id8 <- bpeds['8']
 
-ped48 <- breastPeds['48']
+print(bped.id8)
 
-print(ped48)
-## Pedigree object with 88 subjects, family id= 48
+plot(bped.id8)
 
-##plot(ped48)
+## the 8th pedigree
+bped8 <- bpeds[8]
 
-ped7 <- breastPeds['7']
+print(bped8)
 
-print(ped7)
-## Pedigree object with 16 subjects, family id= 7
-
-## plot(ped7)
+plot(bped8)
 
 }
 

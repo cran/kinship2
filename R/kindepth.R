@@ -26,8 +26,7 @@ kindepth <- function(id, dad.id, mom.id, align=FALSE) {
 
         if (all(child==0)) break
         if (i==n) 
-            stop (paste("Impossible loop in the pedegree",
-                      "(someone would have to be born after their own child)"))
+            stop("Impossible pedegree: someone is their own ancestor")
 
         parents <- which(child>0) #next generation of parents
         depth[parents] <- i

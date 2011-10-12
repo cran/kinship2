@@ -6,7 +6,7 @@ bitSize <- function(ped) {
   ## calculate bit size of a pedigree
   
   if(class(ped) != "pedigree")
-    cat("Must be a pegigree object.\n")
+    stop("Must be a pegigree object.\n")
   
   father = ped$findex
   mother = ped$mindex

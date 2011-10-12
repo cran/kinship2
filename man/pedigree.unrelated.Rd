@@ -64,11 +64,11 @@ id1 <- pedigree.unrelated(ped1, avail=fam1$avail)
 
 id1
 ## some possible vectors
-##[1] "10" "13" "33" "9"
-##[1] "13" "18" "41" "9" 
-##[1] "13" "18" "40" "9" 
-##[1] "10" "13" "16" "9" 
-##[1] "13" "33" "41" "9" 
+##[1] "110" "113" "133" "109"
+##[1] "113" "118" "141" "109" 
+##[1] "113" "118" "140" "109" 
+##[1] "110" "113" "116" "109" 
+##[1] "113" "133" "141" "109" 
 
  
 fam2 <- sample.ped[sample.ped$ped==2,]
@@ -82,12 +82,12 @@ ped2 <- pedigree(fam2$id, fam2$father, fam2$mother,
 id2 <- pedigree.unrelated(ped2, avail=fam2$avail)
 
 ## some possible vectors
-##[1] "3" "7"
-##[1] "3" "4"
-##[1] "1" "3"
-##[1] "14" "3"
+##[1] "203" "207"
+##[1] "203" "204"
+##[1] "201" "203"
+##[1] "214" "203"
 id2
 
 }
 % docclass is function
-% Converted by Sd2Rd version 43268.
+

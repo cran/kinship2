@@ -56,35 +56,46 @@ pedigree.shrink <- function(ped, avail, affected=NULL, seed=NULL, maxBits = 16){
   ## available and does not have an available descendant
   
   idTrimUnavail <- findUnavailable(ped, avail)
+
   
-  if(length(idTrimUnavail)) {
+  if(length(idTrimUnavail)) {    
+    
     pedTrimmed <- pedigree.trim(idTrimUnavail, ped)
     avail <- avail[match(pedTrimmed$id, ped$id)]
     idTrimmed <- c(idTrimmed, idTrimUnavail)
     idList$unavail <- paste(idTrimUnavail, collapse=' ')
+
+  } else {
+    ## no trimming, reset to original ped
+    pedTrimmed <- ped
   }
 
   
-  ## now trim any available terminal subjects with unknown phenotype
+  ## Next trim any available terminal subjects with unknown phenotype
   ## but only if both parents are available
+  
+  ## added nNew>0 check because no need to trim anymore if empty ped
+  
   nChange <- 1
   idList$noninform = NULL
-  while(nChange > 0){
+  nNew <- length(pedTrimmed$id)
+
+  while(nChange > 0 & nNew > 0){
     nOld <- length(pedTrimmed$id)
     
     ## findAvailNonInform finds non-informative, but after suggesting 
     ## their removal, checks for more unavailable subjects before returning
     idTrimNonInform <- findAvailNonInform(pedTrimmed, avail)
-
+    
     if(length(idTrimNonInform)) {
-      pedNew <- pedigree.trim(idTrimNonInform, pedTrimmed)
-      avail <- avail[match(pedNew$id, pedTrimmed$id)]
-      idTrimmed <- c(idTrimmed, idTrimNonInform)
-      idList$noninform = paste(c(idList$noninform, idTrimNonInform), collapse=' ')
-      pedTrimmed <- pedNew
-      
+        pedNew <- pedigree.trim(idTrimNonInform, pedTrimmed)
+        avail <- avail[match(pedNew$id, pedTrimmed$id)]
+        idTrimmed <- c(idTrimmed, idTrimNonInform)
+        idList$noninform = paste(c(idList$noninform, 
+               idTrimNonInform), collapse=' ')
+        pedTrimmed <- pedNew
+        
     }
-  
     nNew <- length(pedTrimmed$id)
     nChange <- nOld - nNew
     
@@ -94,9 +105,9 @@ pedigree.shrink <- function(ped, avail, affected=NULL, seed=NULL, maxBits = 16){
   nIntermed <- length(pedTrimmed$id)
   
   bitSize <- bitSize(pedTrimmed)$bitSize
-  
-  #### Now sequentially shrink to fit bitSize <= maxBits
-
+    
+  ## Now sequentially shrink to fit bitSize <= maxBits
+    
   bitVec <- c(bitSizeOriginal,bitSize)
   
   isTrimmed <- TRUE
@@ -104,11 +115,11 @@ pedigree.shrink <- function(ped, avail, affected=NULL, seed=NULL, maxBits = 16){
   
   while(isTrimmed & (bitSize > maxBits))
     {  
-      
+        
       ## First, try trimming by unknown status
       save <- findAvailAffected(pedTrimmed, avail, affstatus=NA)
       isTrimmed <- save$isTrimmed
-
+      
       ## Second, try trimming by unaffected status if no unknowns to trim
       if(!isTrimmed)
         {
@@ -121,22 +132,23 @@ pedigree.shrink <- function(ped, avail, affected=NULL, seed=NULL, maxBits = 16){
       ## Third, try trimming by affected status if no unknowns & no unaffecteds
       ## to trim
       if(!isTrimmed) {
-          save <- findAvailAffected(pedTrimmed, avail, affstatus=1)
-          isTrimmed <- save$isTrimmed
+        save <- findAvailAffected(pedTrimmed, avail, affstatus=1)
+        isTrimmed <- save$isTrimmed
       }
       
       if(isTrimmed)  {
-          pedTrimmed <- save$ped
-          avail <- save$newAvail
-          bitSize <- save$bitSize
-          bitVec <- c(bitVec, bitSize)          
-          idTrimmed <- c(idTrimmed, save$idTrimmed)
-          idList$affect = paste(c(idList$affect, save$idTrimmed), 
-                 collapse=' ')
-        }
-
+        pedTrimmed <- save$ped
+        avail <- save$newAvail
+        bitSize <- save$bitSize
+        bitVec <- c(bitVec, bitSize)          
+        idTrimmed <- c(idTrimmed, save$idTrimmed)
+        idList$affect = paste(c(idList$affect, save$idTrimmed), 
+          collapse=' ')
+      }
+      
+      
+    } # end while (isTrimmed) & (bitSize > maxBits)
   
-    }
   
   nFinal <- length(pedTrimmed$id)
   
@@ -149,9 +161,10 @@ pedigree.shrink <- function(ped, avail, affected=NULL, seed=NULL, maxBits = 16){
               pedSizeIntermed = nIntermed,
               pedSizeFinal  = nFinal,
               seed = seed)
-  
+
+
   oldClass(obj) <- "pedigree.shrink"
-  
+
   return(obj)
 } 
 

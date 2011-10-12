@@ -34,7 +34,7 @@ Plot the pedigree object that is the trimmed pedigree.shrink object
 along with colors based on availability and affection status.
 }
 \usage{
-\method{plot}{pedigree.shrink}(x, bigped=FALSE, title="", ...)
+\method{plot}{pedigree.shrink}(x, bigped=FALSE, title="", xlegend="topright", ...)
 }
 \arguments{
 \item{x}{
@@ -47,7 +47,12 @@ in plotting region.  If T, then packed=F is used in pedigree() along
 with smaller symbol sizes.
 }
 \item{title}{
-Optional plot title
+  Optional plot title
+}
+\item{xlegend}{
+  The x argument for the legend command, which allows coordinates or,
+  more conveniently, options such as "topright", "right", "left", "bottomleft",
+  etc., which is useful for pedigrees that cover most of the plot region.
 }
 \item{...}{
 Optional arguments to plot method
@@ -64,10 +69,13 @@ ped2 <- pedigree(fam2$id, fam2$father, fam2$mother, fam2$sex,
                  fam2$affected, fam2$avail)
 
 shrink2 <- pedigree.shrink(ped2,avail=fam2$avail)
-
-## plot(ped2)
-plot.pedigree.shrink(shrink2, title="Sample Pedigree 2")
 shrink2
+
+plot(ped2)
+
+plot.pedigree.shrink(shrink2, title="Sample Pedigree 2")
+
+
 
 
 }

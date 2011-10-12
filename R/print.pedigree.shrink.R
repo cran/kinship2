@@ -36,7 +36,7 @@ print.pedigree.shrink <- function(x, ...){
     cat("\n Unavailable subjects trimmed:\n", x$idList$unavail, "\n")
   
   if(!is.null(x$idList$noninform)) 
-    cat("\n Non-inormative subjects trimmed:\n", x$idList$noninform, "\n")
+    cat("\n Non-informative subjects trimmed:\n", x$idList$noninform, "\n")
   
   if(!is.null(x$idList$affect)) 
     cat("\n Informative subjects trimmed:\n", x$idList$affect, "\n")

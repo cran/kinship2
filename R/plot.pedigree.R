@@ -3,7 +3,7 @@ plot.pedigree <- function(x, id = x$id, status = x$status,
                           affected = x$affected, 
                           cex = 1, col = 1,
                           symbolsize = 1, branch = 0.6, 
-                          packed = TRUE, align = c(1,2), width = 8, 
+                          packed = TRUE, align = c(1.5,2), width = 8, 
                           density=c(-1, 35,55,25), mar=c(4.1, 1, 4.1, 1),
                           angle=c(90,65,40,0), keep.par=FALSE,
                           subregion, ...)
@@ -170,7 +170,7 @@ plot.pedigree <- function(x, id = x$id, status = x$status,
             square = list(list(x=c(-1, -1, 1,1)/2,  y=c(0, 1, 1, 0))),
             circle = list(list(x=.5* cos(seq(0, 2*pi, length=50)),
                                y=.5* sin(seq(0, 2*pi, length=50)) + .5)),
-            diamond = list(list(x=c(0, -.5, 1, .5), y=c(0, .5, 1, .5))),
+            diamond = list(list(x=c(0, -.5, 0, .5), y=c(0, .5, 1, .5))),
             triangle= list(list(x=c(0, -.56, .56),  y=c(0, 1, 1))))
         }
     else {

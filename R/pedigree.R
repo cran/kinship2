@@ -1,6 +1,6 @@
 # Automatically generated from all.nw using noweb
 pedigree <- function(id, dadid, momid, sex, affected, status, relation,
-                     famid) {
+                     famid, missid) {
     n <- length(id)
     if (length(momid) != n) stop("Mismatched lengths, id and momid")
     if (length(dadid) != n) stop("Mismatched lengths, id and momid")
@@ -31,14 +31,13 @@ pedigree <- function(id, dadid, momid, sex, affected, status, relation,
         else if(mean(sex == 3) > 0.25)
                 warning("More than 25% of the gender values are 'unknown'")
     sex <- factor(sex, 1:4, labels = codes)
-    if (is.numeric(id)) {
-        nofather <- (is.na(dadid) | dadid==0)
-        nomother <- (is.na(momid) | momid==0)
-        }
-    else {
-        nofather <- (is.na(dadid) | dadid=="")
-        nomother <- (is.na(momid) | momid=="")
-        }
+    if (missing(missid)) {
+        if (is.numeric(id)) missid <- 0
+        else missid <- ""
+    }
+
+    nofather <- (is.na(dadid) | dadid==missid)
+    nomother <- (is.na(momid) | momid==missid)
 
     if (!missing(famid)) {
         if (any(is.na(famid))) stop("The family id cannot contain missing values")
@@ -69,7 +68,7 @@ pedigree <- function(id, dadid, momid, sex, affected, status, relation,
     if (any(findex==0 & !nofather)) {
         who <- dadid[which(findex==0 & !nofather)]
         msg.n <- 1:min(5, length(who))  #Don't list a zillion
-        stop(paste("Vale of 'dadid' not found in the id list", 
+        stop(paste("Value of 'dadid' not found in the id list", 
                    paste(who[msg.n], collapse= " ")))
         }
         
@@ -88,8 +87,12 @@ pedigree <- function(id, dadid, momid, sex, affected, status, relation,
                    paste(who[msg.n], collapse= " ")))
         }
 
-    if (any(mindex==0 & findex!=0) || any(mindex!=0 & findex==0))
-        stop("Subjects must have both a father and mother, or have neither")
+    if (any(mindex==0 & findex!=0) || any(mindex!=0 & findex==0)) {
+        who <- id[which((mindex==0 & findex!=0) |(mindex!=0 & findex==0))] 
+        msg.n <- 1:min(5, length(who))  #Don't list a zillion
+        stop(paste("Subjects must have both a father and mother, or have neither",
+                   paste(who[msg.n], collapse= " ")))
+    }
 
     if (!missing(famid)) {
         if (any(famid[mindex] != famid[mindex>0])) {
@@ -106,7 +109,7 @@ pedigree <- function(id, dadid, momid, sex, affected, status, relation,
             }
         }
     if (missing(famid))
-        temp <- list(id = id, findex=findex, mindex=mindex, sex = sex)
+        temp <- list(id = id, findex=findex, mindex=mindex, sex=sex)
     else temp<- list(famid=famid, id=oldid, findex=findex, mindex=mindex, 
                      sex=sex)
     if (!missing(affected)) {
@@ -231,15 +234,13 @@ pedigree <- function(id, dadid, momid, sex, affected, status, relation,
 "[.pedigreeList" <- function(x, ..., drop=F) {
     if (length(list(...)) != 1) stop ("Only 1 subscript allowed")
     ufam <- unique(x$famid)
-    nfamily <- length(ufam)
-    temp <- 1:nfamily
-    names(temp) <- ufam
-    indx <- temp[..1]   #which families to keep
-
+    if (is.factor(..1) || is.character(..1)) indx <- ufam[match(..1, ufam)]
+    else indx <- ufam[..1]
+        
     if (any(is.na(indx))) 
             stop(paste("Familiy", (..1[is.na(indx)])[1], "not found"))
 
-    keep <- which(x$famid %in% names(indx))  #which rows to keep
+    keep <- which(x$famid %in% indx)  #which rows to keep
     for (i in c('id', 'famid', 'sex'))
         x[[i]] <- (x[[i]])[keep]
     
@@ -269,17 +270,20 @@ pedigree <- function(id, dadid, momid, sex, affected, status, relation,
     x
     }
 "[.pedigree" <- function(x, ..., drop=F) {
-    if (length(list(...)) > 1)  stop ("Only 1 subscript allowed")
-    n <- length(x$id)
-    temp <- 1:n
-    names(temp) <- x$id   #ids are known to be unique, and not factors
-    i <- temp[..1]   #integer index
+    if (length(list(...)) != 1) stop ("Only 1 subscript allowed")
+    if (is.character(..1) || is.factor(..1)) i <- match(..1, x$id)
+    else i <- (1:length(x$id))[..1]
+    
+    if (any(is.na(i))) paste("Subject", ..1[which(is.na(i))][1], "not found")
 
     z <- list(id=x$id[i],findex=match(x$findex[i], i, nomatch=0),
               mindex=match(x$mindex[i], i, nomatch=0),
              sex=x$sex[i])
-    if (!is.null(x$affected)) z$affected <- x$affected[i,, drop=F]
-    if (!is.null(x$famid)) z$famid <- x$famid[keep]
+    if (!is.null(x$affected)) {
+        if (is.matrix(x$affected)) z$affected <- x$affected[i,, drop=F]
+        else z$affected <- x$affected[i]
+    }
+    if (!is.null(x$famid)) z$famid <- x$famid[i]
 
    
     if (!is.null(x$relation)) {

@@ -79,8 +79,8 @@ autohint <- function(ped, hints) {
     else horder <- integer(n)
 
     for (i in unique(depth)) {
-        who <- (depth==i & horder==0)
-        if (any(who)) horder[who] <- 1:sum(who)
+        who <- (depth==i & horder==0)  
+        if (any(who)) horder[who] <- 1:sum(who) #screwy input - overwrite it
         }
 
     if (any(twinset>0)) {
@@ -111,8 +111,8 @@ autohint <- function(ped, hints) {
         if (rpos==lpos) stop("autohint bug 3")
         
         opposite <-ped$sex[plist$nid[lev,lpos:rpos]] != ped$sex[plist$nid[lev,mypos]]
-        if (sum(opposite) != 1) stop("autohint bug 4")
-        spouse <- (lpos:rpos)[opposite]
+        if (!any(opposite)) stop("autohint bug 4")  # no spouse
+        spouse <- min((lpos:rpos)[opposite])  #can happen with a triple marriage
         spouse
         }
     findsibs <- function(mypos, plist, lev) {
@@ -193,24 +193,27 @@ autohint <- function(ped, hints) {
                         }
                     }
                 }
-
             # add the marriage(s)
             id1 <- idlist[dpairs[i,1]]  # i,1 and i,2 point to the same person
-            if (anchor[1] !=1) {
-                id2 <- idlist[spouse[1]]
-                if (anchor[2] ==1)      temp <- c(id2, id1, dpairs[i,3])
-                else if (anchor[1] ==0) temp <- c(id2, id1, 2)
-                else                    temp <- c(id2, id1, 1)
-                sptemp <- rbind(sptemp, temp)
-                }
-            if (anchor[2] !=1) {
-                id2 <- idlist[spouse[2]]
-                if  (anchor[1] ==1)     temp <- c(id1, id2, dpairs[i,3])
-                else if (anchor[2] ==0) temp <- c(id1, id2, 1)             
-                else                    temp <- c(id1, id2, 2)
-                sptemp <- rbind(sptemp, temp)
-                }
-          }
+            id2 <- idlist[spouse[1]]
+            id3 <- idlist[spouse[2]]
+
+            temp <- switch(paste(anchor, collapse=''),
+                           "21" = c(id2, id1, dpairs[i,3]),   #the most common case
+                           "22" = rbind(c(id2, id1, 1), c(id1, id3, 2)),
+                           "02" = c(id2, id1, 0), 
+                           "20" = c(id2, id1, 0), 
+                           "00" = rbind(c(id1, id3, 0), c(id2, id1, 0)),
+                           "01" = c(id2, id1, 2),
+                           "10" = c(id1, id2, 1),
+                           NULL)
+
+            if (is.null(temp)) { 
+                warning("Unexpected result in autohint, please contact developer")
+                return(list(order=1:n))  #punt
+              }         
+            else sptemp <- rbind(sptemp, temp)
+            }
         #
         # Recompute, since this shifts things on levels below
         #

@@ -7,21 +7,47 @@
 
 require(kinship2)
 
+
+data(minnbreast)
+pedMN <- with(minnbreast, pedigree(id, fatherid, motherid, sex,famid=famid,
+                         affected=cbind(cancer, bcpc, proband)))
+
+
+
+## this pedigree as one person with cancer. The pedigree is not informative
+## if they are the only available, so pedigree.shrink trims all.
+## This caused an error in pedigree.shrink before kinship2. v1.2.8. Now fixed
+mn2 <- pedMN[2]
+#plot(mn2)
+
+## breaks in pedigree.trim
+shrink.mn2 <- pedigree.shrink(mn2,
+               avail=ifelse(is.na(mn2$affected[,1]), 0, mn2$affected[,1]))
+shrink.mn2
+
+mnf8 <- pedMN['8']
+#plot(mnf8)
+shrink.mnf8 <- pedigree.shrink(mnf8,
+              avail=ifelse(is.na(mnf8$affected[,1]), 0, mnf8$affected[,1]))
+
+shrink.mnf8
+
+
+## use sample.ped
 data(sample.ped)
-
-
 
 pedAll <- pedigree(sample.ped$id, sample.ped$father, sample.ped$mother, 
        sample.ped$sex,
        affected=cbind(sample.ped$affected, sample.ped$avail), 
        famid=sample.ped$ped)
 
+
 ped1 <- pedAll['1']
 
 color1 <- sample.ped$avail[1:41] + 1
 
 
-#plot(ped1, col=color1)
+plot(ped1, col=color1)
 
 
 
@@ -64,5 +90,3 @@ print(shrink1.avail.B25)
 #
 # Informative subjects trimmed:
 # 125 126
-
-

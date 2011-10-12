@@ -42,12 +42,13 @@ alignped1 <- function(x, dad, mom, level, horder, packed, spouselist){
     if (any(spouselist[sprows,3] ==0)) {
         #Not yet decided spouses
         indx <- which(spouselist[sprows,3] ==0)
-        nleft <- floor((length(indx) + (sex==2))/2)
+        nleft <- floor((length(sprows) + (sex==2))/2) #total number to left
+        nleft <- nleft - length(lspouse)  #number of undecideds to the left
         if (nleft >0) {
-            lspouse <- c(spouse[indx[1:nleft]], lspouse)
+            lspouse <- c(lspouse, spouse[indx[1:nleft]])
             indx <- indx[-(1:nleft)]
           }
-        if (length(indx)) rspouse <- c(rspouse, spouse[indx])
+        if (length(indx)) rspouse <- c(spouse[indx], rspouse)
       }
 
     nid[lev,] <- c(lspouse, x, rspouse)

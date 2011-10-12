@@ -63,7 +63,10 @@ kinship.pedigreeList <- function(id, ...) {
     newid <- NULL
     for (i in 1:length(famlist)) {
         tped <- plist[i]  #pedigree for this family
-        kmat <- as(kinship(tped), "dsCMatrix")
+        temp <- try(kinship(tped), silent=TRUE)
+        if (class(temp)=="try-error") 
+            stop(paste("In family", famlist[i], ":", temp))
+        else kmat <- as(temp, "dsCMatrix")
         related <- (rowSums(kmat>0) >1) #this person is related to someone else
         if (any(related)) {
             temp <- kmat[related, related, drop=FALSE]
