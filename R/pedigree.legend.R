@@ -114,5 +114,3 @@ pedigree.legend <- function (ped, labels = dimnames(ped$affected)[[2]],
     
     invisible(NULL)
 }
-
-

@@ -73,7 +73,21 @@ Extra options that feed into the plot function.
 }
 }
 \value{
-returns points for each plot plus original pedigree.
+  an invisible list containing
+  \item{plist}{a list that contains all the position information for
+    plotting the pedigree.  This will useful for further functions
+    (yet unwritten) for manipulating the plot, but likely not to an
+    ordinary user.}
+  \item{x,y}{the x an and y plot coordinates of each subject in the
+    plot. The coordinate is for the top of the plotted symbol.
+    These will be in the same order as the input pedigree.  If
+    someone in the pedigree does not appear in the plot their
+    coordinates will be NA.  If they appear multiple times one of the
+    instances is chosen.  (Which one is a function of the order in
+    which the pedigree was constructed.)}
+  \item{boxh}{the height of the symbol, in user coordinates}
+  \item{boxw}{the width of the symbol}
+  \item{call}{a copy of the call that generated the plot}
 }
 \section{Side Effects}{
 creates plot on current plotting device.

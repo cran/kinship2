@@ -28,7 +28,7 @@ alignped1 <- function(x, dad, mom, level, horder, packed, spouselist){
         sprows <- (which(sprows))[keep]
         }
     nspouse <- length(spouse)  # Almost always 0, 1 or 2
-    nid <- fam <- matrix(0, maxlev, nspouse+1)
+    nid <- fam <- matrix(0L, maxlev, nspouse+1)
     pos <- matrix(0.0, maxlev, nspouse +1)
     n[lev] <- nspouse +1       
     pos[lev,] <- 0:nspouse

@@ -326,7 +326,7 @@ plot.pedigree <- function(x, id = x$id, status = x$status,
         
     if(!keep.par) par(oldpar)
 
-    tmp <- match(unique(plist$nid[plist$nid!=0]), plist$nid)
-    invisible(list(plist=plist, x=plist$pos[tmp], y= -row(plist$pos)[tmp],
+    tmp <- match(1:length(x$id), plist$nid)
+    invisible(list(plist=plist, x=plist$pos[tmp], y= row(plist$pos)[tmp],
                    boxw=boxw, boxh=boxh, call=Call))        
     }

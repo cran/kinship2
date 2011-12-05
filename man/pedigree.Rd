@@ -89,7 +89,7 @@ bped8 <- bpeds[8]
 
 print(bped8)
 
-plot(bped8)
+plot(bped8, cex=.5)
 
 }
 

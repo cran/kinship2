@@ -76,8 +76,8 @@ align.pedigree <- function(ped, packed=TRUE, width=10,
     #
     # Unhash out the spouse and nid arrays
     #
-    nid    <- floor(rval$nid)
-    spouse <- 1*(rval$nid != nid)
+    nid    <- matrix(as.integer(floor(rval$nid)), nrow=nrow(rval$nid))
+    spouse <- 1L*(rval$nid != nid)
     maxdepth <- nrow(nid)
 
     # For each spouse pair, find out if it should be connected with

@@ -394,8 +394,7 @@ are connected to their parents.
 Figure \ref{fig:align2} shows a more complex case with several arcs.
 In the upper left is a double marry-in.
 The [[anchor]] variable in the above code
-will be (2,2): neither of the two copies of subject 11 is anchored to
-a parent.
+will be (2,2) since both copies have an anchored spouse.
 The left and right sets of sibs are reordered (even though the left
 one does not need it), and two lines are added to the sptemp matrix:
 (5,11,1) and (11,9,2).
@@ -676,8 +675,8 @@ There are 4 tasks to doS
 #
 # Unhash out the spouse and nid arrays
 #
-nid    <- floor(rval$nid)
-spouse <- 1*(rval$nid != nid)
+nid    <- matrix(as.integer(floor(rval$nid)), nrow=nrow(rval$nid))
+spouse <- 1L*(rval$nid != nid)
 maxdepth <- nrow(nid)
 
 # For each spouse pair, find out if it should be connected with

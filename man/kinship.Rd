@@ -10,8 +10,8 @@
   or vector as the first argument.
 }
 \usage{
-kinship(id, ...)
-kinship.default(id, dadid, momid, ...)
+kinship(id, \dots)
+\method{kinship}{default}(id, dadid, momid, ...)
 }
 \arguments{
 \item{id}{

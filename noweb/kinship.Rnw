@@ -47,6 +47,8 @@ kinship <- function(id, ...) {
 
 kinship.default <- function(id, dadid, momid, ...) {
     n <- length(id)
+    if (n==1) 
+        return(matrix(.5,1,1, dimnames=list(id, id)))
     if (any(duplicated(id))) stop("All id values must be unique")
     kmat <- diag(n+1) /2
     kmat[n+1,n+1]    <- 0 
@@ -65,8 +67,8 @@ kinship.default <- function(id, dadid, momid, ...) {
             }
         }
     
-    kmat <- forceSymmetric(Matrix(kmat[1:n,1:n]))
-    dimnames(kmat) <- list(id, id)
+    kmat <- kmat[1:n,1:n]
+    dimnames(kmat) <- list(NULL, id)
     kmat
     }
 @ 
@@ -78,6 +80,8 @@ Otherwise it is a complete repeat.
 <<kinship>>=
 kinship.pedigree <- function(id, ...) {
     n <- length(id$id)
+    if (n==1) 
+        return(matrix(.5,1,1, dimnames=list(id$id, id$id)))
     if (any(duplicated(id$id))) stop("All id values must be unique")
     kmat <- diag(n+1) /2
     kmat[n+1,n+1]    <- 0 
@@ -96,35 +100,27 @@ kinship.pedigree <- function(id, ...) {
             }
         }
     
-    kmat <- forceSymmetric(Matrix(kmat[1:n,1:n]))
+    kmat <- kmat[1:n,1:n]
     dimnames(kmat) <- list(id$id, id$id)
     kmat
     }    
 @ 
-For the Minnesota Family Cancer Study there are 461 families and 26050
-subjects.  The raw kinship matrix would be 26050 by 26050 which is over
+For the Minnesota Family Cancer Study there are 461 families and 29114
+subjects.  The raw kinship matrix would be 29114 by 29114 which is over
 5 terabytes of memory, something that clearly won't work within S.       %'
 The solution is to store the overall matrix as a sparse Matrix object.
 Each family forms a single block.  For this study we have
 [[n <- table(minnbreast$famid); sum(n*(n+1)/2)]] or 1.07 million entries;
-only the lower half of each matrix is stored.
+assuming that only the lower half of each matrix is stored.
+The actual size is actually smaller than this, since each family's
+matrix will have zeros in it --- founders for instance are not related ---
+and those zeros are also not stored.
 
-The result of each call to kinship will be a symmetric matrix, stored in
-either dense or sparse form depending on the number of zeros.
-The sparse form (dsCMatrix class) keeps only the
-non-zero elements along with two vectors of indices; this is the form 
-we want for the final result.
-The work is to simply string together the components of the individual 
-dsCMatrix objects with appropriate updates to the indices, i.e., the
-second matrix does not start at row 1.
-The code is actually even more frugal: subjects in the pedigree who have
-no genetic connections, i.e., those who have married in but have no children
-in the data set, can be treated as individual $1 \times 1$ blocks, and are
-placed at the tail of each family.  
-(This last is useful to the coxme function which uses bdsmatrix objects,
-it is not clear that it adds value for functions in the Matrix 
-library and it may be dropped at a later date).
-
+The result of each per-family call to kinship will be a symmetric matrix.
+We first turn each of these into a dsCMatrix object, a sparse symmetric
+form. 
+The [[bdiag]] function is then used to paste all of these individual
+sparse matrices into a single large matrix.
 
 Why don't we use [[(i in famlist)]] below?  A numeric subscript of [[[9]]] %'
 selects the ninth family, not the family labeled as 9, so a numeric
@@ -134,49 +130,24 @@ matrix is labeled with the subject id, otherwise it is labeled with
 family/subject.
 <<kinship>>=
 kinship.pedigreeList <- function(id, ...) {
-    plist <- id  #rename, to make the code below easier to read
-    if (any(duplicated(plist$id))) addfamid <- TRUE
-    else                           addfamid <- FALSE
-    famlist <- unique(plist$famid)
-    rowindex <- integer(0)
-    nrows <- integer(0)
-    currentrow <- 0L
-    elements <- NULL
-    newid <- NULL
+    famlist <- unique(id$famid)
+    nfam <- length(famlist)
+    matlist <- vector("list", nfam)
+   
     for (i in 1:length(famlist)) {
-        tped <- plist[i]  #pedigree for this family
+        tped <- id[i]  #pedigree for this family
         temp <- try(kinship(tped), silent=TRUE)
         if (class(temp)=="try-error") 
             stop(paste("In family", famlist[i], ":", temp))
-        else kmat <- as(temp, "dsCMatrix")
-        related <- (rowSums(kmat>0) >1) #this person is related to someone else
-        if (any(related)) {
-            temp <- kmat[related, related, drop=FALSE]
-            elements <- c(elements, temp@x)
-            rowindex <- c(rowindex, temp@i + currentrow)
-            nrows <- c(nrows, diff(temp@p))
-            currentrow <- currentrow + nrow(temp)
-            }
-        if (any(!related)) {
-            temp <- kmat[!related, !related, drop=FALSE]
-            elements <- c(elements, temp@x)
-            rowindex <- c(rowindex, temp@i + currentrow)
-            nrows <- c(nrows, diff(temp@p))
-            currentrow <- currentrow + nrow(temp)
-            }
-
-        if (addfamid) {
-            temp <- paste(famlist[i], c(tped$id[related], tped$id[!related]), 
-                          sep='/')
-            newid <- c(newid, temp)
-            }
-        else newid <- c(newid, tped$id[related], tped$id[!related])
-        }
-    new("dsCMatrix", i=rowindex, p=cumsum(c(0L, nrows)), 
-        Dim=c(currentrow, currentrow), Dimnames=list(newid, newid),
-        x=elements, uplo="U", factors=list())
-
-    }                           
+        else matlist[[i]] <- as(forceSymmetric(temp), "dsCMatrix")
+    }
+    result <- bdiag(matlist)
+    if (any(duplicated(id$id)))
+        dimnames(result) <- list(NULL, paste(id$famid, id$id, sep='/'))
+    else dimnames(result) <- list(id$id, id$id)
+    
+    result
+}
 @ 
 
 The older [[makekinship]] function,
@@ -184,10 +155,12 @@ from before the creation of pedigreeList objects,
 accepts the raw identifier data, along with a special family code
 for unrelated subjects, as produced by the [[makefamid]] function.
 All the unrelated subjects are put at the front of the kinship matrix
-in this case rather than at the end of a family.
+in this case rather than within the family.
 Because unrelateds get put into a fake family, we cannot create a
 rational family/subject identifier; the id must be unique across
 families.
+We include a copy of the routine for backwards compatability, but
+do not anticipate any new usage of it.
 Like most routines, this starts out with a collection of error checks.
 <<makekinship>>=
 makekinship <- function(famid, id, father.id, mother.id, unrelated=0) {

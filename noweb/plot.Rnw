@@ -329,8 +329,8 @@ if(length(ckall>0)) cat('Did not plot the following people:',ckall,'\n')
     
 if(!keep.par) par(oldpar)
 
-tmp <- match(unique(plist$nid[plist$nid!=0]), plist$nid)
-invisible(list(plist=plist, x=plist$pos[tmp], y= -row(plist$pos)[tmp],
+tmp <- match(1:length(x$id), plist$nid)
+invisible(list(plist=plist, x=plist$pos[tmp], y= row(plist$pos)[tmp],
                boxw=boxw, boxh=boxh, call=Call))        
 @ 
 \subsection{Symbols}
@@ -734,8 +734,6 @@ pedigree.legend <- function (ped, labels = dimnames(ped$affected)[[2]],
     
     invisible(NULL)
 }
-
-
 @ 
 
 

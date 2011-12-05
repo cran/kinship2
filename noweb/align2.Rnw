@@ -75,7 +75,7 @@ Create the set of 3 return structures, which will be matrices with
 (1+nspouse) columns.
 If there are children then other routines will widen the result.
 <<alignped1>>= 
-    nid <- fam <- matrix(0, maxlev, nspouse+1)
+    nid <- fam <- matrix(0L, maxlev, nspouse+1)
     pos <- matrix(0.0, maxlev, nspouse +1)
     n[lev] <- nspouse +1       
     pos[lev,] <- 0:nspouse
