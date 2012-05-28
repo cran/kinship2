@@ -22,7 +22,7 @@ Input arguments are
 
 The return argument is a set of matrices as described in 
 section \ref{sect:alignped}, along with the spouselist matrix.
-The latter has marriages removed as they are processed..
+The latter has marriages removed as they are processed.
 
 In this routine the [[nid]] array consists of the final nid array + 1/2 of the
 final spouse array.
@@ -98,6 +98,10 @@ then add predetermined ones to the left and
 right.
 The majority of marriages will be undetermined singletons, for which
 nleft will be 1 for female (put my husband to the left) and 0 for male.
+In one bug found by plotting canine data, lspouse could initially be empty but 
+length(rspouse)> 1. This caused nleft>length(indx). A fix was to not let
+indx to be indexed beyond its length, fix by JPS 5/2013.
+
 <<alignped1>>=
     lspouse <- spouse[spouselist[sprows,3] == 3-sex] # 1-2 or 2-1
     rspouse <- spouse[spouselist[sprows,3] == sex]   # 1-1 or 2-2
@@ -107,8 +111,9 @@ nleft will be 1 for female (put my husband to the left) and 0 for male.
         nleft <- floor((length(sprows) + (sex==2))/2) #total number to left
         nleft <- nleft - length(lspouse)  #number of undecideds to the left
         if (nleft >0) {
-            lspouse <- c(lspouse, spouse[indx[1:nleft]])
-            indx <- indx[-(1:nleft)]
+            # JPS fixed 5/2013, don't index when nleft > length(indx)
+            lspouse <- c(lspouse, spouse[indx[1:min(nleft,length(indx))]])
+            indx <- indx[-(1:min(nleft,length(indx)))]
           }
         if (length(indx)) rspouse <- c(spouse[indx], rspouse)
       }

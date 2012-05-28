@@ -381,25 +381,26 @@ a matrix are used.  Factors are a problem though: assume that we
 have a vector x with names ``joe'', ``charlie'', ``fred'', then
 [[x['joe']]] is the first element of the vector, but
 [[temp <- factor('joe', 'charlie', 'fred'); z <- temp[1]; x[z] ]] will
-be the second element!  
-That is, the standard R approach is not what we want.
-Our first solution was to create an integer vector with appropriate
-name and subsctipt it, but a the above did it in when someone used an
-element of a data frame as the index.
+be the second element! 
+R is implicitly using as.numeric on factors when they are a subscript;
+this caught an early version of the code when an element of a data
+frame was used to index the pedigree: characters are turned into factors
+when bundled into a data frame.
 
-One question is what to do if the
-family id is a numeric: when the user
-says [4] do they mean the fourth family in the list or family '4'?
-The user is responsible to say ['4'] in this case.
-
-In a normal vector invalid subscripts give an NA, e.g. (1:3)[6], but
-since there is no such object as an ``NA pedigree'', we emit an error
-for this.
-The [[drop]] argument has no meaning for pedigrees, but must to be
-a defined argument of any subscript method; we simply ignore it.
-For both methods updating the father/mother is a minor nuisance;
-since they must are integer indices to rows they must be
-recreated after selection.  
+Note:
+\begin{enumerate}
+  \item What should we do if the family id is a numeric: when the user
+    says [4] do they mean the fourth family in the list or family '4'?
+    The user is responsible to say ['4'] in this case.
+  \item  In a normal vector invalid subscripts give an NA, e.g. (1:3)[6], but
+    since there is no such object as an ``NA pedigree'', we emit an error
+    for this.
+  \item The [[drop]] argument has no meaning for pedigrees, but must to be
+    a defined argument of any subscript method; we simply ignore it.
+  \item Updating the father/mother is a minor nuisance;
+    since they must are integer indices to rows they must be
+    recreated after selection.  Ditto for the relationship matrix.  
+\end{enumerate}
 <<pedigree-subscript>>=
 "[.pedigreeList" <- function(x, ..., drop=F) {
     if (length(list(...)) != 1) stop ("Only 1 subscript allowed")
@@ -425,16 +426,18 @@ recreated after selection.
         else x$affected <- x$affected[keep]
         }
     if (!is.null(x$relation)) {
-        keep <- !is.na(match(x$relation$famid, names(indx)))
-        if (any(keep)) {
-            x$relation <- x$relation[keep,]
+        keep <- !is.na(match(x$relation$famid, indx))
+       if (any(keep)) {
+            x$relation <- x$relation[keep,,drop=FALSE]
             ##Update twin id indexes
             x$relation$indx1 <- match(x$relation$indx1, kept.rows, nomatch=0)
             x$relation$indx2 <- match(x$relation$indx2, kept.rows, nomatch=0)
             ##If only one family chosen, remove famid
             if (length(indx)==1) {x$relation$famid <- NULL}
             }
+        else x$relation <- NULL  # No relations matrix elements for this family
         }
+    
     if (length(indx)==1)  class(x) <- 'pedigree'  #only one family chosen
     else class(x) <- 'pedigreeList'
     x

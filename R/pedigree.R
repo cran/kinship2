@@ -255,16 +255,18 @@ pedigree <- function(id, dadid, momid, sex, affected, status, relation,
         else x$affected <- x$affected[keep]
         }
     if (!is.null(x$relation)) {
-        keep <- !is.na(match(x$relation$famid, names(indx)))
-        if (any(keep)) {
-            x$relation <- x$relation[keep,]
+        keep <- !is.na(match(x$relation$famid, indx))
+       if (any(keep)) {
+            x$relation <- x$relation[keep,,drop=FALSE]
             ##Update twin id indexes
             x$relation$indx1 <- match(x$relation$indx1, kept.rows, nomatch=0)
             x$relation$indx2 <- match(x$relation$indx2, kept.rows, nomatch=0)
             ##If only one family chosen, remove famid
             if (length(indx)==1) {x$relation$famid <- NULL}
             }
+        else x$relation <- NULL  # No relations matrix elements for this family
         }
+    
     if (length(indx)==1)  class(x) <- 'pedigree'  #only one family chosen
     else class(x) <- 'pedigreeList'
     x

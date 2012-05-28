@@ -67,14 +67,17 @@ so first turn that into numeric.
 We create 3 vectors: [[twinrel]] is a matrix containing pairs of twins and
 their relation, it is a subset of the incoming [[relation]] matrix.
 The [[twinset]] vector identifies twins, it is 0 for anyone who is not a 
-part of a 
-multiple-birth set, and a unique id for each member of a set.  We use the
-minimum row number of the members of the set as the id.
+part of a multiple-birth set, and a unique id for each member of a set.  
+We use the minimum row number of the members of the set as the id.
 [[twinord]] is a starting order vector for the set; it mostly makes sure
 that there are no ties (who knows what a user may have used for starting 
 values.)  
+
+A recent addition (JPS, 5/2013) is to carry forward packaged and align to 
+kindepth and align.pedigree.
+
 <<autohint>>=
-autohint <- function(ped, hints) {
+autohint <- function(ped, hints, packed=TRUE, align=FALSE) {
     if (!is.null(ped$hints)) return(ped$hints)  #nothing to do
     n <- length(ped$id)
     depth <- kindepth(ped, align=TRUE)
@@ -203,7 +206,7 @@ if (any(twinset>0)) {
 
 if (!missing(hints)) sptemp <- hints$spouse
 else sptemp <- NULL
-plist <- align.pedigree(ped, packed=TRUE, align=FALSE, 
+plist <- align.pedigree(ped, packed=packed, align=align, 
                         hints=list(order=horder, spouse=sptemp))
 @ 
 The result coming back from align.pedigree is a set of vectors and
@@ -366,7 +369,7 @@ In the right hand panel subject 2 has an anchor variable of (0,1).
     #
     # Recompute, since this shifts things on levels below
     #
-    plist <- align.pedigree(ped, packed=TRUE, align=FALSE, 
+    plist <- align.pedigree(ped, packed=packed, align=align, 
                             hints=list(order=horder, spouse=sptemp))   
     }
 @ 
@@ -580,6 +583,7 @@ The [[spouselist]] array has column 1=husband, 2=wife.
 Hence the clumsy looking ifelse below.  The autohint format is more
 congenial to users, who might modify the output, the spouselist format
 easier for the code.
+
 
 <<align-setup>>=
 n <- length(ped$id)

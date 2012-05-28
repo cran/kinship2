@@ -1,5 +1,25 @@
 \name{NEWS}
 \title{NEWS file for the kinship2 package}
+\section{Changes in version 1.5.0}{
+  \itemize{
+    \item kinship function allows chrtype="X" for X chromosome kinship 
+    matrices, will have NA for any relationships that include a subject
+    with sex code 3 or 4
+    \item add test script for X-chromosome kinship matrix, with and
+    without unknown sex codes
+    \item plot.pedigree: fixed indexing bug in dog pedigree for sire in
+    multiple generations
+    \item pedigree.shrink and pedigree.trim now properly update indices
+    in relation matrix after subjects are removed
+  }
+}
+
+\section{Changes in version 1.3.8}{
+\itemize{
+     \item When subscripting a pedigreeList object, the relationship
+     matrix was not properly computed.
+ }}
+ 
 \section{Changes in version 1.3.7}{
   \itemize{
     \item Add monzygotic twins computation to the kinship matrix

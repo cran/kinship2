@@ -1,5 +1,5 @@
 # Automatically generated from all.nw using noweb
-autohint <- function(ped, hints) {
+autohint <- function(ped, hints, packed=TRUE, align=FALSE) {
     if (!is.null(ped$hints)) return(ped$hints)  #nothing to do
     n <- length(ped$id)
     depth <- kindepth(ped, align=TRUE)
@@ -101,7 +101,7 @@ autohint <- function(ped, hints) {
 
     if (!missing(hints)) sptemp <- hints$spouse
     else sptemp <- NULL
-    plist <- align.pedigree(ped, packed=TRUE, align=FALSE, 
+    plist <- align.pedigree(ped, packed=packed, align=align, 
                             hints=list(order=horder, spouse=sptemp))
     findspouse <- function(mypos, plist, lev, ped) {
         lpos <- mypos
@@ -217,7 +217,7 @@ autohint <- function(ped, hints) {
         #
         # Recompute, since this shifts things on levels below
         #
-        plist <- align.pedigree(ped, packed=TRUE, align=FALSE, 
+        plist <- align.pedigree(ped, packed=packed, align=align, 
                                 hints=list(order=horder, spouse=sptemp))   
         }
     list(order=horder, spouse=sptemp)    

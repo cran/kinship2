@@ -7,10 +7,14 @@ aeq <- function(x,y) all.equal(as.vector(x), as.vector(y))
 id <- 1:6
 momid <- c(0,0,2,2,4,4)
 dadid <- c(0,0,1,1,3,3)
-
-kmat1 <- kinship(id, momid, dadid)
+sex <- c(1,2,1,2,1,2)
+kmat1 <- kinship(id, dadid, momid)
 aeq(as.matrix(kmat1), c(4,0,2,2,2,2, 0,4,2,2,2,2, 2,2,4,2,3,3, 
           2,2,2,4,3,3, 2,2,3,3,5,3, 2,2,3,3,3,5) /8)
+
+kmat1x <- kinship(id, dadid, momid, sex, chrtype='X')
+aeq(kmat1x, c(8,0,0,4,4,2, 0,4,4,2,2,3, 0,4,8,2,2,5, 4,2,2,4,4,3,
+              4,2,2,4,8,3, 2,3,5,3,3,5)/8)
 
 
 # And here is an an odd one with cross marriages, but no inbreeding

@@ -11,12 +11,19 @@ This routine is used to create an initial version of the
 hints.  They can then be modified if desired.
 }
 \usage{
-autohint(ped, hints)
+autohint(ped, hints, packed=TRUE, align=FALSE)
 }
 \arguments{
 \item{ped}{ a pedigree structure}
 \item{hints}{ optional hints object. Only the order
   component is used.
+}
+\item{packed}{
+  If TRUE, uniform distance between all individuals at a given level.
+}
+\item{align}{ these parameters control the extra effort spent trying to
+  align children underneath parents, but without making the pedigree too
+  wide.  Set to FALSE to speed up plotting.
 }
 }
 \value{a list containing components \code{order} and \code{spouse}}

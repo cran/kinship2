@@ -1,6 +1,8 @@
 \name{kinship}
 \alias{kinship}
 \alias{kinship.default}
+\alias{kinship.pedigree}
+\alias{kinship.pedigreeList}
 \title{
   Compute a kinship matrix
 }
@@ -11,13 +13,15 @@
 }
 \usage{
 kinship(id, \dots)
-\method{kinship}{default}(id, dadid, momid, ...)
+\method{kinship}{pedigree}(id, chrtype="autosome", \dots)
+\method{kinship}{pedigreeList}(id, chrtype="autosome", \dots)
+\method{kinship}{default}(id, dadid, momid, sex, chrtype="autosome", \dots)
 }
 \arguments{
 \item{id}{
   either a pedigree object, pedigreeList object, or a vector of
   subject identifiers.  Subject identifiers may be numeric or
-  character.
+  character.  
 }
 \item{dadid }{
   for each subject, the identifier of the biological father.
@@ -27,9 +31,11 @@ kinship(id, \dots)
   for each subject, the identifier of the biological mother.
   This is only used if \code{id} is a vector.
 }
-\item{...}{
-  Any number of optional arguments  
-}
+\item{sex}{vector of sex values coded as 1=male, 2=female}
+
+\item{chrtype}{chromosome type.  The currently supported types
+  are "autosome" and "X" or "x".  }
+\item{\dots}{Any number of optional arguments} 
 }
 \value{
 a matrix of kinship coefficients.
@@ -37,7 +43,8 @@ a matrix of kinship coefficients.
 \details{
   The function will usually be called with a pedigree or pedigreeList;
   the third form is provided for backwards compatability with an earlier
-  version that was less capable.  The first argument is named \code{id}
+  release of the library that was less capable.
+  The first argument is named \code{id}
   for the same reason.  Note that when using the third form any
   information on twins is not available to the function.
 
@@ -54,19 +61,19 @@ a matrix of kinship coefficients.
 Two genes G1 and G2 are identical by descent (IBD) if they are both physical
 copies of the same ancestral gene; two genes are identical by state if
 they represent the same allele.  
-So the brown eye gene that I inherited from my mother is ibd with hers;
+So the brown eye gene that I inherited from my mother is IBD with hers;
 the same gene in an unrelated individual is not.
 
 The kinship coefficient between two subjects is the probability that a
-randomly selected allele from an autosomal locus will be IBD between them.
-It is obviously 0 between unrelated individuals, 0.5 for an individual
-with themselves (if we choose the same allele twice), .25 between mother
-and child, etc.
+randomly selected allele from a locus will be IBD between them.
+It is obviously 0 between unrelated individuals.
+For an autosomal site and no inbreeding
+it will be 0.5 for an individual
+with themselves, .25 between mother and child, .125 between an uncle and
+neice, etc.
 
 The computation is based on a recursive algorithm described in Lange,
-which assumes the marker autosomal in diploid subjects, and that the
-founder alleles are independent. It is unfortunately not vectorizable
-within family, so the code can be slow for very large families.
+which assumes that the founder alleles are all independent.
 }
 \section{References}{
 K Lange, Mathematical and Statistical Methods for Genetic Analysis,

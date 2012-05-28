@@ -15,4 +15,4 @@ pedigree.trim <- function(removeID, ped){
     return(ped)
   }
 }
- 
+  

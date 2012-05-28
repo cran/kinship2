@@ -55,7 +55,7 @@ Loading required package: quadprog
  [1] 201 202 203 204 205 206 207 208 209 211 212 213 214
 > ped2.trim210$relation
   indx1 indx2    code
-2    12    13 UZ twin
+2    11    12 UZ twin
 > 
 > ped2.sub210$id
  [1] 201 202 203 204 205 206 207 208 209 211 212 213 214
@@ -173,4 +173,4 @@ Loading required package: quadprog
 > 
 > proc.time()
    user  system elapsed 
-  2.754   0.098   2.965 
+  2.790   0.152   3.017 
