@@ -18,4 +18,3 @@ pedigree.legend(mnf8, radius=.5, location="topright")
 pedigree.legend(mnf8, radius=.6, location="topleft")
 
 pedigree.legend(mnf8, new=FALSE, cex=1.5)
-

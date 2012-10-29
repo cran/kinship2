@@ -58,3 +58,15 @@ kmat4 <- with(test2, makekinship(famid, paste(famid, id, sep='/'),
                                  paste(famid, dad, sep='/'),
                                  paste(famid, mom, sep='/')))
 all.equal(kmat3, kmat4)
+
+
+# scramble the people, to make sure that the routine
+#  keeps labels correctly
+set.seed(1953)
+temp <- order(runif(nrow(test2)))
+ped2 <- with(test2[temp,], 
+             pedigree(id=id, mom=mom, dad=dad, sex=sex, fam=famid)) 
+kmat5 <- kinship(ped2)
+
+indx <- match(dimnames(kmat3)[[2]], dimnames(kmat5)[[2]])
+all.equal(kmat5[indx, indx], kmat3)

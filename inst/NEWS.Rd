@@ -1,5 +1,33 @@
 \name{NEWS}
 \title{NEWS file for the kinship2 package}
+\section{Changes in version 1.3.7}{
+  \itemize{
+    \item Add monzygotic twins computation to the kinship matrix
+
+    \item Add a test for the new monozygote kinship code
+
+    \item Add the ibdMatrix function
+}}
+\section{Changes in version 1.3.5}{
+  \itemize{
+    \item Add the ibdMatrix routine, a replacement for bdsmatrix.ibd.
+    
+    \item The dimnames of a kinship matrix were in the wrong order if
+    a. it was created from a pedigreeList and b. the original data set
+    that created the pedigreeList was not sorted by family blocks
+    (all of one family, then all of the next, ...).  Pointed out by 
+    Claus Thorn Ekstrom.
+}}
+
+\section{Changes in version 1.3.4}{
+  \itemize{
+    \item The dimnames on kinship matrices had both row and column names 
+    some instances, only column names in others.   Changed to always 
+    return both.
+    }
+}
+		
+
 \section{Changes in version 1.3.3}{
   \itemize{
     \item Per a query from Alex Cunningham, checked the return list of

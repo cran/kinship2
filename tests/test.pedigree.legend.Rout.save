@@ -1,6 +1,6 @@
 
-R version 2.14.0 (2011-10-31)
-Copyright (C) 2011 The R Foundation for Statistical Computing
+R version 2.15.0 (2012-03-30)
+Copyright (C) 2012 The R Foundation for Statistical Computing
 ISBN 3-900051-07-0
 Platform: x86_64-unknown-linux-gnu (64-bit)
 
@@ -23,13 +23,6 @@ Type 'q()' to quit R.
 Loading required package: kinship2
 Loading required package: Matrix
 Loading required package: lattice
-
-Attaching package: 'Matrix'
-
-The following object(s) are masked from 'package:base':
-
-    det
-
 Loading required package: quadprog
 > 
 > 
@@ -49,4 +42,6 @@ Did not plot the following people: 160 164 167 168 169 170 171 172 173 174
 > 
 > pedigree.legend(mnf8, new=FALSE, cex=1.5)
 > 
-> 
+> proc.time()
+   user  system elapsed 
+  3.866   0.149   4.124 

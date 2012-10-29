@@ -68,7 +68,7 @@ kinship.default <- function(id, dadid, momid, ...) {
         }
     
     kmat <- kmat[1:n,1:n]
-    dimnames(kmat) <- list(NULL, id)
+    dimnames(kmat) <- list(id, id)
     kmat
     }
 @ 
@@ -76,7 +76,46 @@ kinship.default <- function(id, dadid, momid, ...) {
 The method for a pedigree object is and almost trivial modification.  Since the
 mother and father are already indexed into the id list it has 
 two lines that are different, those that create mrow and drow.
-Otherwise it is a complete repeat.
+The other change is that now we potentially have information available
+on monozygotic twins.  If there are any such, then when the second
+twin of a pair is added to the matrix, we need to ensure that the
+pair's kinship coefficient is set to 0.5.
+The case of triple monozygotes makes the code a bit harder.
+
+Because we don't want to put any computation into the middle of the for loops
+the focus is on preprocessing.
+Create a matrix containing the mz pairs, and then manufacture an index
+vector which contains, for all members of a set, the lowest id for that
+set.  The value for non-mz subjects is arbitrary.
+So for instance assume the following rather difficult example.
+\begin{verbatim}
+   1  2
+   1  3
+   5  6
+   3  7
+   10 9
+\end{verbatim}
+Subjects 1, 2, 3, and 7 form a monozygotic quadruple, 5/6 and 9/10 are
+monzygotic pairs.  
+The vector \texttt{mzgrp} will be 1, 1, 1, 4, 5, 5, 1, 8, 9, 9,
+of which elements 4 and 8 are not part of any set, and will
+be ignored.
+From this we create a list of 
+matrices \texttt{matlist} whose first element is a matrix
+containing all possible
+pairings of the four elements 1, 2, 3, and 7 (12 rows); the second is
+the matrix with rows of 4,5 and 5,4; and the third is the matrix for
+the 9, 10 pair.
+These are the elements of kmat that will have to be overridden to a
+the value of self-self kinship for the set.
+This will usually be 0.5, unless there is inbreeding of the
+twinset's ancestors.
+We need to do this reset at each level of the outer loop, before
+descendents of any of the twinsets are computed.  
+(Technically, we only need to reset for levels on which a
+twinset appears, but since there are normally only a few levels
+this is more trouble than it is worth.)
+
 <<kinship>>=
 kinship.pedigree <- function(id, ...) {
     n <- length(id$id)
@@ -90,6 +129,40 @@ kinship.pedigree <- function(id, ...) {
     mrow <- ifelse(id$mindex ==0, n+1, id$mindex)
     drow <- ifelse(id$findex ==0, n+1, id$findex)
 
+    # Are there any MZ twins to worry about?
+    if (!is.null(id$relation) && any(id$relation$code=="MZ twin")) {
+        havemz <- TRUE
+        temp <- which(id$relation$code=="MZ twin")
+        ## drop=FALSE added in case only one MZ twin set
+        mzmat <- as.matrix(id$relation[,c("indx1", "indx2")])[temp,,drop=FALSE]
+
+        # any triples, quads, etc?
+        if (any(table(mzmat) > 1)) { #yes there are
+            # each group id will be min(member id)
+            mzgrp <- 1:max(mzmat)  #each person a group
+            indx <- sort(unique(as.vector(mzmat)))
+            # The loop below will take k-1 iterations for a set labeled as
+            #   1:2, 2:3, ...(k-1):k;  this is the worst case.
+            while(1) {
+                z1 <- mzgrp[mzmat[,1]]
+                z2 <- mzgrp[mzmat[,2]]
+                if (all(z1 == z2)) break
+                mzgrp[indx] <- tapply(c(z1, z1, z2, z2), c(mzmat,mzmat), min)
+            }
+            # Now mzgrp = min person id for each person in a set
+            matlist <- tapply(mzmat, mzgrp[mzmat], function(x) {
+                x <- sort(unique(x))
+                temp <- cbind(rep(x, each=length(x)), rep(x, length(x)))
+                temp[temp[,1] != temp[,2],]
+                })
+            }
+        else {  #no triples, easier case
+            matlist <- tapply(mzmat, row(mzmat), function(x) 
+                            matrix(x[c(1,2,2,1)],2), simplify=FALSE)
+            }
+        }
+    else havemz <- FALSE
+
     for (depth in 1:max(pdepth)) {
         indx <- (1:n)[pdepth==depth]
         for (i in indx) {
@@ -98,12 +171,18 @@ kinship.pedigree <- function(id, ...) {
             kmat[i,]  <- kmat[,i] <- (kmat[mom,] + kmat[dad,])/2
             kmat[i,i] <- (1+ kmat[mom,dad])/2
             }
+        if (havemz) {
+            for (i in 1:length(matlist)) {
+                temp <- matlist[[i]]
+                kmat[temp] <- kmat[temp[1], temp[1]]
+            }
         }
+    }
     
     kmat <- kmat[1:n,1:n]
     dimnames(kmat) <- list(id$id, id$id)
     kmat
-    }    
+}    
 @ 
 For the Minnesota Family Cancer Study there are 461 families and 29114
 subjects.  The raw kinship matrix would be 29114 by 29114 which is over
@@ -133,6 +212,7 @@ kinship.pedigreeList <- function(id, ...) {
     famlist <- unique(id$famid)
     nfam <- length(famlist)
     matlist <- vector("list", nfam)
+    idlist  <- vector("list", nfam) #the possibly reorderd list of id values
    
     for (i in 1:length(famlist)) {
         tped <- id[i]  #pedigree for this family
@@ -140,12 +220,16 @@ kinship.pedigreeList <- function(id, ...) {
         if (class(temp)=="try-error") 
             stop(paste("In family", famlist[i], ":", temp))
         else matlist[[i]] <- as(forceSymmetric(temp), "dsCMatrix")
+        idlist[[i]] <- tped$id
     }
+
     result <- bdiag(matlist)
-    if (any(duplicated(id$id)))
-        dimnames(result) <- list(NULL, paste(id$famid, id$id, sep='/'))
-    else dimnames(result) <- list(id$id, id$id)
-    
+    if (any(duplicated(id$id))) 
+        temp <-paste(rep(famlist, sapply(idlist, length)),
+                     unlist(idlist), sep='/') 
+    else temp <- unlist(idlist)
+        
+    dimnames(result) <- list(temp, temp)
     result
 }
 @ 
@@ -204,7 +288,7 @@ makekinship <- function(famid, id, father.id, mother.id, unrelated=0) {
 	}
 
     if (nzero>0) mlist <- c(list(Diagonal(nzero)), mlist)
-    kmat <- bdiag(mlist)
+    kmat <- forceSymmetric(bdiag(mlist))
     dimnames(kmat) <- list(idlist, idlist)
     kmat
 }

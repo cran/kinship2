@@ -38,15 +38,18 @@ a matrix of kinship coefficients.
   The function will usually be called with a pedigree or pedigreeList;
   the third form is provided for backwards compatability with an earlier
   version that was less capable.  The first argument is named \code{id}
-  for the same reason.
+  for the same reason.  Note that when using the third form any
+  information on twins is not available to the function.
 
   When called with a pedigreeList, i.e., with multiple families, the
-  routine will create a block-diagonal-symmetric \code{bdsmatrix}
-  object.  Since the [i,j] value of the result is 0 for any two
-  unrelated individuals i and j and a \code{bdsmatix} utilizes sparse
+  routine will create a block-diagonal-symmetric sparse matrix object
+  of class \code{dsCMatrix}.
+  Since the [i,j] value of the result is 0 for any two
+  unrelated individuals i and j and a \code{Matrix} utilizes sparse
   representation, the resulting object is often orders of magnitude
-  smaller than an ordinary matrix.  When called with a single pedigree
-  and ordinary matrix is returned.
+  smaller than an ordinary matrix.
+  When \code{kinship} is called with a single pedigree
+  an ordinary matrix is returned.
   
 Two genes G1 and G2 are identical by descent (IBD) if they are both physical
 copies of the same ancestral gene; two genes are identical by state if
@@ -57,7 +60,7 @@ the same gene in an unrelated individual is not.
 The kinship coefficient between two subjects is the probability that a
 randomly selected allele from an autosomal locus will be IBD between them.
 It is obviously 0 between unrelated individuals, 0.5 for an individual
-with themselves (we could choose the same allele twice), .25 between mother
+with themselves (if we choose the same allele twice), .25 between mother
 and child, etc.
 
 The computation is based on a recursive algorithm described in Lange,

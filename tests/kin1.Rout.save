@@ -1,6 +1,6 @@
 
-R version 2.14.0 (2011-10-31)
-Copyright (C) 2011 The R Foundation for Statistical Computing
+R version 2.15.0 (2012-03-30)
+Copyright (C) 2012 The R Foundation for Statistical Computing
 ISBN 3-900051-07-0
 Platform: x86_64-unknown-linux-gnu (64-bit)
 
@@ -22,13 +22,6 @@ Type 'q()' to quit R.
 > library(kinship2)
 Loading required package: Matrix
 Loading required package: lattice
-
-Attaching package: 'Matrix'
-
-The following object(s) are masked from 'package:base':
-
-    det
-
 Loading required package: quadprog
 > aeq <- function(x,y) all.equal(as.vector(x), as.vector(y))
 > 
@@ -91,7 +84,21 @@ Loading required package: quadprog
 +                                  paste(famid, dad, sep='/'),
 +                                  paste(famid, mom, sep='/')))
 > all.equal(kmat3, kmat4)
-[1] "Length mismatch: comparison on first 2 components"             
-[2] "Component 2: Component 1: target is NULL, current is character"
-[3] "class(target) is dsCMatrix, current is dgCMatrix"              
+[1] TRUE
 > 
+> 
+> # scramble the people, to make sure that the routine
+> #  keeps labels correctly
+> set.seed(1953)
+> temp <- order(runif(nrow(test2)))
+> ped2 <- with(test2[temp,], 
++              pedigree(id=id, mom=mom, dad=dad, sex=sex, fam=famid)) 
+> kmat5 <- kinship(ped2)
+> 
+> indx <- match(dimnames(kmat3)[[2]], dimnames(kmat5)[[2]])
+> all.equal(kmat5[indx, indx], kmat3)
+[1] TRUE
+> 
+> proc.time()
+   user  system elapsed 
+  2.979   0.124   3.166 

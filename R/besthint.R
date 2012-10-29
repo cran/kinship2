@@ -45,7 +45,7 @@ besthint <- function(ped, wt=c(1000, 10, 1), tolerance=0) {
         ped$hints <- hint
         newhint <- autohint(ped)  #this fixes up marriages and such
         plist <- align.pedigree(ped, packed=TRUE, align=TRUE, 
-                                width=8, hint=newhint)
+                                width=8, hints=newhint)
         
         # Compute the error measures
         err <- rep(0.0,3)

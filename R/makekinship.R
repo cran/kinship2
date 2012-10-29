@@ -40,7 +40,7 @@ makekinship <- function(famid, id, father.id, mother.id, unrelated=0) {
         }
 
     if (nzero>0) mlist <- c(list(Diagonal(nzero)), mlist)
-    kmat <- bdiag(mlist)
+    kmat <- forceSymmetric(bdiag(mlist))
     dimnames(kmat) <- list(idlist, idlist)
     kmat
 }

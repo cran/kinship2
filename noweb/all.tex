@@ -56,12 +56,12 @@ It accepts the following input
   \item[famid] Optional, a numeric or character vector of family identifiers.
 \end{description}
 
-The [[famid]] variable is placed last as it was a later addition to the
+The {\tt{}famid} variable is placed last as it was a later addition to the
 code; thus prior invocations of the function that use positional 
 arguments won't be affected.                                       %'
 If present, this allows a set of pedigrees to be generated, one per
 family.  The resultant structure will be an object of class
-[[pedigreeList]].
+{\tt{}pedigreeList}.
 
 Note that a factor variable is not listed as one of the choices for the
 subject identifier. This is on purpose.  Factors
@@ -83,24 +83,24 @@ Gender and relation do become factors.  Status follows the pattern of the
 survival routines and remains an integer.
 
 We will describe the code in a set of blocks.
-<<pedigree>>=
+\nwfilename{all.nw}\nwbegincode{1}\moddef{pedigree}\endmoddef
 pedigree <- function(id, dadid, momid, sex, affected, status, relation,
-                     famid, missid) {
-    <<pedigree-error>>
-    <<pedigree-parent>>
-    <<pedigree-create>>
-    <<pedigree-extra>>
+                     famid, missid) \{
+    \LA{}pedigree-error\RA{}
+    \LA{}pedigree-parent\RA{}
+    \LA{}pedigree-create\RA{}
+    \LA{}pedigree-extra\RA{}
     if (missing(famid)) class(temp) <- 'pedigree'
     else class(temp) <- 'pedigreeList'
     temp
-    }
-<<pedigree-subscript>>
-@ 
+    \}
+\LA{}pedigree-subscript\RA{}
+\nwendcode{}\nwbegindocs{2}\nwdocspar
 
 \subsection{Data checks}
 The code starts out with some checks on the input data.  
 Is it all the same length, are the codes legal, etc.
-<<pedigree-error>>=
+\nwenddocs{}\nwbegincode{3}\moddef{pedigree-error}\endmoddef
 n <- length(id)
 if (length(momid) != n) stop("Mismatched lengths, id and momid")
 if (length(dadid) != n) stop("Mismatched lengths, id and momid")
@@ -108,18 +108,18 @@ if (length(sex  ) != n) stop("Mismatched lengths, id and sex")
 
 # Don't allow missing id values
 if (any(is.na(id))) stop("Missing value for the id variable")
-if (!is.numeric(id)) {
+if (!is.numeric(id)) \{
     id <- as.character(id)
     if (length(grep('^ *$', id)) > 0)
     stop("A blank or empty string is not allowed as the id variable")
-  }
+  \}
 
 # Allow for character/numeric/factor in the sex variable
 if(is.factor(sex))
         sex <- as.character(sex)
 codes <- c("male","female", "unknown", "terminated")
 if(is.character(sex)) sex<- charmatch(casefold(sex, upper = FALSE), codes, 
-    				  nomatch = 3)	
+                                  nomatch = 3)  
 
 # assume either 0/1/2/4 =  female/male/unknown/term, or 1/2/3/4
 #  if only 1/2 assume no unknowns
@@ -129,9 +129,9 @@ sex <- ifelse(sex < 1 | sex > 4, 3, sex)
 if(all(sex > 2))
         stop("Invalid values for 'sex'")
     else if(mean(sex == 3) > 0.25)
-    	warning("More than 25% of the gender values are 'unknown'")
+        warning("More than 25% of the gender values are 'unknown'")
 sex <- factor(sex, 1:4, labels = codes)
-@ 
+\nwendcode{}\nwbegindocs{4}\nwdocspar
 
 Create the variables descibing a missing father and/or mother,
 which is what we expect both for people at the top of the
@@ -141,104 +141,104 @@ It's easier to do it first.
 If there are multiple families in the pedigree, make a working set of
 identifiers that are of the form `family/subject'.
 Family identifiers can be factor, character, or numeric.
-<<pedigree-error>>=
-if (missing(missid)) {
+\nwenddocs{}\nwbegincode{5}\moddef{pedigree-error}\plusendmoddef
+if (missing(missid)) \{
     if (is.numeric(id)) missid <- 0
     else missid <- ""
-}
+\}
 
 nofather <- (is.na(dadid) | dadid==missid)
 nomother <- (is.na(momid) | momid==missid)
 
-if (!missing(famid)) {
+if (!missing(famid)) \{
     if (any(is.na(famid))) stop("The family id cannot contain missing values")
-    if (is.factor(famid) || is.character(famid)) {
+    if (is.factor(famid) || is.character(famid)) \{
         if (length(grep('^ *$', famid)) > 0)
             stop("The family id cannot be a blank or empty string")
-        }
+        \}
     #Make a temporary new id from the family and subject pair
     oldid <-id
     id <- paste(as.character(famid), as.character(id), sep='/')
     dadid <- paste(as.character(famid), as.character(dadid), sep='/')
     momid <- paste(as.character(famid), as.character(momid), sep='/')
-    }
+    \}
 
-if (any(duplicated(id))) {
+if (any(duplicated(id))) \{
     duplist <- id[duplicated(id)]
     msg.n <- min(length(duplist), 6)
     stop(paste("Duplicate subject id:", duplist[1:msg.n]))
-    }
-@ 
+    \}
+\nwendcode{}\nwbegindocs{6}\nwdocspar
 
 Next check that any mother or father identifiers are found in the identifier
 list, and are of the right sex.
 Subjects who don't have a mother or father are founders.  For those people %'
 both of the parents should be missing.
 
-<<pedigree-parent>>=
+\nwenddocs{}\nwbegincode{7}\moddef{pedigree-parent}\endmoddef
 findex <- match(dadid, id, nomatch = 0)
-if(any(sex[findex] != "male")) {
+if(any(sex[findex] != "male")) \{
     who <- unique((id[findex])[sex[findex] != "male"])
     msg.n <- 1:min(5, length(who))  #Don't list a zillion
     stop(paste("Id not male, but is a father:", 
                paste(who[msg.n], collapse= " ")))
-    }
+    \}
 
-if (any(findex==0 & !nofather)) {
+if (any(findex==0 & !nofather)) \{
     who <- dadid[which(findex==0 & !nofather)]
     msg.n <- 1:min(5, length(who))  #Don't list a zillion
     stop(paste("Value of 'dadid' not found in the id list", 
                paste(who[msg.n], collapse= " ")))
-    }
+    \}
     
 mindex <- match(momid, id, nomatch = 0)
-if(any(sex[mindex] != "female")) {
+if(any(sex[mindex] != "female")) \{
     who <- unique((id[mindex])[sex[mindex] != "female"])
     msg.n <- 1:min(5, length(who))
     stop(paste("Id not female, but is a mother:", 
                paste(who[msg.n], collapse = " ")))
-    }
+    \}
 
-if (any(mindex==0 & !nomother)) {
+if (any(mindex==0 & !nomother)) \{
     who <- momid[which(mindex==0 & !nomother)]
     msg.n <- 1:min(5, length(who))  #Don't list a zillion
     stop(paste("Value of 'momid' not found in the id list", 
                paste(who[msg.n], collapse= " ")))
-    }
+    \}
 
-if (any(mindex==0 & findex!=0) || any(mindex!=0 & findex==0)) {
+if (any(mindex==0 & findex!=0) || any(mindex!=0 & findex==0)) \{
     who <- id[which((mindex==0 & findex!=0) |(mindex!=0 & findex==0))] 
     msg.n <- 1:min(5, length(who))  #Don't list a zillion
     stop(paste("Subjects must have both a father and mother, or have neither",
                paste(who[msg.n], collapse= " ")))
-}
+\}
 
-if (!missing(famid)) {
-    if (any(famid[mindex] != famid[mindex>0])) {
+if (!missing(famid)) \{
+    if (any(famid[mindex] != famid[mindex>0])) \{
         who <- (id[mindex>0])[famid[mindex] != famid[mindex>0]]
         msg.n <- 1:min(5, length(who))
         stop(paste("Mother's family != subject's family", 
                    paste(who[msg.n], collapse=" ")))
-        }
-    if (any(famid[findex] != famid[findex>0])) {
+        \}
+    if (any(famid[findex] != famid[findex>0])) \{
         who <- (id[findex>0])[famid[findex] != famid[findex>0]]
         msg.n <- 1:min(5, length(who))
         stop(paste("Father's family != subject's family", 
                    paste(who[msg.n], collapse=" ")))
-        }
-    }
-@ 
+        \}
+    \}
+\nwendcode{}\nwbegindocs{8}\nwdocspar
 
 \subsection{Creation}
 Now, paste the parts together into a basic pedigree.
 The fields for father and mother are not the identifiers of
 the parents, but their row number in the structure.
-<<pedigree-create>>=
+\nwenddocs{}\nwbegincode{9}\moddef{pedigree-create}\endmoddef
 if (missing(famid))
     temp <- list(id = id, findex=findex, mindex=mindex, sex=sex)
 else temp<- list(famid=famid, id=oldid, findex=findex, mindex=mindex, 
                  sex=sex)
-@ 
+\nwendcode{}\nwbegindocs{10}\nwdocspar
 
 The last part is to check out the optional features,
 affected status, survival status, and relationships.
@@ -250,72 +250,72 @@ Update by Jason Sinnwell 7/2011: Change relation:id1 and id2 to indx1 and indx2
 because they are the index of the id vector. Both $pedigree.trim$ 
 and $[.pedigree$ now work with these column names.
 
-<<pedigree-extra>>=
-if (!missing(affected)) {
-    if (is.matrix(affected)){
+\nwenddocs{}\nwbegincode{11}\moddef{pedigree-extra}\endmoddef
+if (!missing(affected)) \{
+    if (is.matrix(affected))\{
         if (nrow(affected) != n) stop("Wrong number of rows in affected")
         if (is.logical(affected)) affected <- 1* affected
-        } 
-    else {
+        \} 
+    else \{
         if (length(affected) != n)
             stop("Wrong length for affected")
 
         if (is.logical(affected)) affected <- as.numeric(affected)
         if (is.factor(affected))  affected <- as.numeric(affected) -1
-        }
+        \}
     if(max(affected, na.rm=TRUE) > min(affected, na.rm=TRUE)) 
       affected <- affected - min(affected, na.rm=TRUE)
     if (!all(affected==0 | affected==1 | is.na(affected)))
-		stop("Invalid code for affected status")
+                stop("Invalid code for affected status")
     temp$affected <- affected
-    }
+    \}
 
-if(!missing(status)) {
+if(!missing(status)) \{
     if(length(status) != n)
         stop("Wrong length for affected")
     if (is.logical(status)) status <- as.integer(status)
     if(any(status != 0 & status != 1))
         stop("Invalid status code")
     temp$status <- status
-    }
+    \}
 
-if (!missing(relation)) {
-    if (!missing(famid)) {
-        if (is.matrix(relation)) {
+if (!missing(relation)) \{
+    if (!missing(famid)) \{
+        if (is.matrix(relation)) \{
             if (ncol(relation) != 4) 
                 stop("Relation matrix must have 3 columns + famid")
             id1 <- relation[,1]
             id2 <- relation[,2]
             code <- relation[,3]
             famid <- relation[,4]
-            }
-        else if (is.data.frame(relation)) {
+            \}
+        else if (is.data.frame(relation)) \{
             id1 <- relation$id1
             id2 <- relation$id2
             code <- relation$code
             famid <- relation$famid
             if (is.null(id1) || is.null(id2) || is.null(code) ||is.null(famid)) 
             stop("Relation data must have id1, id2, family id and code")
-	    }
+            \}
         else stop("Relation argument must be a matrix or a dataframe")
-        }
-    else {
-        if (is.matrix(relation)) {
+        \}
+    else \{
+        if (is.matrix(relation)) \{
             if (ncol(relation) != 3) 
                 stop("Relation matrix must have 3 columns")
             id1 <- relation[,1]
             id2 <- relation[,2]
             code <- relation[,3]
-            }
-        else if (is.data.frame(relation)) {
+            \}
+        else if (is.data.frame(relation)) \{
             id1 <- relation$id1
             id2 <- relation$id2
             code <- relation$code
             if (is.null(id1) || is.null(id2) || is.null(code)) 
                 stop("Relation data frame must have id1, id2, and code")
-	    }
+            \}
         else stop("Relation argument must be a matrix or a list")
-	}
+        \}
     
     if (!is.numeric(code))
         code <- match(code, c("MZ twin", "DZ twin", "UZ twin", "spouse"))
@@ -325,51 +325,51 @@ if (!missing(relation)) {
         stop("Invalid relationship code")
      
     # Is everyone in this relationship in the pedigree?
-    if (!missing(famid)) {
+    if (!missing(famid)) \{
         temp1 <- match(paste(as.character(famid), as.character(id1), sep='/'), 
                        id, nomatch=0)
         temp2 <- match(paste(as.character(famid), as.character(id2), sep='/'),
                        id, nomatch=0)
-      }
-    else {
+      \}
+    else \{
         temp1 <- match(id1, id, nomatch=0)
         temp2 <- match(id2, id, nomatch=0)
-      }
+      \}
     
     if (any(temp1==0 | temp2==0))
         stop("Subjects in relationships that are not in the pedigree")
-    if (any(temp1==temp2)) {
+    if (any(temp1==temp2)) \{
         who <- temp1[temp1==temp2]
         stop(paste("Subject", id[who], "is their own spouse or twin"))
-        }
+        \}
 
     # Check, are the twins really twins?
     ncode <- as.numeric(code)
-    if (any(ncode<3)) {
+    if (any(ncode<3)) \{
         twins <- (ncode<3)
         if (any(momid[temp1[twins]] != momid[temp2[twins]]))
             stop("Twins found with different mothers")
         if (any(dadid[temp1[twins]] != dadid[temp2[twins]]))
             stop("Twins found with different fathers")
-        }
+        \}
     # Check, are the monozygote twins the same gender?
-    if (any(code=="MZ twin")) {
+    if (any(code=="MZ twin")) \{
         mztwins <- (code=="MZ twin")
         if (any(sex[temp1[mztwins]] != sex[temp2[mztwins]]))
             stop("MZ Twins with different genders")
-        }
+        \}
 
     ##Use id index as indx1 and indx2
-    if (!missing(famid)) {
+    if (!missing(famid)) \{
         temp$relation <- data.frame(famid=famid, indx1=temp1, indx2=temp2, code=code)
         
-      }
+      \}
     else temp$relation <- data.frame(indx1=temp1, indx2=temp2, code=code)
-    }
-@ 
+    \}
+\nwendcode{}\nwbegindocs{12}\nwdocspar
 
 The final structure will be in the order of the original data, and all the
-components except [[relation]] will have the
+components except {\tt{}relation} will have the
 same number of rows as the original data.
 
 
@@ -379,8 +379,8 @@ Subscripting of a pedigree list extracts one or more families from the
 list.  We treat character subscripts in the same way that dimnames on
 a matrix are used.  Factors are a problem though: assume that we
 have a vector x with names ``joe'', ``charlie'', ``fred'', then
-[[x['joe']]] is the first element of the vector, but
-[[temp <- factor('joe', 'charlie', 'fred'); z <- temp[1]; x[z] ]] will
+{\tt{}x['joe']} is the first element of the vector, but
+{\tt{}temp\ <-\ factor('joe',\ 'charlie',\ 'fred');\ z\ <-\ temp[1];\ x[z]\ } will
 be the second element!  
 That is, the standard R approach is not what we want.
 Our first solution was to create an integer vector with appropriate
@@ -395,13 +395,13 @@ The user is responsible to say ['4'] in this case.
 In a normal vector invalid subscripts give an NA, e.g. (1:3)[6], but
 since there is no such object as an ``NA pedigree'', we emit an error
 for this.
-The [[drop]] argument has no meaning for pedigrees, but must to be
+The {\tt{}drop} argument has no meaning for pedigrees, but must to be
 a defined argument of any subscript method; we simply ignore it.
 For both methods updating the father/mother is a minor nuisance;
 since they must are integer indices to rows they must be
 recreated after selection.  
-<<pedigree-subscript>>=
-"[.pedigreeList" <- function(x, ..., drop=F) {
+\nwenddocs{}\nwbegincode{13}\moddef{pedigree-subscript}\endmoddef
+"[.pedigreeList" <- function(x, ..., drop=F) \{
     if (length(list(...)) != 1) stop ("Only 1 subscript allowed")
     ufam <- unique(x$famid)
     if (is.factor(..1) || is.character(..1)) indx <- ufam[match(..1, ufam)]
@@ -420,26 +420,26 @@ recreated after selection.
     
     #optional components
     if (!is.null(x$status)) x$status <- x$status[keep]
-    if (!is.null(x$affected)) {
+    if (!is.null(x$affected)) \{
         if (is.matrix(x$affected)) x$affected <- x$affected[keep,,drop=FALSE]
         else x$affected <- x$affected[keep]
-        }
-    if (!is.null(x$relation)) {
+        \}
+    if (!is.null(x$relation)) \{
         keep <- !is.na(match(x$relation$famid, names(indx)))
-        if (any(keep)) {
+        if (any(keep)) \{
             x$relation <- x$relation[keep,]
             ##Update twin id indexes
             x$relation$indx1 <- match(x$relation$indx1, kept.rows, nomatch=0)
             x$relation$indx2 <- match(x$relation$indx2, kept.rows, nomatch=0)
             ##If only one family chosen, remove famid
-            if (length(indx)==1) {x$relation$famid <- NULL}
-            }
-        }
+            if (length(indx)==1) \{x$relation$famid <- NULL\}
+            \}
+        \}
     if (length(indx)==1)  class(x) <- 'pedigree'  #only one family chosen
     else class(x) <- 'pedigreeList'
     x
-    }
-@ 
+    \}
+\nwendcode{}\nwbegindocs{14}\nwdocspar
 
 For a pedigree, the subscript operator extracts a subset of individuals.
 We disallow selections that retain only 1 of a subject's parents, since    %'
@@ -447,8 +447,8 @@ they cause plotting trouble later.
 Relations are worth keeping only if both parties in the relation were
 selected.
 
-<<pedigree-subscript>>=
-"[.pedigree" <- function(x, ..., drop=F) {
+\nwenddocs{}\nwbegincode{15}\moddef{pedigree-subscript}\plusendmoddef
+"[.pedigree" <- function(x, ..., drop=F) \{
     if (length(list(...)) != 1) stop ("Only 1 subscript allowed")
     if (is.character(..1) || is.factor(..1)) i <- match(..1, x$id)
     else i <- (1:length(x$id))[..1]
@@ -457,44 +457,44 @@ selected.
 
     z <- list(id=x$id[i],findex=match(x$findex[i], i, nomatch=0),
               mindex=match(x$mindex[i], i, nomatch=0),
-	     sex=x$sex[i])
-    if (!is.null(x$affected)) {
+             sex=x$sex[i])
+    if (!is.null(x$affected)) \{
         if (is.matrix(x$affected)) z$affected <- x$affected[i,, drop=F]
         else z$affected <- x$affected[i]
-    }
+    \}
     if (!is.null(x$famid)) z$famid <- x$famid[i]
 
    
-    if (!is.null(x$relation)) {
+    if (!is.null(x$relation)) \{
       indx1 <- match(x$relation$indx1, i, nomatch=0)
       indx2 <- match(x$relation$indx2, i, nomatch=0)
       keep <- (indx1 >0 & indx2 >0)  #keep only if both id's are kept
-      if (any(keep)) {
+      if (any(keep)) \{
         z$relation <- x$relation[keep,,drop=FALSE]
         z$relation$indx1 <- indx1[keep]
         z$relation$indx2 <- indx2[keep]
-      }
-    }
+      \}
+    \}
     
-    if (!is.null(x$hints)) {
+    if (!is.null(x$hints)) \{
         temp <- list(order= x$hints$order[i])
-        if (!is.null(x$hints$spouse)) {
+        if (!is.null(x$hints$spouse)) \{
             indx1 <- match(x$hints$spouse[,1], i, nomatch=0)
             indx2 <- match(x$hints$spouse[,2], i, nomatch=0)
             keep <- (indx1 >0 & indx2 >0)  #keep only if both id's are kept
             if (any(keep))
                 temp$spouse <- cbind(indx1[keep], indx2[keep],
                                      x$hints$spouse[keep,3])
-            }
+            \}
         z$hints <- temp
-        }
+        \}
 
     if (any(z$findex==0 & z$mindex>0) | any(z$findex>0 & z$mindex==0))
         stop("A subpedigree cannot choose only one parent of a subject")
     class(z) <- 'pedigree'
     z
-    }
-@ 
+    \}
+\nwendcode{}\nwbegindocs{16}\nwdocspar
 
 \subsection{As Data.Frame}
 
@@ -511,9 +511,9 @@ file that it is an S3 method.
 
 
 
-<<as.data.frame.pedigree>>=
+\nwenddocs{}\nwbegincode{17}\moddef{as.data.frame.pedigree}\endmoddef
 
-as.data.frame.pedigree <- function(x, ...) {
+as.data.frame.pedigree <- function(x, ...) \{
 
   dadid <- momid <- rep(0, length(x$id))
   dadid[x$findex>0] <- x$id[x$findex]
@@ -526,17 +526,17 @@ as.data.frame.pedigree <- function(x, ...) {
   if(!is.null(x$status))
     df$status = x$status
   return(df)
-}
-@ 
+\}
+\nwendcode{}\nwbegindocs{18}\nwdocspar
 
 
 This function is useful for checking the pedigree object with the
 $findex$ and $mindex$ vector instead of them replaced with the ids of 
 the parents.  This is not currently included in the package.
 
-<<ped2df>>=
+\nwenddocs{}\nwbegincode{19}\moddef{ped2df}\endmoddef
 
-ped2df <- function(ped) {
+ped2df <- function(ped) \{
   df <- data.frame(id=ped$id, findex=ped$findex, mindex=ped$mindex, sex=ped$sex)
   if(!is.null(ped$affected))
     df$affected = ped$affected
@@ -546,9 +546,9 @@ ped2df <- function(ped) {
 
   return(df)
 
-}
+\}
 
-@ 
+\nwendcode{}\nwbegindocs{20}\nwdocspar
 
 
 
@@ -557,19 +557,19 @@ It usually doesn't make sense to print a pedigree, since the id is just   %'
 a repeat of the input data and the family connections are pointers.
 Thus we create a simple summary.
 
-<<print.pedigree>>=
-print.pedigree <- function(x, ...) {
+\nwenddocs{}\nwbegincode{21}\moddef{print.pedigree}\endmoddef
+print.pedigree <- function(x, ...) \{
     cat("Pedigree object with", length(x$id), "subjects")
-    if (!is.null(x$famid)) cat(", family id=", x$famid[1], "\n")
-    else cat("\n")
-    cat("Bit size=", bitSize(x)$bitSize, "\n")
-    }
+    if (!is.null(x$famid)) cat(", family id=", x$famid[1], "\\n")
+    else cat("\\n")
+    cat("Bit size=", bitSize(x)$bitSize, "\\n")
+    \}
 
-print.pedigreeList <- function(x, ...) {
+print.pedigreeList <- function(x, ...) \{
     cat("Pedigree list with", length(x$id), "total subjects in",
-        length(unique(x$famid)), "families\n")
-    }
-@ 
+        length(unique(x$famid)), "families\\n")
+    \}
+\nwendcode{}\nwbegindocs{22}\nwdocspar
 \section{Kinship matrices}
 The kinship matrix is foundational for random effects models with family
 data.  
@@ -591,7 +591,7 @@ matrix, they require no further processing.
 Parents must be processed before their children, and then a child's        %'
 kinship is a sum of the kinship's for his/her parents.                     %'
 
-Start by using the [[kindepth]] routine to label each subject's depth in   %'
+Start by using the {\tt{}kindepth} routine to label each subject's depth in   %'
 the pedigree.  
 The initial matrix suffices for all those of depth 0, then process
 depth 1, etc.
@@ -599,9 +599,9 @@ This guarrantees that parent's precede children.                            %'
 Founders are given a fake parent with id of n+1 who is unrelated to 
 himself -- a little trick that avoids some if-else logic.
 
-The most non-obvious part of the algorithm is the inner loop over [[i]].
+The most non-obvious part of the algorithm is the inner loop over {\tt{}i}.
 It looks like a natural candidate for S-vectorization, but you cannot.
-The key is [[kmat[mom,] + kmat[dad,] ]]: as we walk through a set of
+The key is {\tt{}kmat[mom,]\ +\ kmat[dad,]\ }: as we walk through a set of
 siblings these vectors change, the $i$th element goes from 0 to the
 appropriate value for that sib.  The dependence of each sib on prior
 ones is what creates the correct between-sib correlation terms. 
@@ -610,14 +610,14 @@ function is run once per family.  A study may have thousands of
 subjects but individual families within it are more modest in size.
 
 The program can be called with a pedigree, a pedigree list, or
-raw data.  The first argument is [[id]] instead of the more generic [[x]]
+raw data.  The first argument is {\tt{}id} instead of the more generic {\tt{}x}
 for backwards compatability.
-<<kinship>>=
-kinship <- function(id, ...) {
+\nwenddocs{}\nwbegincode{23}\moddef{kinship}\endmoddef
+kinship <- function(id, ...) \{
     UseMethod('kinship')
-    }
+    \}
 
-kinship.default <- function(id, dadid, momid, ...) {
+kinship.default <- function(id, dadid, momid, ...) \{
     n <- length(id)
     if (n==1) 
         return(matrix(.5,1,1, dimnames=list(id, id)))
@@ -629,67 +629,28 @@ kinship.default <- function(id, dadid, momid, ...) {
     mrow <- match(momid, id, nomatch=n+1) #row number of the mother
     drow <- match(dadid, id, nomatch=n+1) #row number of the dad 
 
-    for (depth in 1:max(pdepth)) {
+    for (depth in 1:max(pdepth)) \{
         indx <- (1:n)[pdepth==depth]
-        for (i in indx) {
+        for (i in indx) \{
             mom <- mrow[i]
             dad <- drow[i]
             kmat[i,]  <- kmat[,i] <- (kmat[mom,] + kmat[dad,])/2
             kmat[i,i] <- (1+ kmat[mom,dad])/2
-            }
-        }
+            \}
+        \}
     
     kmat <- kmat[1:n,1:n]
     dimnames(kmat) <- list(id, id)
     kmat
-    }
-@ 
+    \}
+\nwendcode{}\nwbegindocs{24}\nwdocspar
 
 The method for a pedigree object is and almost trivial modification.  Since the
 mother and father are already indexed into the id list it has 
 two lines that are different, those that create mrow and drow.
-The other change is that now we potentially have information available
-on monozygotic twins.  If there are any such, then when the second
-twin of a pair is added to the matrix, we need to ensure that the
-pair's kinship coefficient is set to 0.5.
-The case of triple monozygotes makes the code a bit harder.
-
-Because we don't want to put any computation into the middle of the for loops
-the focus is on preprocessing.
-Create a matrix containing the mz pairs, and then manufacture an index
-vector which contains, for all members of a set, the lowest id for that
-set.  The value for non-mz subjects is arbitrary.
-So for instance assume the following rather difficult example.
-\begin{verbatim}
-   1  2
-   1  3
-   5  6
-   3  7
-   10 9
-\end{verbatim}
-Subjects 1, 2, 3, and 7 form a monozygotic quadruple, 5/6 and 9/10 are
-monzygotic pairs.  
-The vector \texttt{mzgrp} will be 1, 1, 1, 4, 5, 5, 1, 8, 9, 9,
-of which elements 4 and 8 are not part of any set, and will
-be ignored.
-From this we create a list of 
-matrices \texttt{matlist} whose first element is a matrix
-containing all possible
-pairings of the four elements 1, 2, 3, and 7 (12 rows); the second is
-the matrix with rows of 4,5 and 5,4; and the third is the matrix for
-the 9, 10 pair.
-These are the elements of kmat that will have to be overridden to a
-the value of self-self kinship for the set.
-This will usually be 0.5, unless there is inbreeding of the
-twinset's ancestors.
-We need to do this reset at each level of the outer loop, before
-descendents of any of the twinsets are computed.  
-(Technically, we only need to reset for levels on which a
-twinset appears, but since there are normally only a few levels
-this is more trouble than it is worth.)
-
-<<kinship>>=
-kinship.pedigree <- function(id, ...) {
+Otherwise it is a complete repeat.
+\nwenddocs{}\nwbegincode{25}\moddef{kinship}\plusendmoddef
+kinship.pedigree <- function(id, ...) \{
     n <- length(id$id)
     if (n==1) 
         return(matrix(.5,1,1, dimnames=list(id$id, id$id)))
@@ -701,67 +662,27 @@ kinship.pedigree <- function(id, ...) {
     mrow <- ifelse(id$mindex ==0, n+1, id$mindex)
     drow <- ifelse(id$findex ==0, n+1, id$findex)
 
-    # Are there any MZ twins to worry about?
-    if (!is.null(id$relation) && any(id$relation$code=="MZ twin")) {
-        havemz <- TRUE
-        temp <- which(id$relation$code=="MZ twin")
-        ## drop=FALSE added in case only one MZ twin set
-        mzmat <- as.matrix(id$relation[,c("indx1", "indx2")])[temp,,drop=FALSE]
-
-        # any triples, quads, etc?
-        if (any(table(mzmat) > 1)) { #yes there are
-            # each group id will be min(member id)
-            mzgrp <- 1:max(mzmat)  #each person a group
-            indx <- sort(unique(as.vector(mzmat)))
-            # The loop below will take k-1 iterations for a set labeled as
-            #   1:2, 2:3, ...(k-1):k;  this is the worst case.
-            while(1) {
-                z1 <- mzgrp[mzmat[,1]]
-                z2 <- mzgrp[mzmat[,2]]
-                if (all(z1 == z2)) break
-                mzgrp[indx] <- tapply(c(z1, z1, z2, z2), c(mzmat,mzmat), min)
-            }
-            # Now mzgrp = min person id for each person in a set
-            matlist <- tapply(mzmat, mzgrp[mzmat], function(x) {
-                x <- sort(unique(x))
-                temp <- cbind(rep(x, each=length(x)), rep(x, length(x)))
-                temp[temp[,1] != temp[,2],]
-                })
-            }
-        else {  #no triples, easier case
-            matlist <- tapply(mzmat, row(mzmat), function(x) 
-                            matrix(x[c(1,2,2,1)],2), simplify=FALSE)
-            }
-        }
-    else havemz <- FALSE
-
-    for (depth in 1:max(pdepth)) {
+    for (depth in 1:max(pdepth)) \{
         indx <- (1:n)[pdepth==depth]
-        for (i in indx) {
+        for (i in indx) \{
             mom <- mrow[i]
             dad <- drow[i]
             kmat[i,]  <- kmat[,i] <- (kmat[mom,] + kmat[dad,])/2
             kmat[i,i] <- (1+ kmat[mom,dad])/2
-            }
-        if (havemz) {
-            for (i in 1:length(matlist)) {
-                temp <- matlist[[i]]
-                kmat[temp] <- kmat[temp[1], temp[1]]
-            }
-        }
-    }
+            \}
+        \}
     
     kmat <- kmat[1:n,1:n]
     dimnames(kmat) <- list(id$id, id$id)
     kmat
-}    
-@ 
+    \}    
+\nwendcode{}\nwbegindocs{26}\nwdocspar
 For the Minnesota Family Cancer Study there are 461 families and 29114
 subjects.  The raw kinship matrix would be 29114 by 29114 which is over
 5 terabytes of memory, something that clearly won't work within S.       %'
 The solution is to store the overall matrix as a sparse Matrix object.
 Each family forms a single block.  For this study we have
-[[n <- table(minnbreast$famid); sum(n*(n+1)/2)]] or 1.07 million entries;
+{\tt{}n\ <-\ table(minnbreast{\char36}famid);\ sum(n*(n+1)/2)} or 1.07 million entries;
 assuming that only the lower half of each matrix is stored.
 The actual size is actually smaller than this, since each family's
 matrix will have zeros in it --- founders for instance are not related ---
@@ -770,30 +691,30 @@ and those zeros are also not stored.
 The result of each per-family call to kinship will be a symmetric matrix.
 We first turn each of these into a dsCMatrix object, a sparse symmetric
 form. 
-The [[bdiag]] function is then used to paste all of these individual
+The {\tt{}bdiag} function is then used to paste all of these individual
 sparse matrices into a single large matrix.
 
-Why don't we use [[(i in famlist)]] below?  A numeric subscript of [[[9]]] %'
+Why don't we use {\tt{}(i\ in\ famlist)} below?  A numeric subscript of {\tt{}[9]} %'
 selects the ninth family, not the family labeled as 9, so a numeric
 family id would not act as we wished.
 If all of the subject ids are unique, across all families, the final
 matrix is labeled with the subject id, otherwise it is labeled with
 family/subject.
-<<kinship>>=
-kinship.pedigreeList <- function(id, ...) {
+\nwenddocs{}\nwbegincode{27}\moddef{kinship}\plusendmoddef
+kinship.pedigreeList <- function(id, ...) \{
     famlist <- unique(id$famid)
     nfam <- length(famlist)
     matlist <- vector("list", nfam)
     idlist  <- vector("list", nfam) #the possibly reorderd list of id values
    
-    for (i in 1:length(famlist)) {
+    for (i in 1:length(famlist)) \{
         tped <- id[i]  #pedigree for this family
         temp <- try(kinship(tped), silent=TRUE)
         if (class(temp)=="try-error") 
             stop(paste("In family", famlist[i], ":", temp))
         else matlist[[i]] <- as(forceSymmetric(temp), "dsCMatrix")
         idlist[[i]] <- tped$id
-    }
+    \}
 
     result <- bdiag(matlist)
     if (any(duplicated(id$id))) 
@@ -803,13 +724,13 @@ kinship.pedigreeList <- function(id, ...) {
         
     dimnames(result) <- list(temp, temp)
     result
-}
-@ 
+\}
+\nwendcode{}\nwbegindocs{28}\nwdocspar
 
-The older [[makekinship]] function,
+The older {\tt{}makekinship} function,
 from before the creation of pedigreeList objects,
 accepts the raw identifier data, along with a special family code
-for unrelated subjects, as produced by the [[makefamid]] function.
+for unrelated subjects, as produced by the {\tt{}makefamid} function.
 All the unrelated subjects are put at the front of the kinship matrix
 in this case rather than within the family.
 Because unrelateds get put into a fake family, we cannot create a
@@ -818,17 +739,17 @@ families.
 We include a copy of the routine for backwards compatability, but
 do not anticipate any new usage of it.
 Like most routines, this starts out with a collection of error checks.
-<<makekinship>>=
-makekinship <- function(famid, id, father.id, mother.id, unrelated=0) {
+\nwenddocs{}\nwbegincode{29}\moddef{makekinship}\endmoddef
+makekinship <- function(famid, id, father.id, mother.id, unrelated=0) \{
     n <- length(famid)
     if (length(id)    != n) stop("Mismatched lengths: famid and id")
     if (length(mother.id) != n) stop("Mismatched lengths: famid and mother.id")
     if (length(father.id) != n) stop("Mismatched lengths: famid and father.id")
     if (any(is.na(famid)))  stop("One or more subjects with missing family id")
     if (any(is.na(id)))     stop("One or more subjects with a missing id")
-    if (is.numeric(famid)) {
+    if (is.numeric(famid)) \{
         if (any(famid <0))      stop("Invalid family id, must be >0")
-        }
+        \}
 
     if (any(duplicated(id))) stop("Subject ids must be unique")
 
@@ -837,34 +758,34 @@ makekinship <- function(famid, id, father.id, mother.id, unrelated=0) {
                             #  correct data type and length
     counts <- table(famid)
     cumcount <- cumsum(counts)    
-     if (any(famid==unrelated)) {
-	# Assume that those with famid of 0 are unrelated uniques
-	#   (usually the marry-ins)
+     if (any(famid==unrelated)) \{
+        # Assume that those with famid of 0 are unrelated uniques
+        #   (usually the marry-ins)
         temp <- match(unrelated, names(counts))
-	nzero <- counts[temp]    
-	counts <- counts[-temp]
-	famlist <- famlist[famlist != unrelated]
-	idlist[1:nzero] <- id[famid== unrelated]
-	cumcount <- cumsum(counts) + nzero
-	}
+        nzero <- counts[temp]    
+        counts <- counts[-temp]
+        famlist <- famlist[famlist != unrelated]
+        idlist[1:nzero] <- id[famid== unrelated]
+        cumcount <- cumsum(counts) + nzero
+        \}
     else nzero <- 0
     
     mlist <- vector('list', length(counts))
-    for (i in 1:length(counts)) {
-	who <- (famid == famlist[i])
+    for (i in 1:length(counts)) \{
+        who <- (famid == famlist[i])
         if (sum(who) ==1) mlist[[i]] <- Matrix(0.5)  # family of size 1
-        else {
+        else \{
             mlist[[i]] <- kinship(id[who], mother.id[who], father.id[who])
-            }
-	idlist[seq(to=cumcount[i], length=counts[i])] <- id[who]
-	}
+            \}
+        idlist[seq(to=cumcount[i], length=counts[i])] <- id[who]
+        \}
 
     if (nzero>0) mlist <- c(list(Diagonal(nzero)), mlist)
     kmat <- forceSymmetric(bdiag(mlist))
     dimnames(kmat) <- list(idlist, idlist)
     kmat
-}
-@ 
+\}
+\nwendcode{}\nwbegindocs{30}\nwdocspar
 
 
 
@@ -880,12 +801,12 @@ and twin/twin.
 Creating this aligment turned out to be one of the more difficult parts
 of the project, and is the area where significant further work could be
 done.  
-All the routines in this section completely ignore the [[id]] component
+All the routines in this section completely ignore the {\tt{}id} component
 of a pedigree; everyone is indexed solely by their row number in the object.
 
 \subsection{Hints}
 
-The first part of the work has to do with a [[hints]] list for each
+The first part of the work has to do with a {\tt{}hints} list for each
 pedigree.  It consists of 3 parts:
 \begin{itemize}
   \item The left to right order in which founders should be processed.
@@ -918,7 +839,7 @@ is the anchor, i.e., directly connected to thier parent.
 Double and triple marriages can start to get interesting.
 
 
-The [[autohint]] routine is used to create an initial hints list.
+The {\tt{}autohint} routine is used to create an initial hints list.
 It is a part of the general intention to make the routine do
 ``pretty good'' drawings automatically.                 
 The basic algorithm is trial and error. 
@@ -933,19 +854,19 @@ The routine makes no attempt to reorder founders.  It just isn't smart enough%'
 to figure that out.
 
 The first thing to be done is to check on twins.  They are a nuisance, since
-twins need to move together.  The [[ped$relation]] object has a factor in it, 
+twins need to move together.  The {\tt{}ped{\char36}relation} object has a factor in it, 
 so first turn that into numeric.
-We create 3 vectors: [[twinrel]] is a matrix containing pairs of twins and
-their relation, it is a subset of the incoming [[relation]] matrix.
-The [[twinset]] vector identifies twins, it is 0 for anyone who is not a 
+We create 3 vectors: {\tt{}twinrel} is a matrix containing pairs of twins and
+their relation, it is a subset of the incoming {\tt{}relation} matrix.
+The {\tt{}twinset} vector identifies twins, it is 0 for anyone who is not a 
 part of a 
 multiple-birth set, and a unique id for each member of a set.  We use the
 minimum row number of the members of the set as the id.
-[[twinord]] is a starting order vector for the set; it mostly makes sure
+{\tt{}twinord} is a starting order vector for the set; it mostly makes sure
 that there are no ties (who knows what a user may have used for starting 
 values.)  
-<<autohint>>=
-autohint <- function(ped, hints) {
+\nwenddocs{}\nwbegincode{31}\moddef{autohint}\endmoddef
+autohint <- function(ped, hints) \{
     if (!is.null(ped$hints)) return(ped$hints)  #nothing to do
     n <- length(ped$id)
     depth <- kindepth(ped, align=TRUE)
@@ -953,36 +874,36 @@ autohint <- function(ped, hints) {
     if (is.null(ped$relation)) relation <- NULL
     else  relation <- cbind(as.matrix(ped$relation[,1:2]), 
                             as.numeric(ped$relation[,3]))
-    if (!is.null(relation) && any(relation[,3] <4)) {
-	temp <- (relation[,3] < 4)
-	twinlist <- unique(c(relation[temp,1:2]))  #list of twin id's 
-	twinrel  <- relation[temp,,drop=F]
-	
-	twinset <- rep(0,n)
-	twinord <- rep(1,n)
-	for (i in 2:length(twinlist)) {
-	    # Now, for any pair of twins on a line of twinrel, give both
-	    #  of them the minimum of the two ids
-	    # For a set of triplets, it might take two iterations for the
-	    #  smallest of the 3 numbers to "march" across the threesome.
-	    #  For quads, up to 3 iterations, for quints, up to 4, ....
-	    newid <- pmin(twinrel[,1], twinrel[,2])
-	    twinset[twinrel[,1]] <- newid
-	    twinset[twinrel[,2]] <- newid
-	    twinord[twinrel[,2]] <- pmax(twinord[twinrel[,2]], 
-					 twinord[twinrel[,1]]+1)
-	    }	
-	}
-    else {
-	twinset <- rep(0,n)
-	twinrel <- NULL
-	}
-    <<autohint-shift>>
-    <<autohint-init>>
-    <<autohint-fixup>>
+    if (!is.null(relation) && any(relation[,3] <4)) \{
+        temp <- (relation[,3] < 4)
+        twinlist <- unique(c(relation[temp,1:2]))  #list of twin id's 
+        twinrel  <- relation[temp,,drop=F]
+        
+        twinset <- rep(0,n)
+        twinord <- rep(1,n)
+        for (i in 2:length(twinlist)) \{
+            # Now, for any pair of twins on a line of twinrel, give both
+            #  of them the minimum of the two ids
+            # For a set of triplets, it might take two iterations for the
+            #  smallest of the 3 numbers to "march" across the threesome.
+            #  For quads, up to 3 iterations, for quints, up to 4, ....
+            newid <- pmin(twinrel[,1], twinrel[,2])
+            twinset[twinrel[,1]] <- newid
+            twinset[twinrel[,2]] <- newid
+            twinord[twinrel[,2]] <- pmax(twinord[twinrel[,2]], 
+                                         twinord[twinrel[,1]]+1)
+            \}   
+        \}
+    else \{
+        twinset <- rep(0,n)
+        twinrel <- NULL
+        \}
+    \LA{}autohint-shift\RA{}
+    \LA{}autohint-init\RA{}
+    \LA{}autohint-fixup\RA{}
     list(order=horder, spouse=sptemp)    
-    }
-@ 
+    \}
+\nwendcode{}\nwbegindocs{32}\nwdocspar
 
 Next is an internal function that  rearranges someone to be
 the leftmost or rightmost of his/her siblings.  The only
@@ -992,47 +913,47 @@ Algorithm: if the person to be moved is part of a twinset,
 first move all the twins to the left end (or right
 as the case may be), then move all the monozygotes to the
 left, then move the subject himself to the left.
-<<autohint-shift>>=
-shift <- function(id, sibs, goleft, hint, twinrel, twinset) {
-    if (twinset[id]> 0)  { 
+\nwenddocs{}\nwbegincode{33}\moddef{autohint-shift}\endmoddef
+shift <- function(id, sibs, goleft, hint, twinrel, twinset) \{
+    if (twinset[id]> 0)  \{ 
         shift.amt <- 1 + diff(range(hint[sibs]))  # enough to avoid overlap
         twins <- sibs[twinset[sibs]==twinset[id]]
         if (goleft) 
-    	 hint[twins] <- hint[twins] - shift.amt
+         hint[twins] <- hint[twins] - shift.amt
         else hint[twins] <- hint[twins] + shift.amt
-    	    
+            
         mono  <- any(twinrel[c(match(id, twinrel[,1], nomatch=0),
-    			   match(id, twinrel[,2], nomatch=0)),3]==1)
-        if (mono) {
-    	#
-    	# ok, we have to worry about keeping the monozygotics
-    	#  together within the set of twins.
-    	# first, decide who they are, by finding those monozygotic
+                           match(id, twinrel[,2], nomatch=0)),3]==1)
+        if (mono) \{
+        #
+        # ok, we have to worry about keeping the monozygotics
+        #  together within the set of twins.
+        # first, decide who they are, by finding those monozygotic
             #  with me, then those monozygotic with the results of that
             #  iteration, then ....  If I were the leftmost, this could
             #  take (#twins -1) iterations to get us all
             #
-    	monoset <- id
-    	rel2 <- twinrel[twinrel[,3]==1, 1:2, drop=F]
-    	for (i in 2:length(twins)) {
-    	    newid1 <- rel2[match(monoset, rel2[,1], nomatch=0),2]
-    	    newid2 <- rel2[match(monoset, rel2[,2], nomatch=0),1]
-    	    monoset <- unique(c(monoset, newid1, newid2))
-    	    }
-    	if (goleft) 
-    	       hint[monoset]<- hint[monoset] - shift.amt
-    	else   hint[monoset]<- hint[monoset] + shift.amt
-    	}
-        }
+        monoset <- id
+        rel2 <- twinrel[twinrel[,3]==1, 1:2, drop=F]
+        for (i in 2:length(twins)) \{
+            newid1 <- rel2[match(monoset, rel2[,1], nomatch=0),2]
+            newid2 <- rel2[match(monoset, rel2[,2], nomatch=0),1]
+            monoset <- unique(c(monoset, newid1, newid2))
+            \}
+        if (goleft) 
+               hint[monoset]<- hint[monoset] - shift.amt
+        else   hint[monoset]<- hint[monoset] + shift.amt
+        \}
+        \}
 
     #finally, move the subject himself
     if (goleft) hint[id] <- min(hint[sibs]) -1   
-    else	hint[id] <- max(hint[sibs]) +1
+    else        hint[id] <- max(hint[sibs]) +1
 
     hint[sibs] <- rank(hint[sibs])  # aesthetics -- no negative hints
     hint
-    }
-@ 
+    \}
+\nwendcode{}\nwbegindocs{34}\nwdocspar
 
 Now, get an ordering of the pedigree to use as the starting point.  
 The numbers start at 1 on each level.
@@ -1042,41 +963,41 @@ otherwise people are put into the order of the data set.
 We allow the hints input to be only an order vector
 Twins are
 then further reordered.
-<<autohint-init>>=  
-if (!missing(hints)) {
+\nwenddocs{}\nwbegincode{35}\moddef{autohint-init}\endmoddef
+if (!missing(hints)) \{
     if (is.vector(hints)) hints <- list(order=hints)
     if (is.matrix(hints)) hints <- list(spouse=hints)
     if (is.null(hints$order)) horder <- integer(n)
     else horder <- hints$order
-    }
+    \}
 else horder <- integer(n)
 
-for (i in unique(depth)) {
+for (i in unique(depth)) \{
     who <- (depth==i & horder==0)  
     if (any(who)) horder[who] <- 1:sum(who) #screwy input - overwrite it
-    }
+    \}
 
-if (any(twinset>0)) {
+if (any(twinset>0)) \{
     # First, make any set of twins a cluster: 6.01, 6.02, ...
     #  By using fractions, I don't have to worry about other sib's values
-    for (i in unique(twinset)) {
+    for (i in unique(twinset)) \{
         if (i==0) next
         who <- (twinset==i)
         horder[who] <- mean(horder[who]) + twinord[who]/100
-        }
+        \}
 
     # Then reset to integers
-    for (i in unique(ped$depth)) {
+    for (i in unique(ped$depth)) \{
         who <- (ped$depth==i)
         horder[who] <- rank(horder[who])  #there should be no ties
-        }
-    }
+        \}
+    \}
 
 if (!missing(hints)) sptemp <- hints$spouse
 else sptemp <- NULL
 plist <- align.pedigree(ped, packed=TRUE, align=FALSE, 
                         hints=list(order=horder, spouse=sptemp))
-@ 
+\nwendcode{}\nwbegindocs{36}\nwdocspar
 The result coming back from align.pedigree is a set of vectors and
 matrices:
 \begin{description}
@@ -1103,7 +1024,7 @@ add a marriage hint.
 Figure \ref{fig:auto1} shows a simple case.  The input data set has
 the subjects ordered from 1--11, the left panel is the result without
 hints which processes subjects in the order encountered.
-The return values from [[align.pedigree]] have subject 9 shown twice.
+The return values from {\tt{}align.pedigree} have subject 9 shown twice.
 The first is when he is recognized as the spouse of subject 4, the second
 as the child of 6--7.
 
@@ -1126,65 +1047,65 @@ The basic logic is
         connected to a family, then either end may be listed as the anchor
         in the output; follow the suggestion of the duporder routine.  If
         only one is, it is usually better to anchor it there, so that the
-        marriage is processed by[[align.pedigree]] when that family is.
+        marriage is processed by{\tt{}align.pedigree} when that family is.
         (At least I think so.)
     \end{itemize}
 \end{enumerate}
 This logic works 9 times out of 10, at least for human pedigrees.
-We'll look at more complex cases below when looking at the [[duporder]]   %'
+We'll look at more complex cases below when looking at the {\tt{}duporder}   %'
 (order the duplicates)
 function, which returns a matrix with columns 1 and 2 being a pair
 of duplicates, and 3 a direction.
-Note that in the following code [[idlist]] refers to the row numbers of
-each subject in the pedigree, not to their label [[ped$id]].
-<<autohint-fixup>>=
-<<autohint-find>>
-<<autohint-duporder>>
+Note that in the following code {\tt{}idlist} refers to the row numbers of
+each subject in the pedigree, not to their label {\tt{}ped{\char36}id}.
+\nwenddocs{}\nwbegincode{37}\moddef{autohint-fixup}\endmoddef
+\LA{}autohint-find\RA{}
+\LA{}autohint-duporder\RA{}
 maxlev <- nrow(plist$nid)
-for (lev in 1:maxlev) {
+for (lev in 1:maxlev) \{
     idlist <- plist$nid[lev,1:plist$n[lev]] #subjects on this level
     dpairs <- duporder(idlist, plist, lev, ped)  #duplicates to be dealt with
     if (nrow(dpairs)==0) next;  
-    for (i in 1:nrow(dpairs)) {
+    for (i in 1:nrow(dpairs)) \{
         anchor <- spouse <- rep(0,2)
-        for (j in 1:2) {
+        for (j in 1:2) \{
             direction <- c(FALSE, TRUE)[j]
             mypos <- dpairs[i,j]
-            if (plist$fam[lev, mypos] >0) {
+            if (plist$fam[lev, mypos] >0) \{
                 # Am connected to parents at this location
                 anchor[j] <- 1  #familial anchor
                 sibs <- idlist[findsibs(mypos, plist, lev)]
                 if (length(sibs) >1) 
                     horder <- shift(idlist[mypos], sibs, direction, 
                                     horder, twinrel, twinset)
-                }
-            else {
+                \}
+            else \{
                 #spouse at this location connected to parents ?
                 spouse[j] <- findspouse(mypos, plist, lev, ped)
-                if (plist$fam[lev,spouse[j]] >0) { # Yes they are
+                if (plist$fam[lev,spouse[j]] >0) \{ # Yes they are
                     anchor[j] <- 2  #spousal anchor
                     sibs <- idlist[findsibs(spouse[j], plist, lev)]
                     if (length(sibs) > 1) 
                         horder <- shift(idlist[spouse[j]], sibs, direction, 
                                     horder, twinrel, twinset)
-                    }
-                }
-            }
-@ 
+                    \}
+                \}
+            \}
+\nwendcode{}\nwbegindocs{38}\nwdocspar
 
 At this point the most common situation will be what is shown in 
-figure \ref{fig:auto1}.  The variable [[anchor]] is (2,1) showing that the
+figure \ref{fig:auto1}.  The variable {\tt{}anchor} is (2,1) showing that the
 left hand copy of subject 9 is connected to an anchored spouse and the
 right hand copy is himself anchored.  The proper addition to the
-spouselist is [[(4, 9, dpairs)]], where the last is the hint from the
+spouselist is {\tt{}(4,\ 9,\ dpairs)}, where the last is the hint from the
 dpairs routine as to which of the parents is the one to follow further when
 drawing the entire pedigree.  (When drawing a pedigree and there is a
 child who can be reached from multiple founders, we only want to find
 the child once.) 
 
 The double marry-in found in figure \ref{fig:auto2}, subject 11, leads
-to value of (2,2) for the [[anchor]] variable.  The proper addition to
-the [[sptemp]] matrix in this case will be two rows, (5, 11, 1) indicating
+to value of (2,2) for the {\tt{}anchor} variable.  The proper addition to
+the {\tt{}sptemp} matrix in this case will be two rows, (5, 11, 1) indicating
 that 5 should be plotted left of 11 for the 5-11 marriage, with the first
 partner as the anchor, and a second row (11, 9, 2).
 This will cause the common spouse to be plotted in the middle.
@@ -1205,14 +1126,14 @@ but it's easier to output a line than check sex orders.  %'
 
 The left panel of figure \ref{fig:auto3} shows a case where
 subject 11 marries into the pedigree but also has a second spouse.
-The [[anchor]] variable for
+The {\tt{}anchor} variable for
 this case will be (2, 0); the first instance of 11 has a spouse tied
 into the tree above, the second instance has no upward connections.
 In the top row, subject 6 has values of (0, 0) since neither 
 connection has an upward parent.  
 In the right hand panel subject 2 has an anchor variable of (0,1).
 
-<<autohint-fixup>>=
+\nwenddocs{}\nwbegincode{39}\moddef{autohint-fixup}\plusendmoddef
         # add the marriage(s)
         id1 <- idlist[dpairs[i,1]]  # i,1 and i,2 point to the same person
         id2 <- idlist[spouse[1]]
@@ -1228,21 +1149,21 @@ In the right hand panel subject 2 has an anchor variable of (0,1).
                        "10" = c(id1, id2, 1),
                        NULL)
 
-        if (is.null(temp)) { 
+        if (is.null(temp)) \{ 
             warning("Unexpected result in autohint, please contact developer")
             return(list(order=1:n))  #punt
-          }         
+          \}         
         else sptemp <- rbind(sptemp, temp)
-        }
+        \}
     #
     # Recompute, since this shifts things on levels below
     #
     plist <- align.pedigree(ped, packed=TRUE, align=FALSE, 
                             hints=list(order=horder, spouse=sptemp))   
-    }
-@ 
+    \}
+\nwendcode{}\nwbegindocs{40}\nwdocspar
 
-For the case shown in figure \ref{fig:align1} the [[duporder]] function
+For the case shown in figure \ref{fig:align1} the {\tt{}duporder} function
 will return a single row array with values (2, 6, 1), the first two
 being the positions of the duplicated subject.  
 The anchor will be 2 since that is the copy connected to parents
@@ -1264,7 +1185,7 @@ are connected to their parents.
 
 Figure \ref{fig:align2} shows a more complex case with several arcs.
 In the upper left is a double marry-in.
-The [[anchor]] variable in the above code
+The {\tt{}anchor} variable in the above code
 will be (2,2) since both copies have an anchored spouse.
 The left and right sets of sibs are reordered (even though the left
 one does not need it), and two lines are added to the sptemp matrix:
@@ -1285,8 +1206,8 @@ goal for this is to spread apart families of cousins; in the
 example to not have the children of 28/31 plotted under the 21/22
 grandparents, and those for 29/32 under the 25/26 grandparents. 
 The logic for this column is very ad hoc: put children near the edges.
-<<autohint-duporder>>=
-duporder <- function(idlist, plist, lev, ped) {
+\nwenddocs{}\nwbegincode{41}\moddef{autohint-duporder}\endmoddef
+duporder <- function(idlist, plist, lev, ped) \{
     temp <- table(idlist)
     if (all(temp==1)) return (matrix(0L, nrow=0, ncol=3))
     
@@ -1296,40 +1217,40 @@ duporder <- function(idlist, plist, lev, ped) {
     dmat <- matrix(0L, nrow=npair, ncol=3)
     dmat[,3] <- 2; dmat[1:(npair/2),3] <- 1
     i <- 0
-    for (id in unique(idlist[duplicated(idlist)])) {
+    for (id in unique(idlist[duplicated(idlist)])) \{
         j <- which(idlist==id)
-        for (k in 2:length(j)) {
+        for (k in 2:length(j)) \{
             i <- i+1
             dmat[i,1:2] <- j[k + -1:0]
-            }
-        }
+            \}
+        \}
     if (nrow(dmat)==1) return(dmat)  #no need to sort it
     
     # families touch?
     famtouch <- logical(npair)
-    for (i in 1:npair) {
+    for (i in 1:npair) \{
         if (plist$fam[lev,dmat[i,1]] >0) 
              sib1 <- max(findsibs(dmat[i,1], plist, lev))
-        else {
+        else \{
             spouse <- findspouse(dmat[i,1], plist, lev, ped)
             ##If spouse is marry-in then move on without looking for sibs
-                if (plist$fam[lev,spouse]==0) {famtouch[i] <- F; next}
+                if (plist$fam[lev,spouse]==0) \{famtouch[i] <- F; next\}
             sib1 <- max(findsibs(spouse, plist, lev)) 
-            }
+            \}
         
         if (plist$fam[lev, dmat[i,2]] >0)
             sib2 <- min(findsibs(dmat[i,2], plist, lev))
-        else {
+        else \{
             spouse <- findspouse(dmat[i,2], plist, lev, ped)
             ##If spouse is marry-in then move on without looking for sibs
-                if (plist$fam[lev,spouse]==0) {famtouch[i] <- F; next}
+                if (plist$fam[lev,spouse]==0) \{famtouch[i] <- F; next\}
             sib2 <- min(findsibs(spouse, plist, lev))
-            }
+            \}
         famtouch[i] <- (sib2-sib1 ==1)
-        }
+        \}
     dmat[order(famtouch, dmat[,1]- dmat[,2]),, drop=FALSE ]
-    }
-@ 
+    \}
+\nwendcode{}\nwbegindocs{42}\nwdocspar
 
 Finally, here are two helper routines.
 Finding my spouse can be interesting -- suppose we have a listing with
@@ -1341,8 +1262,8 @@ the person in that block who is opposite sex, and check that they
 are connected.
 The routine is called with a left-right position in the alignment
 arrays and returns a position.
-<<autohint-find>>=
-findspouse <- function(mypos, plist, lev, ped) {
+\nwenddocs{}\nwbegincode{43}\moddef{autohint-find}\endmoddef
+findspouse <- function(mypos, plist, lev, ped) \{
     lpos <- mypos
     while (lpos >1 && plist$spouse[lev, lpos-1]) lpos <- lpos-1
     rpos <- mypos
@@ -1353,17 +1274,17 @@ findspouse <- function(mypos, plist, lev, ped) {
     if (!any(opposite)) stop("autohint bug 4")  # no spouse
     spouse <- min((lpos:rpos)[opposite])  #can happen with a triple marriage
     spouse
-    }
-@ 
+    \}
+\nwendcode{}\nwbegindocs{44}\nwdocspar
 
 The findsibs function starts with a position and returns a position as well.
-<<autohint-find>>=
-findsibs <- function(mypos, plist, lev) {
+\nwenddocs{}\nwbegincode{45}\moddef{autohint-find}\plusendmoddef
+findsibs <- function(mypos, plist, lev) \{
     family <- plist$fam[lev, mypos]
     if (family==0) stop("autohint bug 6")
     which(plist$fam[lev,] == family)
-    }
-@ 
+    \}
+\nwendcode{}\nwbegindocs{46}\nwdocspar
 
 
 \subsection{Align.pedigree}
@@ -1395,29 +1316,29 @@ matrices:
     right is my spouse (1), a double marriage (2), or neither (0).
   \item[fam] matrix, link upward to my parents, or 0 if no link.
 \end{description}
-<<align.pedigree>>=
+\nwenddocs{}\nwbegincode{47}\moddef{align.pedigree}\endmoddef
 align.pedigree <- function(ped, packed=TRUE, width=10,
-                           align=TRUE, hints=ped$hints) {
-    if (class(ped)== 'pedigreeList') {
+                           align=TRUE, hints=ped$hints) \{
+    if (class(ped)== 'pedigreeList') \{
         nped <- length(unique(ped$famid))
         alignment <- vector('list', nped)
-        for (i in 1:nped) {
+        for (i in 1:nped) \{
             temp <- align.pedigree(ped[i], packed, width, align)
             alignment[[i]] <- temp$alignment
-            }
+            \}
         ped$alignment <- alignment
         class(ped) <- 'pedigreeListAligned'
         return(ped)
-        }
+        \}
     
     if (is.null(hints)) hints <- autohint(ped)
     else     hints <- check.hint(hints, ped$sex)
     
-    <<align-setup>>
-    <<align-founders>>
-    <<align-finish>>
-    }
-@ 
+    \LA{}align-setup\RA{}
+    \LA{}align-founders\RA{}
+    \LA{}align-finish\RA{}
+    \}
+\nwendcode{}\nwbegindocs{48}\nwdocspar
 
 
 Start with some setup.  
@@ -1429,7 +1350,7 @@ id (ignoring the actual id label).
   \item Verify that the hints are correct.
   \item The relation data frame, if present, has a factor in it.  Turn
     that into numeric.
-\item Create the [[spouselist]] array.  This has 4 columns
+\item Create the {\tt{}spouselist} array.  This has 4 columns
   \begin{enumerate}
     \item Husband index (4= 4th person in the pedigree structure)
     \item Wife index
@@ -1447,12 +1368,12 @@ id (ignoring the actual id label).
 When importing data from autohint, that routine's spouse matrix %'
 has column 1 =
 subject plotted on the left, 2 = subject plotted on the right.
-The [[spouselist]] array has column 1=husband, 2=wife.  
+The {\tt{}spouselist} array has column 1=husband, 2=wife.  
 Hence the clumsy looking ifelse below.  The autohint format is more
 congenial to users, who might modify the output, the spouselist format
 easier for the code.
 
-<<align-setup>>=
+\nwenddocs{}\nwbegincode{49}\moddef{align-setup}\endmoddef
 n <- length(ped$id)
 dad <- ped$findex; mom <- ped$mindex  #save typing
 if (any(dad==0 & mom>0) || any(dad>0 & mom==0))
@@ -1465,16 +1386,16 @@ if (is.null(ped$relation)) relation <- NULL
 else  relation <- cbind(as.matrix(ped$relation[,1:2]), 
                         as.numeric(ped$relation[,3]))
 
-if (!is.null(hints$spouse)) { # start with the hints list
+if (!is.null(hints$spouse)) \{ # start with the hints list
     tsex <- ped$sex[hints$spouse[,1]]  #sex of the left member
     spouselist <- cbind(0,0,  1+ (tsex!='male'), 
                         hints$spouse[,3])
     spouselist[,1] <- ifelse(tsex=='male', hints$spouse[,1], hints$spouse[,2])
     spouselist[,2] <- ifelse(tsex=='male', hints$spouse[,2], hints$spouse[,1])
-    }
+    \}
 else spouselist <- matrix(0L, nrow=0, ncol=4)
 
-if (!is.null(relation) && any(relation[,3]==4)) {
+if (!is.null(relation) && any(relation[,3]==4)) \{
     # Add spouses from the relationship matrix
     trel <- relation[relation[,3]==4,,drop=F]
     tsex <- ped$sex[trel[,1]]
@@ -1482,18 +1403,18 @@ if (!is.null(relation) && any(relation[,3]==4)) {
     spouselist <- rbind(spouselist, cbind(trel[,1],
                                           trel[,2],
                                           0,0))
-    }
-if (any(dad>0 & mom>0) ) {
+    \}
+if (any(dad>0 & mom>0) ) \{
     # add parents
     who <- which(dad>0 & mom>0)
     spouselist <- rbind(spouselist, cbind(dad[who], mom[who], 0, 0))
-    }
+    \}
 
 hash <- spouselist[,1]*n + spouselist[,2]
 spouselist <- spouselist[!duplicated(hash),, drop=F]
-@
+\nwendcode{}\nwbegindocs{50}\nwdocspar
 
-The [[alignped]] routine does the alignment using 3 co-routines:
+The {\tt{}alignped} routine does the alignment using 3 co-routines:
 \begin{description}
   \item[alignped1] called with a single subject, returns the subtree
     founded on this subject, as though it were the only tree
@@ -1503,11 +1424,11 @@ The [[alignped]] routine does the alignment using 3 co-routines:
     into a single one
 \end{description}
  
-Call [[alignped1]] sequentially with each founder pair and merge the
+Call {\tt{}alignped1} sequentially with each founder pair and merge the
 results.  
 A founder pair is a married pair, neither of which has a father.
 
-<<align-founders>>=
+\nwenddocs{}\nwbegincode{51}\moddef{align-founders}\endmoddef
 noparents <- (dad[spouselist[,1]]==0 & dad[spouselist[,2]]==0)
  ##Take duplicated mothers and fathers, then founder mothers
 dupmom <- spouselist[noparents,2][duplicated(spouselist[noparents,2])] #Founding mothers with multiple marriages
@@ -1516,18 +1437,18 @@ foundmom <- spouselist[noparents&!(spouselist[,1] %in% c(dupmom,dupdad)),2] # fo
 founders <-  unique(c(dupmom, dupdad, foundmom))    
 founders <-  founders[order(horder[founders])]  #use the hints to order them
 rval <- alignped1(founders[1], dad, mom, level, horder, 
-    	              packed=packed, spouselist=spouselist)
+                      packed=packed, spouselist=spouselist)
 
-if (length(founders)>1) {
+if (length(founders)>1) \{
     spouselist <- rval$spouselist
-    for (i in 2:length(founders)) {
+    for (i in 2:length(founders)) \{
         rval2 <- alignped1(founders[i], dad, mom,
                            level, horder, packed, spouselist)
         spouselist <- rval2$spouselist
         rval <- alignped3(rval, rval2, packed)
-        }
-    }
-@ 
+        \}
+    \}
+\nwendcode{}\nwbegindocs{52}\nwdocspar
 
 Now finish up.  
 There are 4 tasks to doS
@@ -1542,7 +1463,7 @@ There are 4 tasks to doS
   \item Do final alignment
 \end{enumerate}
 
-<<align-finish>>=
+\nwenddocs{}\nwbegincode{53}\moddef{align-finish}\endmoddef
 #
 # Unhash out the spouse and nid arrays
 #
@@ -1552,22 +1473,22 @@ maxdepth <- nrow(nid)
 
 # For each spouse pair, find out if it should be connected with
 #  a double line.  This is the case if they have a common ancestor
-ancestor <- function(me, momid, dadid) {
+ancestor <- function(me, momid, dadid) \{
     alist <- me
-    repeat {
+    repeat \{
         newlist <- c(alist, momid[alist], dadid[alist])
         newlist <- sort(unique(newlist[newlist>0]))
         if (length(newlist)==length(alist)) break
         alist <- newlist
-        }
+        \}
     alist[alist!=me]
-    }
-for (i in (1:length(spouse))[spouse>0]) {
+    \}
+for (i in (1:length(spouse))[spouse>0]) \{
     a1 <- ancestor(nid[i], mom, dad)
     a2 <- ancestor(nid[i+maxdepth],mom, dad)  #matrices are in column order
     if (any(duplicated(c(a1, a2)))) spouse[i] <- 2
-    }
-@ 
+    \}
+\nwendcode{}\nwbegindocs{54}\nwdocspar
 
 The twins array is of the same shape as the spouse and nid arrays:
 one row per level giving data for the subjects plotted on that row.
@@ -1578,8 +1499,8 @@ In this case they are
   \item 2= the sib to my right is a dizygote,
   \item 3= the sib to my right is a twin, unknown zyogosity.
 \end{itemize}
-<<align-finish>>=
-if (!is.null(relation) && any(relation[,3] < 4)) {
+\nwenddocs{}\nwbegincode{55}\moddef{align-finish}\plusendmoddef
+if (!is.null(relation) && any(relation[,3] < 4)) \{
     twins <- 0* nid
     who  <- (relation[,3] <4)
     ltwin <- relation[who,1]
@@ -1592,9 +1513,9 @@ if (!is.null(relation) && any(relation[,3] < 4)) {
     ltemp <- (1:length(ntemp))[match(ltwin, ntemp, nomatch=0)]
     rtemp <- (1:length(ntemp))[match(rtwin, ntemp, nomatch=0)]
     twins[pmin(ltemp, rtemp)] <- ttype
-    }
+    \}
 else twins <- NULL
-@
+\nwendcode{}\nwbegindocs{56}\nwdocspar
  
 At this point the pedigree has been arranged, with the positions
 in each row going from 1 to (number of subjects in the row).
@@ -1603,7 +1524,7 @@ Having everything pushed to the left margin isn't very
 pretty, now we fix that.
 Note that alignped4 wants a T/F spouse matrix: it doesn't care
   about your degree of relationship to the spouse.
-<<align-finish>>=
+\nwenddocs{}\nwbegincode{57}\moddef{align-finish}\plusendmoddef
 if ((is.numeric(align) || align) && max(level) >1) 
     pos <- alignped4(rval, spouse>0, level, width, align)
 else pos <- rval$pos
@@ -1612,7 +1533,7 @@ if (is.null(twins))
      list(n=rval$n, nid=nid, pos=pos, fam=rval$fam, spouse=spouse)
 else list(n=rval$n, nid=nid, pos=pos, fam=rval$fam, spouse=spouse, 
               twins=twins)
-@ 
+\nwendcode{}\nwbegindocs{58}\nwdocspar
 \subsection{alignped1}
 This is the first of the three co-routines.
 It is called with a single subject, and returns the subtree founded
@@ -1639,67 +1560,67 @@ The return argument is a set of matrices as described in
 section \ref{sect:alignped}, along with the spouselist matrix.
 The latter has marriages removed as they are processed..
 
-In this routine the [[nid]] array consists of the final nid array + 1/2 of the
+In this routine the {\tt{}nid} array consists of the final nid array + 1/2 of the
 final spouse array.
 The basic algorithm is simple.  
 \begin{enumerate}
-  \item Find all of the spouses for which [[x]] is the anchor subject.  If
-    there are none then return the trivial tree consisting of [[x]] alone.
-  \item For each marriage in the set, call [[alignped2]] on the children
+  \item Find all of the spouses for which {\tt{}x} is the anchor subject.  If
+    there are none then return the trivial tree consisting of {\tt{}x} alone.
+  \item For each marriage in the set, call {\tt{}alignped2} on the children
     and add this to the result.
 \end{enumerate}
-Note that the [[spouselist]] matrix will only contain spouse pairs that
+Note that the {\tt{}spouselist} matrix will only contain spouse pairs that
 are not yet processed.
 The logic for anchoring is slightly tricky.  First, if row 4 of
 the spouselist matrix is 0, we anchor at the first opportunity, i.e. now..
 Also note that if spouselist[,3]==spouselist[,4] it is
 the husband who is the anchor (just write out the possibilities).
 
-<<alignped1>>=
-alignped1 <- function(x, dad, mom, level, horder, packed, spouselist){
+\nwenddocs{}\nwbegincode{59}\moddef{alignped1}\endmoddef
+alignped1 <- function(x, dad, mom, level, horder, packed, spouselist)\{
     # Set a few constants
     maxlev <- max(level)
     lev <- level[x]
     n <- integer(maxlev)
 
     if (length(spouselist)==0)  spouse <- NULL
-    else {
-	if (any(spouselist[,1]==x)){
-	    sex <- 1		                  # I'm male
-	    sprows <- (spouselist[,1]==x & (spouselist[,4] ==spouselist[,3] |
+    else \{
+        if (any(spouselist[,1]==x))\{
+            sex <- 1                              # I'm male
+            sprows <- (spouselist[,1]==x & (spouselist[,4] ==spouselist[,3] |
                                             spouselist[,4] ==0))
-	    spouse <- spouselist[sprows, 2] #ids of the spouses
-	    }
-	else {
-	    sex <- 2
-	    sprows <- (spouselist[,2]==x & (spouselist[,4]!=spouselist[,3] |
+            spouse <- spouselist[sprows, 2] #ids of the spouses
+            \}
+        else \{
+            sex <- 2
+            sprows <- (spouselist[,2]==x & (spouselist[,4]!=spouselist[,3] |
                                             spouselist[,4] ==0))
             spouse <- spouselist[sprows, 1]
-            }
-	}
+            \}
+        \}
     # Marriages that cross levels are plotted at the higher level (lower
     #  on the paper).
-    if (length(spouse)) {
+    if (length(spouse)) \{
         keep <- level[spouse] <= lev
         spouse <- spouse[keep]
         sprows <- (which(sprows))[keep]
-        }
+        \}
     nspouse <- length(spouse)  # Almost always 0, 1 or 2
-@ 
+\nwendcode{}\nwbegindocs{60}\nwdocspar
 Create the set of 3 return structures, which will be matrices with
 (1+nspouse) columns.
 If there are children then other routines will widen the result.
-<<alignped1>>= 
+\nwenddocs{}\nwbegincode{61}\moddef{alignped1}\plusendmoddef
     nid <- fam <- matrix(0L, maxlev, nspouse+1)
     pos <- matrix(0.0, maxlev, nspouse +1)
     n[lev] <- nspouse +1       
     pos[lev,] <- 0:nspouse
-    if (nspouse ==0) {   
+    if (nspouse ==0) \{   
         # Easy case: the "tree rooted at x" is only x itself
-	nid[lev,1] <- x
-	return(list(nid=nid, pos=pos, fam=fam, n=n, spouselist=spouselist))
-	}
-@ 
+        nid[lev,1] <- x
+        return(list(nid=nid, pos=pos, fam=fam, n=n, spouselist=spouselist))
+        \}
+\nwendcode{}\nwbegindocs{62}\nwdocspar
 Now we have a list of spouses that should be dealt with and 
 the the correponding columns of the spouselist matrix.  
 Create the two complimentary lists lspouse and rspouse to denote
@@ -1708,31 +1629,31 @@ For someone with lots of spouses we try to split them evenly.
 If the number of spouses is odd, then men should have more on the
 right than on the left, women more on the right.
 Any hints in the spouselist matrix override.
-We put the undecided marriages closest to [[x]], 
+We put the undecided marriages closest to {\tt{}x}, 
 then add predetermined ones to the left and
 right.
 The majority of marriages will be undetermined singletons, for which
 nleft will be 1 for female (put my husband to the left) and 0 for male.
-<<alignped1>>=
+\nwenddocs{}\nwbegincode{63}\moddef{alignped1}\plusendmoddef
     lspouse <- spouse[spouselist[sprows,3] == 3-sex] # 1-2 or 2-1
     rspouse <- spouse[spouselist[sprows,3] == sex]   # 1-1 or 2-2
-    if (any(spouselist[sprows,3] ==0)) {
+    if (any(spouselist[sprows,3] ==0)) \{
         #Not yet decided spouses
         indx <- which(spouselist[sprows,3] ==0)
         nleft <- floor((length(sprows) + (sex==2))/2) #total number to left
         nleft <- nleft - length(lspouse)  #number of undecideds to the left
-        if (nleft >0) {
+        if (nleft >0) \{
             lspouse <- c(lspouse, spouse[indx[1:nleft]])
             indx <- indx[-(1:nleft)]
-          }
+          \}
         if (length(indx)) rspouse <- c(spouse[indx], rspouse)
-      }
+      \}
 
     nid[lev,] <- c(lspouse, x, rspouse)
     nid[lev, 1:nspouse] <- nid[lev, 1:nspouse] + .5  #marriages    
 
     spouselist <- spouselist[-sprows,, drop=FALSE]
-@ 
+\nwendcode{}\nwbegindocs{64}\nwdocspar
 
 The spouses are in the pedigree, now look below.
 For each spouse get the list of children.
@@ -1740,54 +1661,54 @@ If there are any we call alignped2 to generate their tree and
 then mark the connection to their parent.
 If multiple marriages have children we need to join the
 trees.
-<<alignped1>>=
+\nwenddocs{}\nwbegincode{65}\moddef{alignped1}\plusendmoddef
     nokids <- TRUE   #haven't found any kids yet
     spouse <- c(lspouse, rspouse)  #reorder
-    for (i in 1:nspouse) {
+    for (i in 1:nspouse) \{
         ispouse <- spouse[i]
-	children <- which((dad==x & mom==ispouse) | (dad==ispouse & mom==x))
-	if (length(children) > 0) {
-	    rval1 <- alignped2(children, dad, mom, level, horder, 
-			      packed, spouselist)
+        children <- which((dad==x & mom==ispouse) | (dad==ispouse & mom==x))
+        if (length(children) > 0) \{
+            rval1 <- alignped2(children, dad, mom, level, horder, 
+                              packed, spouselist)
             spouselist <- rval1$spouselist
-	    # set the parentage for any kids
-	    #  a nuisance: it's possible to have a child appear twice, when
-	    #  via inbreeding two children marry --- makes the "indx" line
-	    #  below more complicated
-	    temp <- floor(rval1$nid[lev+1,])  # cut off the .5's for matching
-	    indx <- (1:length(temp))[match(temp,children, nomatch=0) >0]
-	    rval1$fam[lev+1,indx] <- i   #set the kids parentage
-	    if (!packed) {
-		# line the kids up below the parents
-		# The advantage at this point: we know that there is 
-		#   nothing to the right that has to be cared for
-		kidmean <- mean(rval1$pos[lev+1, indx])
-		parmean <- mean(pos[lev, i + 0:1])
-		if (kidmean > parmean) {
-		    # kids to the right of parents: move the parents
-		    indx <- i:(nspouse+1)
-		    pos[lev, indx] <- pos[lev, indx] + (kidmean - parmean)
-		    }
-		else {
-		    # move the kids and their spouses and all below
-		    shift <- parmean - kidmean
-		    for (j in (lev+1):maxlev) {
-			jn <- rval1$n[j]
-			if (jn>0) 
-			    rval1$pos[j, 1:jn] <- rval1$pos[j, 1:jn] +shift
-			}
-		    }
-		}
-	    if (nokids) {
-		rval <- rval1
-		nokids <- FALSE
-		}
-	    else {
-		rval <- alignped3(rval, rval1, packed)
-		}
-	    }
-	}
-@ 
+            # set the parentage for any kids
+            #  a nuisance: it's possible to have a child appear twice, when
+            #  via inbreeding two children marry --- makes the "indx" line
+            #  below more complicated
+            temp <- floor(rval1$nid[lev+1,])  # cut off the .5's for matching
+            indx <- (1:length(temp))[match(temp,children, nomatch=0) >0]
+            rval1$fam[lev+1,indx] <- i   #set the kids parentage
+            if (!packed) \{
+                # line the kids up below the parents
+                # The advantage at this point: we know that there is 
+                #   nothing to the right that has to be cared for
+                kidmean <- mean(rval1$pos[lev+1, indx])
+                parmean <- mean(pos[lev, i + 0:1])
+                if (kidmean > parmean) \{
+                    # kids to the right of parents: move the parents
+                    indx <- i:(nspouse+1)
+                    pos[lev, indx] <- pos[lev, indx] + (kidmean - parmean)
+                    \}
+                else \{
+                    # move the kids and their spouses and all below
+                    shift <- parmean - kidmean
+                    for (j in (lev+1):maxlev) \{
+                        jn <- rval1$n[j]
+                        if (jn>0) 
+                            rval1$pos[j, 1:jn] <- rval1$pos[j, 1:jn] +shift
+                        \}
+                    \}
+                \}
+            if (nokids) \{
+                rval <- rval1
+                nokids <- FALSE
+                \}
+            else \{
+                rval <- alignped3(rval, rval1, packed)
+                \}
+            \}
+        \}
+\nwendcode{}\nwbegindocs{66}\nwdocspar
 
 To finish up we need to splice together the tree made up
 from all the kids, which only has data from lev+1 down,
@@ -1799,45 +1720,45 @@ wider than the tree here, in which case we add the
 data from this level onto theirs.
 The third is when below is narrower, for instance an
 only child.
-<<alignped1>>=
-    if (nokids) {
-	return(list(nid=nid, pos=pos, fam=fam, n=n, spouselist=spouselist))
-	}
+\nwenddocs{}\nwbegincode{67}\moddef{alignped1}\plusendmoddef
+    if (nokids) \{
+        return(list(nid=nid, pos=pos, fam=fam, n=n, spouselist=spouselist))
+        \}
 
-    if (ncol(rval$nid) >= 1+nspouse) {
-	# The rval list has room for me!
-	rval$n[lev] <- n[lev]
-	indx <- 1:(nspouse+1)
-	rval$nid[lev, indx] <- nid[lev,]
-	rval$pos[lev, indx] <- pos[lev,]
-	}
-    else {
-	#my structure has room for them
-	indx <- 1:ncol(rval$nid)   
-	rows <- (lev+1):maxlev
-	n[rows] <- rval$n[rows]
-	nid[rows,indx] <- rval$nid[rows,]
-	pos[rows,indx] <- rval$pos[rows,]
-	fam[rows,indx] <- rval$fam[rows,]
-	rval <- list(nid=nid, pos=pos, fam=fam, n=n)
-	}
+    if (ncol(rval$nid) >= 1+nspouse) \{
+        # The rval list has room for me!
+        rval$n[lev] <- n[lev]
+        indx <- 1:(nspouse+1)
+        rval$nid[lev, indx] <- nid[lev,]
+        rval$pos[lev, indx] <- pos[lev,]
+        \}
+    else \{
+        #my structure has room for them
+        indx <- 1:ncol(rval$nid)   
+        rows <- (lev+1):maxlev
+        n[rows] <- rval$n[rows]
+        nid[rows,indx] <- rval$nid[rows,]
+        pos[rows,indx] <- rval$pos[rows,]
+        fam[rows,indx] <- rval$fam[rows,]
+        rval <- list(nid=nid, pos=pos, fam=fam, n=n)
+        \}
     rval$spouselist <- spouselist
     rval
-    }
-@
+    \}
+\nwendcode{}\nwbegindocs{68}\nwdocspar
 
 \subsection{alignped2}
 This routine takes a collection of siblings, grows the tree for
 each, and appends them side by side into a single tree.
 The input arguments are the same as those to
-[[alignped1]] with the exception that [[x]] will be a vector.
+{\tt{}alignped1} with the exception that {\tt{}x} will be a vector.
 This routine does nothing to the spouselist matrix, but needs
 to pass it down the tree and back since one of the routines
-called by [[alignped2]] might change the matrix.
+called by {\tt{}alignped2} might change the matrix.
 
 The code below has one non-obvious special case.  Suppose
 that two sibs marry.  
-When the first sib is processed by [[alignped1]] then both
+When the first sib is processed by {\tt{}alignped1} then both
 partners (and any children) will be added to the rval
 structure below.  
 When the second sib is processed they
@@ -1848,31 +1769,31 @@ The rule thus is to not add any 1 element tree whose
 value (which must be x[i]) is already in the rval structure for this level.
 (Where did Curtis O. \emph{find} these families?)
 
-<<alignped2>>=
+\nwenddocs{}\nwbegincode{69}\moddef{alignped2}\endmoddef
 alignped2 <- function(x, dad, mom, level, horder, packed,
-                      spouselist) {
+                      spouselist) \{
     x <- x[order(horder[x])]  # Use the hints to order the sibs
     rval <- alignped1(x[1],  dad, mom, level, horder, packed, 
                       spouselist)
     spouselist <- rval$spouselist
 
-    if (length(x) >1) {
-	mylev <- level[x[1]]
-	for (i in 2:length(x)) {
-	    rval2 <-  alignped1(x[i], dad, mom, level,
-				horder, packed, spouselist)
+    if (length(x) >1) \{
+        mylev <- level[x[1]]
+        for (i in 2:length(x)) \{
+            rval2 <-  alignped1(x[i], dad, mom, level,
+                                horder, packed, spouselist)
             spouselist <- rval2$spouselist
-	    
-	    # Deal with the unusual special case:
-	    if ((rval2$n[mylev] > 1) || 
-		          (is.na(match(x[i], floor(rval$nid[mylev,])))))
-		rval <- alignped3(rval, rval2, packed)
-	    }
+            
+            # Deal with the unusual special case:
+            if ((rval2$n[mylev] > 1) || 
+                          (is.na(match(x[i], floor(rval$nid[mylev,])))))
+                rval <- alignped3(rval, rval2, packed)
+            \}
         rval$spouselist <- spouselist
-	}
+        \}
     rval
-    }
-@
+    \}
+\nwendcode{}\nwbegindocs{70}\nwdocspar
 
 
 \subsection{alignped3}
@@ -1885,8 +1806,8 @@ needn't plot two copies of the same person side by side.
 is no harm if they are a column bigger than finally needed.)
 Beyond that the work is simple bookkeeping.
 
-<<alignped3>>= 
-alignped3 <- function(x1, x2, packed, space=1) {
+\nwenddocs{}\nwbegincode{71}\moddef{alignped3}\endmoddef
+alignped3 <- function(x1, x2, packed, space=1) \{
     maxcol <- max(x1$n + x2$n)
     maxlev <- length(x1$n)
     n1 <- max(x1$n)   # These are always >1
@@ -1901,21 +1822,21 @@ alignped3 <- function(x1, x2, packed, space=1) {
     fam <- matrix(0, maxlev, maxcol)
     fam[,1:n1] <- x1$fam
     fam2 <- x2$fam
-    if (!packed) {
-        <<align3-slide>>
-        }
-    <<align3-merge>>
+    if (!packed) \{
+        \LA{}align3-slide\RA{}
+        \}
+    \LA{}align3-merge\RA{}
 
-    if (max(n) < maxcol) {
-	maxcol <- max(n)
-	nid <- nid[,1:maxcol]
-	pos <- pos[,1:maxcol]
-	fam <- fam[,1:maxcol]
-	}
+    if (max(n) < maxcol) \{
+        maxcol <- max(n)
+        nid <- nid[,1:maxcol]
+        pos <- pos[,1:maxcol]
+        fam <- fam[,1:maxcol]
+        \}
 
     list(n=n, nid=nid, pos=pos, fam=fam)
-    }
-@ 
+    \}
+\nwendcode{}\nwbegindocs{72}\nwdocspar
 
 For the unpacked case, which is the traditional way to draw a pedigree
 when we can assume the paper is infinitely wide, all parents are centered
@@ -1923,19 +1844,19 @@ over their children.
 In this case we think if the two trees to be merged as solid blocks.
 On input they both have a left margin of 0.
 Compute how far over we have to slide the right tree.
-<<align3-slide>>=
+\nwenddocs{}\nwbegincode{73}\moddef{align3-slide}\endmoddef
 slide <- 0
-for (i in 1:maxlev) {
+for (i in 1:maxlev) \{
     n1 <- x1$n[i]
     n2 <- x2$n[i]
-    if (n1 >0 & n2 >0) {
-	if (nid[i,n1] == x2$nid[i,1])
-		temp <- pos[i, n1] - x2$pos[i,1]
-	else    temp <- space + pos[i, n1] - x2$pos[i,1]
-	if (temp > slide) slide <- temp
-	}
-    }
-@ 
+    if (n1 >0 & n2 >0) \{
+        if (nid[i,n1] == x2$nid[i,1])
+                temp <- pos[i, n1] - x2$pos[i,1]
+        else    temp <- space + pos[i, n1] - x2$pos[i,1]
+        if (temp > slide) slide <- temp
+        \}
+    \}
+\nwendcode{}\nwbegindocs{74}\nwdocspar
 
 Now merge the two trees. 
 Start at the top level and work down.
@@ -1950,31 +1871,31 @@ Start at the top level and work down.
         to a parent, or midway for a double marriage.
     \end{itemize}
   \item If packed=TRUE determine the amount of slide for this row. It
-    will be [[space]] over from the last element in the left pedigree,
+    will be {\tt{}space} over from the last element in the left pedigree,
     less overlap.
   \item Move everything over
   \item Fix all the children of this level, right hand pedigree, to
     point to the correct parental position.
 \end{enumerate}
 
-<<align3-merge>>= 
-for (i in 1:maxlev) {
+\nwenddocs{}\nwbegincode{75}\moddef{align3-merge}\endmoddef
+for (i in 1:maxlev) \{
     n1 <- x1$n[i]
     n2 <- x2$n[i]
-    if (n2 >0) {   # If anything needs to be done for this row...
-        if (n1>0 && (nid[i,n1] == floor(x2$nid[i,1]))) {
+    if (n2 >0) \{   # If anything needs to be done for this row...
+        if (n1>0 && (nid[i,n1] == floor(x2$nid[i,1]))) \{
             #two subjects overlap
             overlap <- 1
             fam[i,n1] <- max(fam[i,n1], fam2[i,1])
             nid[i,n1] <- max(nid[i,n1], x2$nid[i,1]) #preserve a ".5"
-            if (!packed) {
+            if (!packed) \{
                 if(fam2[i,1]>0) 
                     if (fam[i,n1]>0) 
                         pos[i,n1] <- (x2$pos[i,1] + pos[i,n1] + slide)/2
                     else pos[i,n1] <- x2$pos[i,1]+ slide
-                    }
+                    \}
             n[i] <- n[i] -1
-            }
+            \}
         else overlap <- 0
         
         if (packed) slide <- if (n1==0) 0 else pos[i,n1] + space - overlap
@@ -1984,14 +1905,14 @@ for (i in 1:maxlev) {
         fam[i, n1 + zz -overlap] <- fam2[i,zz] 
         pos[i, n1 + zz -overlap] <- x2$pos[i,zz] + slide
         
-        if (i<maxlev) {
-    	    # adjust the pointers of any children (look ahead)
+        if (i<maxlev) \{
+            # adjust the pointers of any children (look ahead)
             temp <- fam2[i+1,]
             fam2[i+1,] <- ifelse(temp==0, 0, temp + n1 -overlap)
-    	    }
-        }
-    }
-@
+            \}
+        \}
+    \}
+\nwendcode{}\nwbegindocs{76}\nwdocspar
 
 \section{alignped4}
 The alignped4 routine is the final step of alignment.  It attempts to line
@@ -1999,7 +1920,7 @@ up children under parents and put spouses and siblings `close' to each other,%'`
 to the extent possible within the constraints of page width.  This routine
 used to be the most intricate and complex of the set, until I realized that
 the task could be cast as constrained quadradic optimization.
-The current code does necessary setup and then calls the [[quadprog]]
+The current code does necessary setup and then calls the {\tt{}quadprog}
 function.  
 At one point I investigated using one of the simpler least-squares routines
 where $\beta$ is constrained to be non-negative. 
@@ -2035,23 +1956,23 @@ and spouse-spouse closeness.
 
 We start by adding in these penalties.  The total number of parameters
 in the alignment problem (what we hand to quadprog) is the set 
-of [[sum(n)]] positions.  A work array myid keeps track of the parameter
+of {\tt{}sum(n)} positions.  A work array myid keeps track of the parameter
 number for each position so that it is easy to find.
 There is one extra penalty added at the end.  Because the penalty amount
 would be the same if all the final positions were shifted by a constant,
 the penalty matrix will not be positive definite; solve.QP doesn't like  %'
 this.  We add a tiny amount of leftward pull to the widest line.
-<<alignped4>>=
-alignped4 <- function(rval, spouse, level, width, align) {
+\nwenddocs{}\nwbegincode{77}\moddef{alignped4}\endmoddef
+alignped4 <- function(rval, spouse, level, width, align) \{
     if (is.logical(align)) align <- c(1.5, 2)  #defaults
     maxlev <- nrow(rval$nid)
     width <- max(width, rval$n+.01)   # width must be > the longest row
 
     n <- sum(rval$n)  # total number of subjects
     myid <- matrix(0, maxlev, ncol(rval$nid))  #number the plotting points
-    for (i in 1:maxlev) {
+    for (i in 1:maxlev) \{
         myid[i, rval$nid[i,]>0] <-  cumsum(c(0, rval$n))[i] + 1:rval$n[i]
-        }
+        \}
 
     # There will be one penalty for each spouse and one for each child
     npenal <- sum(spouse[rval$nid>0]) + sum(rval$fam >0) 
@@ -2059,20 +1980,20 @@ alignped4 <- function(rval, spouse, level, width, align) {
 
     indx <- 0
     # Penalties to keep spouses close
-    for (lev in 1:maxlev) {
-        if (any(spouse[lev,])) {
+    for (lev in 1:maxlev) \{
+        if (any(spouse[lev,])) \{
             who <- which(spouse[lev,])
             indx <- max(indx) + 1:length(who)
             pmat[cbind(indx, myid[lev,who])] <-  sqrt(align[2])
             pmat[cbind(indx, myid[lev,who+1])] <- -sqrt(align[2])
-            }
-        }
+            \}
+        \}
 
     # Penalties to keep kids close to parents
-    for (lev in (1:maxlev)[-1])  { # no parents at the top level
+    for (lev in (1:maxlev)[-1])  \{ # no parents at the top level
         families <- unique(rval$fam[lev,])
         families <- families[families !=0]  #0 is the 'no parent' marker
-        for (i in families) {  #might be none
+        for (i in families) \{  #might be none
             who <- which(rval$fam[lev,] == i)
             k <- length(who)
             indx <- max(indx) +1:k   #one penalty per child
@@ -2080,39 +2001,39 @@ alignped4 <- function(rval, spouse, level, width, align) {
             pmat[cbind(indx, myid[lev,who])] <- -penalty
             pmat[cbind(indx, myid[lev-1, rval$fam[lev,who]])] <- penalty/2
             pmat[cbind(indx, myid[lev-1, rval$fam[lev,who]+1])] <- penalty/2
-            }
-	}
+            \}
+        \}
     maxrow <- min(which(rval$n==max(rval$n)))
     pmat[nrow(pmat), myid[maxrow,1]] <- 1e-5
-@ 
+\nwendcode{}\nwbegindocs{78}\nwdocspar
 
 Next come the constraints.  If there are $k$ subjects on a line there will
 be $k+1$ constraints for that line.  The first point must be $\ge 0$, each
 subesquent one must be at least 1 unit to the right, and the final point
 must be $\le$ the max width.
-<<alignped4>>=
+\nwenddocs{}\nwbegincode{79}\moddef{alignped4}\plusendmoddef
     ncon <- n + maxlev    # number of constraints
     cmat <- matrix(0., nrow=ncon, ncol=n)
     coff <- 0  # cumulative constraint lines so var
     dvec <- rep(1., ncon)
-    for (lev in 1:maxlev) {
-	nn <- rval$n[lev]
-	if (nn>1) {
+    for (lev in 1:maxlev) \{
+        nn <- rval$n[lev]
+        if (nn>1) \{
             for (i in 1:(nn-1)) 
                 cmat[coff +i, myid[lev,i + 0:1]] <- c(-1,1)
-            }
+            \}
 
-	cmat[coff+nn,   myid[lev,1]]  <- 1     #first element >=0
+        cmat[coff+nn,   myid[lev,1]]  <- 1     #first element >=0
         dvec[coff+nn] <- 0
-	cmat[coff+nn+1, myid[lev,nn]] <- -1    #last element <= width-1
+        cmat[coff+nn+1, myid[lev,nn]] <- -1    #last element <= width-1
         dvec[coff+nn+1] <- 1-width
         coff <- coff + nn+ 1
-	}
+        \}
 
-    if (exists('solve.QP')) {
+    if (exists('solve.QP')) \{
          pp <- t(pmat) %*% pmat + 1e-8 * diag(ncol(pmat))
          fit <- solve.QP(pp, rep(0., n), t(cmat), dvec)
-         }
+         \}
     else stop("Need the quadprog package")
 
     newpos <- rval$pos
@@ -2120,8 +2041,8 @@ must be $\le$ the max width.
     #newpos[myid>0] <- fit$X[myid]           
     newpos[myid>0] <- fit$solution[myid]
     newpos
-    }
-@ 
+    \}
+\nwendcode{}\nwbegindocs{80}\nwdocspar
 \section{Plots}
 The plotting function for pedigrees has 5 tasks
 \begin{enumerate}
@@ -2138,52 +2059,52 @@ The plotting function for pedigrees has 5 tasks
 Another task, not yet completely understood, is how we might break a plot 
 across multiple pages.
 
-<<plot.pedigree>>=
+\nwenddocs{}\nwbegincode{81}\moddef{plot.pedigree}\endmoddef
 plot.pedigree <- function(x, id = x$id, status = x$status, 
-			  affected = x$affected, 
-			  cex = 1, col = 1,
-			  symbolsize = 1, branch = 0.6, 
-			  packed = TRUE, align = c(1.5,2), width = 8, 
-			  density=c(-1, 35,55,25), mar=c(4.1, 1, 4.1, 1),
-			  angle=c(90,65,40,0), keep.par=FALSE,
+                          affected = x$affected, 
+                          cex = 1, col = 1,
+                          symbolsize = 1, branch = 0.6, 
+                          packed = TRUE, align = c(1.5,2), width = 8, 
+                          density=c(-1, 35,55,25), mar=c(4.1, 1, 4.1, 1),
+                          angle=c(90,65,40,0), keep.par=FALSE,
                           subregion, ...)
-{
+\{
     Call <- match.call()
-    n <- length(x$id)	
-    <<pedplot-data>>
-    <<pedplot-sizing>>
-    <<pedplot-symbols>>
-    <<pedplot-lines>>
-    <<pedplot-finish>>
-    }
-@ 
+    n <- length(x$id)   
+    \LA{}pedplot-data\RA{}
+    \LA{}pedplot-sizing\RA{}
+    \LA{}pedplot-symbols\RA{}
+    \LA{}pedplot-lines\RA{}
+    \LA{}pedplot-finish\RA{}
+    \}
+\nwendcode{}\nwbegindocs{82}\nwdocspar
 
 \subsection{Setup}
 The dull part is first: check all of the input data for
 correctness.  
-The [[sex]] variable is taken from the pedigree so we need not check
+The {\tt{}sex} variable is taken from the pedigree so we need not check
 that. 
-The identifier for each subject is by default the [[id]] variable from
+The identifier for each subject is by default the {\tt{}id} variable from
 the pedigree, but users often want to add some extra text.
 The status variable can be used to put a line through the symbol
 of those who are deceased, it is an optional part of the pedigree.
-<<pedplot-data>>=
+\nwenddocs{}\nwbegincode{83}\moddef{pedplot-data}\endmoddef
 if(is.null(status))
   status <- rep(0, n)
-else {
+else \{
     if(!all(status == 0 | status == 1))
       stop("Invalid status code")
     if(length(status) != n)
       stop("Wrong length for status")
-}
-if(!missing(id)) {
+\}
+if(!missing(id)) \{
     if(length(id) != n)
       stop("Wrong length for id")
-}
-@ 
+\}
+\nwendcode{}\nwbegindocs{84}\nwdocspar
 The ``affected status'' is a 0/1 matrix of any marker data that the
 user might want to add.  It may be attached to the pedigree or added
-here.  It can be a vector of length [[n]] or a matrix with [[n]] rows.
+here.  It can be a vector of length {\tt{}n} or a matrix with {\tt{}n} rows.
 If it is not present, the default is to print open symbols without
 shading or color, which corresponds to a code of 0, while a 1 means to
 shade the symbol.  
@@ -2200,37 +2121,37 @@ Bennet et a. J of Gent Couns., 2008.
 For purposes within the plot method, NA values in ``affected'' are coded 
 to -1.
 
-<<pedplot-data>>=
-if(is.null(affected)){
+\nwenddocs{}\nwbegincode{85}\moddef{pedplot-data}\plusendmoddef
+if(is.null(affected))\{
   affected <- matrix(0,nrow=n)
-}
-else {
-    if (is.matrix(affected)){
+\}
+else \{
+    if (is.matrix(affected))\{
         if (nrow(affected) != n) stop("Wrong number of rows in affected")
         if (is.logical(affected)) affected <- 1* affected
         if (ncol(affected) > length(angle) || ncol(affected) > length(density))
             stop("More columns in the affected matrix than angle/density values")
-        } 
-    else {
+        \} 
+    else \{
         if (length(affected) != n)
-    	stop("Wrong length for affected")
+        stop("Wrong length for affected")
 
         if (is.logical(affected)) affected <- as.numeric(affected)
         if (is.factor(affected))  affected <- as.numeric(affected) -1
-        }
-    if(max(affected, na.rm=TRUE) > min(affected, na.rm=TRUE)) {
+        \}
+    if(max(affected, na.rm=TRUE) > min(affected, na.rm=TRUE)) \{
       affected <- matrix(affected - min(affected, na.rm=TRUE),nrow=n)
       affected[is.na(affected)] <- -1
-    } else {
+    \} else \{
       affected <- matrix(affected,nrow=n)
-    }
+    \}
     if (!all(affected==0 | affected==1 | affected == -1))
-    	stop("Invalid code for affected status")
-}
+        stop("Invalid code for affected status")
+\}
 
 if (length(col) ==1) col <- rep(col, n)
 else if (length(col) != n) stop("Col argument must be of length 1 or n")
-@
+\nwendcode{}\nwbegindocs{86}\nwdocspar
 
 \subsection{Sizing}
 Now we need to set the sizes. 
@@ -2242,13 +2163,13 @@ by having an nid value of 0.
 Horizontal locations for each point go from 0 to xmax, subjects are at
 least 1 unit apart; a large number will be exactly one unit part.
 These locations will be at the top center of each plotted symbol.
-<<pedplot-sizing>>=
-<<pedplot-subregion>>
+\nwenddocs{}\nwbegincode{87}\moddef{pedplot-sizing}\endmoddef
+\LA{}pedplot-subregion\RA{}
 plist <- align.pedigree(x, packed = packed, width = width, align = align)
 if (!missing(subregion)) plist <- subregion2(plist, subregion)
 xrange <- range(plist$pos[plist$nid >0])
 maxlev <- nrow(plist$pos)
-@ 
+\nwendcode{}\nwbegindocs{88}\nwdocspar
 
 We would like to to make the boxes about 2.5 characters wide, which matches
 most labels, but no more than 0.9 units wide or .5 units high.  
@@ -2282,7 +2203,7 @@ text for the last row + 1 box); remember that the coordinates point to the
 top center of the box.
 We want row 1 to plot at the top, which is done by appropriate setting
 of the usr parameter.
-<<pedplot-sizing>>=
+\nwenddocs{}\nwbegincode{89}\moddef{pedplot-sizing}\plusendmoddef
 frame()
 oldpar <- par(mar=mar, xpd=TRUE)
 psize <- par('pin')  # plot region in inches
@@ -2304,60 +2225,60 @@ labh  <- stemp2/vscale   # height of a text string
 legh  <- min(1/4, boxh  *1.5)  # how tall are the 'legs' up from a child
 par(usr=c(xrange[1]- boxw/2, xrange[2]+ boxw/2, 
           maxlev+ boxh+ stemp3 + stemp2/2 , 1))
-@ 
+\nwendcode{}\nwbegindocs{90}\nwdocspar
 
 \subsection{Drawing the tree}
 Now we draw and label the boxes.  Definition of the drawbox function is
 deferred until later.
-<<pedplot-symbols>>=
-<<pedplot-drawbox>>
+\nwenddocs{}\nwbegincode{91}\moddef{pedplot-symbols}\endmoddef
+\LA{}pedplot-drawbox\RA{}
 
 sex <- as.numeric(x$sex)
-for (i in 1:maxlev) {
-    for (j in 1:plist$n[i]) {
+for (i in 1:maxlev) \{
+    for (j in 1:plist$n[i]) \{
         k <- plist$nid[i,j]
         drawbox(plist$pos[i,j], i, sex[k], affected[k,],
                 status[k], col[k], polylist, density, angle,
                 boxw, boxh)
         text(plist$pos[i,j], i + boxh + labh*.7, id[k], cex=cex, adj=c(.5,1))
-        }
-}
-@ 
+        \}
+\}
+\nwendcode{}\nwbegindocs{92}\nwdocspar
 
 Now draw in the connections one by one. First those between spouses.
-<<pedplot-lines>>= 
+\nwenddocs{}\nwbegincode{93}\moddef{pedplot-lines}\endmoddef
 maxcol <- ncol(plist$nid)  #all have the same size
-for(i in 1:maxlev) {
+for(i in 1:maxlev) \{
     tempy <- i + boxh/2
-    if(any(plist$spouse[i,  ]>0)) {
+    if(any(plist$spouse[i,  ]>0)) \{
         temp <- (1:maxcol)[plist$spouse[i,  ]>0]
         segments(plist$pos[i, temp] + boxw/2, rep(tempy, length(temp)), 
-    	     plist$pos[i, temp + 1] - boxw/2, rep(tempy, length(temp)))
+             plist$pos[i, temp + 1] - boxw/2, rep(tempy, length(temp)))
 
         temp <- (1:maxcol)[plist$spouse[i,  ] ==2]
-        if (length(temp)) { #double line for double marriage
+        if (length(temp)) \{ #double line for double marriage
             tempy <- tempy + boxh/10
             segments(plist$pos[i, temp] + boxw/2, rep(tempy, length(temp)), 
-    	       plist$pos[i, temp + 1] - boxw/2, rep(tempy, length(temp)))
-            }
-    }
-}
-@ 
+               plist$pos[i, temp + 1] - boxw/2, rep(tempy, length(temp)))
+            \}
+    \}
+\}
+\nwendcode{}\nwbegindocs{94}\nwdocspar
 Now connect the children to the parents.  First there are lines up from each
 child, which would be trivial except for twins, triplets, etc.  Then we 
 draw the horizontal bar across siblings and finally the connector from
 the parent.  For twins, the ``vertical'' lines are angled towards a 
-common point, the variable is called [[target]] below.
+common point, the variable is called {\tt{}target} below.
 The horizontal part is easier if we do things family by
-family.  The [[plist$twins]] variable is 1/2/3 for a twin on my right,
+family.  The {\tt{}plist{\char36}twins} variable is 1/2/3 for a twin on my right,
 0 otherwise.
 
-<<pedplot-lines>>=
-for(i in 2:maxlev) {
+\nwenddocs{}\nwbegincode{95}\moddef{pedplot-lines}\plusendmoddef
+for(i in 2:maxlev) \{
     zed <- unique(plist$fam[i,  ])
     zed <- zed[zed > 0]  #list of family ids
     
-    for(fam in zed) {
+    for(fam in zed) \{
         xx <- plist$pos[i - 1, fam + 0:1]
         parentx <- mean(xx)   #midpoint of parents
 
@@ -2365,34 +2286,34 @@ for(i in 2:maxlev) {
         # Draw the uplines
         who <- (plist$fam[i,] == fam) #The kids of interest
         if (is.null(plist$twins)) target <- plist$pos[i,who]
-        else {
+        else \{
             twin.to.left <-(c(0, plist$twins[i,who])[1:sum(who)])
             temp <- cumsum(twin.to.left ==0) #increment if no twin to the left
             # 5 sibs, middle 3 are triplets gives 1,2,2,2,3
             # twin, twin, singleton gives 1,1,2,2,3
             tcount <- table(temp)
             target <- rep(tapply(plist$pos[i,who], temp, mean), tcount)
-            }
+            \}
         yy <- rep(i, sum(who))
         segments(plist$pos[i,who], yy, target, yy-legh)
                   
         ## draw midpoint MZ twin line
-        if (any(plist$twins[i,who] ==1)) {
+        if (any(plist$twins[i,who] ==1)) \{
           who2 <- which(plist$twins[i,who] ==1)
           temp1 <- (plist$pos[i, who][who2] + target[who2])/2
           temp2 <- (plist$pos[i, who][who2+1] + target[who2])/2
             yy <- rep(i, length(who2)) - legh/2
             segments(temp1, yy, temp2, yy)
-            }
+            \}
 
         # Add a question mark for those of unknown zygosity
-        if (any(plist$twins[i,who] ==3)) {
+        if (any(plist$twins[i,who] ==3)) \{
           who2 <- which(plist$twins[i,who] ==3)
           temp1 <- (plist$pos[i, who][who2] + target[who2])/2
           temp2 <- (plist$pos[i, who][who2+1] + target[who2])/2
             yy <- rep(i, length(who2)) - legh/2
             text((temp1+temp2)/2, yy, '?')
-            }
+            \}
         
         # Add the horizontal line 
         segments(min(target), i-legh, max(target), i-legh)
@@ -2402,41 +2323,41 @@ for(i in 2:maxlev) {
         y1 <- i-legh
         if(branch == 0)
             segments(x1, y1, parentx, (i-1) + boxh/2)
-        else {
+        else \{
             y2 <- (i-1) + boxh/2
             x2 <- parentx
             ydelta <- ((y2 - y1) * branch)/2
             segments(c(x1, x1, x2), c(y1, y1 + ydelta, y2 - ydelta), 
                      c(x1, x2, x2), c(y1 + ydelta, y2 - ydelta, y2))
-            }
-        }
-    }
-@
+            \}
+        \}
+    \}
+\nwendcode{}\nwbegindocs{96}\nwdocspar
 
 The last set of lines are dotted arcs that connect mulitiple instances of
 a subject on the same line.  These instances may or may not be on the
 same line.
 The arrcconect function draws a quadratic arc between locations $(x_1, y_1)$
 and $(x_2, y_2$) whose height is 1/2 unit above a straight line connection.
-<<pedplot-lines>>=
-arcconnect <- function(x, y) {
+\nwenddocs{}\nwbegincode{97}\moddef{pedplot-lines}\plusendmoddef
+arcconnect <- function(x, y) \{
     xx <- seq(x[1], x[2], length = 15)
     yy <- seq(y[1], y[2], length = 15) + (seq(-7, 7))^2/98 - .5
     lines(xx, yy, lty = 2)
-    }
+    \}
 
 uid <- unique(plist$nid)
-for (id in uid[uid>0]) {
+for (id in uid[uid>0]) \{
     indx <- which(plist$nid == id)
-    if (length(indx) >1) {   #subject is a multiple
+    if (length(indx) >1) \{   #subject is a multiple
         tx <- plist$pos[indx]
         ty <- ((row(plist$pos))[indx])[order(tx)]
         tx <- sort(tx)
         for (j in 1:(length(indx) -1))
             arcconnect(tx[j + 0:1], ty[j+  0:1])
-        }
-    }
-@ 
+        \}
+    \}
+\nwendcode{}\nwbegindocs{98}\nwdocspar
 
 \subsection{Final output}
 Remind the user of subjects who did not get
@@ -2447,22 +2368,22 @@ Then restore the plot parameters.  This would only not be done if someone
 wants to further annotate the plot.
 Last, we give a list of the plot positions for each subject.  Someone
 who is plotted twice will have their first position listed.
-<<pedplot-finish>>=
+\nwenddocs{}\nwbegincode{99}\moddef{pedplot-finish}\endmoddef
 ckall <- x$id[is.na(match(x$id,x$id[plist$nid]))]
-if(length(ckall>0)) cat('Did not plot the following people:',ckall,'\n')
+if(length(ckall>0)) cat('Did not plot the following people:',ckall,'\\n')
     
 if(!keep.par) par(oldpar)
 
 tmp <- match(1:length(x$id), plist$nid)
 invisible(list(plist=plist, x=plist$pos[tmp], y= row(plist$pos)[tmp],
                boxw=boxw, boxh=boxh, call=Call))        
-@ 
+\nwendcode{}\nwbegindocs{100}\nwdocspar
 \subsection{Symbols}
 There are four sumbols corresponding to the four sex codes: square = male,
 circle = female, diamond= unknown, and triangle = terminated.  
 They are shaded according to the value(s) of affected status for each
 subject, where 0=unfilled and 1=filled, and filling uses the standard
-arguments of the [[polygon]] function.
+arguments of the {\tt{}polygon} function.
 The nuisance is when the affected status is a matrix, in which case the
 symbol will be divided up into sections, clockwise starting at the 
 lower left. 
@@ -2479,18 +2400,18 @@ There are 3 cases: the affected matrix has
 only one column, partitioning a circle for multiple columns, and 
 partitioning the other cases for multiple columns.
 
-<<pedplot-drawbox>>=
-<<pedplot-circfun>>
-<<pedplot-polyfun>>
-if (ncol(affected)==1) {
+\nwenddocs{}\nwbegincode{101}\moddef{pedplot-drawbox}\endmoddef
+\LA{}pedplot-circfun\RA{}
+\LA{}pedplot-polyfun\RA{}
+if (ncol(affected)==1) \{
     polylist <- list(
         square = list(list(x=c(-1, -1, 1,1)/2,  y=c(0, 1, 1, 0))),
         circle = list(list(x=.5* cos(seq(0, 2*pi, length=50)),
                            y=.5* sin(seq(0, 2*pi, length=50)) + .5)),
         diamond = list(list(x=c(0, -.5, 0, .5), y=c(0, .5, 1, .5))),
         triangle= list(list(x=c(0, -.56, .56),  y=c(0, 1, 1))))
-    }
-else {
+    \}
+else \{
     nc <- ncol(affected)
     square <- polyfun(nc, list(x=c(-.5, -.5, .5, .5), y=c(-.5, .5, .5, -.5),
                                 theta= -c(3,5,7,9)* pi/4))
@@ -2501,27 +2422,27 @@ else {
                                  theta=c(-2, -4, -6) *pi/3))
     polylist <- list(square=square, circle=circle, diamond=diamond, 
                      triangle=triangle)
-    }
-@ 
+    \}
+\nwendcode{}\nwbegindocs{102}\nwdocspar
 
 The circle function is quite simple.  The number of segments is arbitrary,
 50 seems to be enough to make the eye happy.  We draw the ray from 0 to
 the edge, then a portion of the arc.  The polygon function will connect
 back to the center.
-<<pedplot-circfun>>=
-circfun <- function(nslice, n=50) {
+\nwenddocs{}\nwbegincode{103}\moddef{pedplot-circfun}\endmoddef
+circfun <- function(nslice, n=50) \{
     nseg <- ceiling(n/nslice)  #segments of arc per slice
     
     theta <- -pi/2 - seq(0, 2*pi, length=nslice +1)
     out <- vector('list', nslice)
-    for (i in 1:nslice) {
+    for (i in 1:nslice) \{
         theta2 <- seq(theta[i], theta[i+1], length=nseg)
         out[[i]]<- list(x=c(0, cos(theta2)/2),
                         y=c(0, sin(theta2)/2) + .5)
-        }
+        \}
     out
-    }
-@ 
+    \}
+\nwendcode{}\nwbegindocs{104}\nwdocspar
 
 Now for the interesting one --- dividing a polygon into ``pie slices''.
 In computing this we can't use the usual $y= a + bx$ formula for a line,
@@ -2548,8 +2469,8 @@ $0 \le z \le 1$ and are in the `forward' part of the ray.  This latter  %'`
 is true if the inner product $x \cos(\theta) + y \sin(\theta) >0$.
 Exactly one of the polygon sides will satisfy both conditions.
 
-<<pedplot-polyfun>>=
-polyfun <- function(nslice, object) {
+\nwenddocs{}\nwbegincode{105}\moddef{pedplot-polyfun}\endmoddef
+polyfun <- function(nslice, object) \{
     # make the indirect segments view
     zmat <- matrix(0,ncol=4, nrow=length(object$x))
     zmat[,1] <- object$x
@@ -2563,7 +2484,7 @@ polyfun <- function(nslice, object) {
     ns1 <- nslice+1
     theta <- -pi/2 - seq(0, 2*pi, length=ns1)
     x <- y <- double(ns1)
-    for (i in 1:ns1) {
+    for (i in 1:ns1) \{
         z <- (tan(theta[i])*zmat[,1] - zmat[,3])/
             (zmat[,4] - tan(theta[i])*zmat[,2])
         tx <- zmat[,1] + z*zmat[,2]
@@ -2572,8 +2493,8 @@ polyfun <- function(nslice, object) {
         indx <- which(is.finite(z) & z>=0 &  z<=1 & inner >0)
         x[i] <- tx[indx]
         y[i] <- ty[indx]
-        }
-@ 
+        \}
+\nwendcode{}\nwbegindocs{106}\nwdocspar
 
 Now I have the $x,y$ coordinates where each radial slice (the cuts you
 would make when slicing a pie) intersects the polygon.  
@@ -2581,7 +2502,7 @@ Add the original vertices of the polygon to the list, sort by angle, and
 create the output.  The radial lines are labeled 1,2, \ldots, nslice +1
 (the original cut from the center to 6 o'clock is repeated at the end),   %'
 and the inserted vertices with a zero.
-<<pedplot-polyfun>>= 
+\nwenddocs{}\nwbegincode{107}\moddef{pedplot-polyfun}\plusendmoddef
     nvertex <- length(object$x)
     temp <- data.frame(indx = c(1:ns1, rep(0, nvertex)),
                        theta= c(theta, object$theta),
@@ -2589,13 +2510,13 @@ and the inserted vertices with a zero.
                        y= c(y, object$y))
     temp <- temp[order(-temp$theta),]
     out <- vector('list', nslice)
-    for (i in 1:nslice) {
+    for (i in 1:nslice) \{
         rows <- which(temp$indx==i):which(temp$indx==(i+1))
         out[[i]] <- list(x=c(0, temp$x[rows]), y= c(0, temp$y[rows]) +.5)
-        }
+        \}
     out
-    }   
-@ 
+    \}   
+\nwendcode{}\nwbegindocs{108}\nwdocspar
 
 Finally we get to the drawbox function itself, which is fairly simple.
 Updates by JPS in 5/2011 to allow missing, and to fix up shadings and borders.
@@ -2605,24 +2526,24 @@ For affected=-1 (missing), fill with ``?'' in the midpoint of the polygon,
 with a size adjusted by how many columns in affected.
 For all shapes drawn, make the border the color for the person.
 
-<<pedplot-drawbox>>=
+\nwenddocs{}\nwbegincode{109}\moddef{pedplot-drawbox}\plusendmoddef
 
   drawbox<- function(x, y, sex, affected, status, col, polylist,
-            density, angle, boxw, boxh) {
-        for (i in 1:length(affected)) {
-            if (affected[i]==0) {
+            density, angle, boxw, boxh) \{
+        for (i in 1:length(affected)) \{
+            if (affected[i]==0) \{
                 polygon(x + (polylist[[sex]])[[i]]$x *boxw,
                         y + (polylist[[sex]])[[i]]$y *boxh,
                         col=NA, border=col)
-                }
+                \}
             
-            if(affected[i]==1) {
-              ## else {
+            if(affected[i]==1) \{
+              ## else \{
               polygon(x + (polylist[[sex]])[[i]]$x * boxw,
                       y + (polylist[[sex]])[[i]]$y * boxh,
                       col=col, border=col, density=density[i], angle=angle[i])            
-            }
-            if(affected[i] == -1) {
+            \}
+            if(affected[i] == -1) \{
               polygon(x + (polylist[[sex]])[[i]]$x * boxw,
                       y + (polylist[[sex]])[[i]]$y * boxh,
                       col=NA, border=col)
@@ -2631,30 +2552,30 @@ For all shapes drawn, make the border the color for the person.
               midy <- y + mean(range(polylist[[sex]][[i]]$y*boxh))
              
               points(midx, midy, pch="?", cex=min(1, cex*2/length(affected)))
-            }
+            \}
             
-          }
+          \}
         if (status==1) segments(x- .6*boxw, y+1.1*boxh, 
                                 x+ .6*boxw, y- .1*boxh,)
         ## Do a black slash per Beth, old line was
         ##        x+ .6*boxw, y- .1*boxh, col=col)
-      }
+      \}
 
-@ 
+\nwendcode{}\nwbegindocs{110}\nwdocspar
 
 \subsection{Subsetting}
 This section is still experimental and might change.  
 
 Sometimes a pedigree is too large to fit comfortably on one page.
-The [[subregion]] argument allows one to plot only a portion of the
+The {\tt{}subregion} argument allows one to plot only a portion of the
 pedigree based on the plot region.  Along with other tools to
 select portions of the pedigree based on relatedness, such as all
 the descendents of a particular marriage, it gives a tool for
 addressing this.  This breaks our original goal of completely
 automatic plots, but users keep asking for more.
 
-The argument is [[subregion=c(min x, max x, min depth, max depth)]],
-and works by editing away portions of the [[plist]] object
+The argument is {\tt{}subregion=c(min\ x,\ max\ x,\ min\ depth,\ max\ depth)},
+and works by editing away portions of the {\tt{}plist} object
 returned by align.pedigree. 
 First decide what lines to keep. 
 Then take subjects away from each line, 
@@ -2665,15 +2586,15 @@ JPS 5/23/2011 note:
 Found the subregion option to re-scale the y-axis very well, but 
 not the x-axis.
 
-<<pedplot-subregion>>=
-subregion2 <- function(plist, subreg) {
+\nwenddocs{}\nwbegincode{111}\moddef{pedplot-subregion}\endmoddef
+subregion2 <- function(plist, subreg) \{
     if (subreg[3] <1 || subreg[4] > length(plist$n)) 
         stop("Invalid depth indices in subreg")
     lkeep <- subreg[3]:subreg[4]
-    for (i in lkeep) {
+    for (i in lkeep) \{
         if (!any(plist$pos[i,]>=subreg[1] & plist$pos[i,] <= subreg[2]))
             stop(paste("No subjects retained on level", i))
-        }
+        \}
     
     nid2 <- plist$nid[lkeep,]
     n2   <- plist$n[lkeep]
@@ -2682,7 +2603,7 @@ subregion2 <- function(plist, subreg) {
     fam2 <- plist$fam[lkeep,]
     if (!is.null(plist$twins)) twin2 <- plist$twins[lkeep,]
     
-    for (i in 1:nrow(nid2)) {
+    for (i in 1:nrow(nid2)) \{
         keep <- which(pos2[i,] >=subreg[1] & pos2[i,] <= subreg[2])
         nkeep <- length(keep)
         n2[i] <- nkeep
@@ -2692,21 +2613,21 @@ subregion2 <- function(plist, subreg) {
         fam2[i, 1:nkeep] <- fam2[i, keep]
         if (!is.null(plist$twins)) twin2[i, 1:nkeep] <- twin2[i, keep]
 
-        if (i < nrow(nid2)) {  #look ahead
+        if (i < nrow(nid2)) \{  #look ahead
             tfam <- match(fam2[i+1,], keep, nomatch=0)
             fam2[i+1,] <- tfam
             if (any(spouse2[i,tfam] ==0)) 
                 stop("A subregion cannot separate parents")
-            }
-        }
+            \}
+        \}
     
     n <- max(n2)
     out <- list(n= n2[1:n], nid=nid2[,1:n, drop=F], pos=pos2[,1:n, drop=F],
                 spouse= spouse2[,1:n, drop=F], fam=fam2[,1:n, drop=F])
     if (!is.null(plist$twins)) out$twins <- twin2[, 1:n, drop=F]
     out
-    }
-@ 
+    \}
+\nwendcode{}\nwbegindocs{112}\nwdocspar
 
 
 \subsection{Legends}
@@ -2742,12 +2663,12 @@ We carry forward from the plot.pedigree the same density and angle defaults
 for shading sections of each subject's symbol with polygon.  
 
 
-<<pedigree.legend>>=
+\nwenddocs{}\nwbegincode{113}\moddef{pedigree.legend}\endmoddef
 
 pedigree.legend <- function (ped, labels = dimnames(ped$affected)[[2]],
     edges = 200, radius=NULL, location="bottomright", new=TRUE,
     density = c(-1, 35, 55, 25),  angle = c(90, 65, 40, 0), ...) 
-{
+\{
    
     naff <- ncol(ped$affected)
     x <- rep(1,naff)
@@ -2771,7 +2692,7 @@ pedigree.legend <- function (ped, labels = dimnames(ped$affected)[[2]],
     dx <- diff(x)
     nx <- length(dx)
     ## settings for plotting on a new page
-    if(!new) {
+    if(!new) \{
       plot.new()
       
       pin <- par("pin")
@@ -2787,7 +2708,7 @@ pedigree.legend <- function (ped, labels = dimnames(ped$affected)[[2]],
       
       plot.window(xlim, ylim, "", asp = 1)
       
-    } else {
+    \} else \{
       ## Settings to add to pedigree plot
       ## y-axis is flipped, so adjust angle and rotation
       init.angle <- -1*init.angle
@@ -2813,7 +2734,7 @@ pedigree.legend <- function (ped, labels = dimnames(ped$affected)[[2]],
         "bottomleft" =c(min(usr.asp1[1:2]) + pctusr, max(usr.asp1[3:4])-pctusr),
         "topleft" = c(min(usr.asp1[1:2]) + pctusr, min(usr.asp1[3:4]) + pctusr))
      
-    }
+    \}
     
     col <- rep(col, length.out = nx)
     border <- rep(1, length.out = nx)
@@ -2821,11 +2742,11 @@ pedigree.legend <- function (ped, labels = dimnames(ped$affected)[[2]],
     angle <- rep(angle, length.out = nx)
     density <- rep(density, length.out = nx)
   
-    t2xy <- function(t) {
+    t2xy <- function(t) \{
         t2p <- twopi * t + init.angle * pi/180
         list(x = radius * cos(t2p), y = radius * sin(t2p))
-    }
-    for (i in 1L:nx) {
+    \}
+    for (i in 1L:nx) \{
         n <- max(2, floor(edges * dx[i]))
         P <- t2xy(seq.int(x[i], x[i + 1], length.out = n))
         P$x <- P$x + center[1]
@@ -2836,14 +2757,14 @@ pedigree.legend <- function (ped, labels = dimnames(ped$affected)[[2]],
                 lty = lty[i])
 
         P <- t2xy(mean(x[i + 0:1]))
-        if(new) {
+        if(new) \{
           ## not centered at 0,0, so added center to x,y
           P$x <- P$x + center[1]
           P$y <- center[2] + ifelse(new, P$y, -1*P$y)
-        }
+        \}
         
         lab <- as.character(labels[i])
-        if (!is.na(lab) && nzchar(lab)) {
+        if (!is.na(lab) && nzchar(lab)) \{
           ## put lines
           lines(x=c(P$x, P$x + ifelse(P$x<center[1], -1*llen, llen)),
                 y=c(P$y, P$y + ifelse(P$y<center[2], -1*llen, llen)))
@@ -2853,12 +2774,12 @@ pedigree.legend <- function (ped, labels = dimnames(ped$affected)[[2]],
                y=P$y + ifelse(P$y < center[2], -1.2*llen, 1.2*llen),
                labels[i], xpd = TRUE, 
                adj = ifelse(P$x < center[1], 1, 0), ...)
-        }
-    }
+        \}
+    \}
     
     invisible(NULL)
-}
-@ 
+\}
+\nwendcode{}\nwbegindocs{114}\nwdocspar
 
 
 
@@ -2898,7 +2819,7 @@ Accepts the following input
   \item[maxBits] bit size to shrink the pedigree size under
 \end{description}
 
-<<pedigree.shrink>>=
+\nwenddocs{}\nwbegincode{115}\moddef{pedigree.shrink}\endmoddef
 
 #$Log: pedigree.shrink.q,v $
 #Revision 1.5  2010/09/03 21:11:16  sinnwell
@@ -2926,15 +2847,15 @@ Accepts the following input
 #Revision 1.1  2008/07/16 20:23:07  sinnwell
 #Initial revision
 #
-pedigree.shrink <- function(ped, avail, affected=NULL, seed=NULL, maxBits = 16){
+pedigree.shrink <- function(ped, avail, affected=NULL, seed=NULL, maxBits = 16)\{
   if(class(ped) != "pedigree")
-    stop("Must be a pegigree object.\n")
+    stop("Must be a pegigree object.\\n")
    
   ## set the seed for random selections
   if(is.null(seed))
-    {
+    \{
       seed <- sample(2^20, size=1)
-    }
+    \}
   set.seed(seed)
 
   if(any(is.na(avail)))
@@ -2958,17 +2879,17 @@ pedigree.shrink <- function(ped, avail, affected=NULL, seed=NULL, maxBits = 16){
   idTrimUnavail <- findUnavailable(ped, avail)
 
   
-  if(length(idTrimUnavail)) {    
+  if(length(idTrimUnavail)) \{    
     
     pedTrimmed <- pedigree.trim(idTrimUnavail, ped)
     avail <- avail[match(pedTrimmed$id, ped$id)]
     idTrimmed <- c(idTrimmed, idTrimUnavail)
     idList$unavail <- paste(idTrimUnavail, collapse=' ')
 
-  } else {
+  \} else \{
     ## no trimming, reset to original ped
     pedTrimmed <- ped
-  }
+  \}
 
   
   ## Next trim any available terminal subjects with unknown phenotype
@@ -2980,14 +2901,14 @@ pedigree.shrink <- function(ped, avail, affected=NULL, seed=NULL, maxBits = 16){
   idList$noninform = NULL
   nNew <- length(pedTrimmed$id)
 
-  while(nChange > 0 & nNew > 0){
+  while(nChange > 0 & nNew > 0)\{
     nOld <- length(pedTrimmed$id)
     
     ## findAvailNonInform finds non-informative, but after suggesting 
     ## their removal, checks for more unavailable subjects before returning
     idTrimNonInform <- findAvailNonInform(pedTrimmed, avail)
     
-    if(length(idTrimNonInform)) {
+    if(length(idTrimNonInform)) \{
         pedNew <- pedigree.trim(idTrimNonInform, pedTrimmed)
         avail <- avail[match(pedNew$id, pedTrimmed$id)]
         idTrimmed <- c(idTrimmed, idTrimNonInform)
@@ -2995,11 +2916,11 @@ pedigree.shrink <- function(ped, avail, affected=NULL, seed=NULL, maxBits = 16){
                idTrimNonInform), collapse=' ')
         pedTrimmed <- pedNew
         
-    }
+    \}
     nNew <- length(pedTrimmed$id)
     nChange <- nOld - nNew
     
-  }
+  \}
   
   ##  Determine number of subjects & bitSize after initial trimming
   nIntermed <- length(pedTrimmed$id)
@@ -3014,7 +2935,7 @@ pedigree.shrink <- function(ped, avail, affected=NULL, seed=NULL, maxBits = 16){
   idList$affect=NULL 
   
   while(isTrimmed & (bitSize > maxBits))
-    {  
+    \{  
         
       ## First, try trimming by unknown status
       save <- findAvailAffected(pedTrimmed, avail, affstatus=NA)
@@ -3022,21 +2943,21 @@ pedigree.shrink <- function(ped, avail, affected=NULL, seed=NULL, maxBits = 16){
       
       ## Second, try trimming by unaffected status if no unknowns to trim
       if(!isTrimmed)
-        {
+        \{
           save <- findAvailAffected(pedTrimmed, avail, affstatus=0)
           isTrimmed <- save$isTrimmed
           
-        }
+        \}
       
       
       ## Third, try trimming by affected status if no unknowns & no unaffecteds
       ## to trim
-      if(!isTrimmed) {
+      if(!isTrimmed) \{
         save <- findAvailAffected(pedTrimmed, avail, affstatus=1)
         isTrimmed <- save$isTrimmed
-      }
+      \}
       
-      if(isTrimmed)  {
+      if(isTrimmed)  \{
         pedTrimmed <- save$ped
         avail <- save$newAvail
         bitSize <- save$bitSize
@@ -3044,10 +2965,10 @@ pedigree.shrink <- function(ped, avail, affected=NULL, seed=NULL, maxBits = 16){
         idTrimmed <- c(idTrimmed, save$idTrimmed)
         idList$affect = paste(c(idList$affect, save$idTrimmed), 
           collapse=' ')
-      }
+      \}
       
       
-    } # end while (isTrimmed) & (bitSize > maxBits)
+    \} # end while (isTrimmed) & (bitSize > maxBits)
   
   
   nFinal <- length(pedTrimmed$id)
@@ -3066,10 +2987,10 @@ pedigree.shrink <- function(ped, avail, affected=NULL, seed=NULL, maxBits = 16){
   oldClass(obj) <- "pedigree.shrink"
 
   return(obj)
-} 
+\} 
 
 
-@
+\nwendcode{}\nwbegindocs{116}\nwdocspar
 
 
 \subsection{Sub-Functions}
@@ -3107,14 +3028,14 @@ an available descendant.  Do this iteratively by successively removing
 unavailable terminal nodes.  Written by  Steve Iturria, PhD, modified 
 by Dan Schaid.
 
-<<pedigree.trim>>=
+\nwenddocs{}\nwbegincode{117}\moddef{pedigree.trim}\endmoddef
 
-pedigree.trim <- function(removeID, ped){
+pedigree.trim <- function(removeID, ped)\{
   ## trim subjects from a pedigree who match the removeID 
   ## trim relation matrix as well
 
   if(class(ped) != "pedigree")
-    stop("Must be a pegigree object.\n")
+    stop("Must be a pegigree object.\\n")
 
 
   keep <- is.na(match(ped$id, removeID))
@@ -3124,15 +3045,15 @@ pedigree.trim <- function(removeID, ped){
   nOrig <- length(ped$id)
   nNew <- sum(keep)
   
-  if(nNew > 0) {
+  if(nNew > 0) \{
   
     newAffected <- if(is.null(ped$affected)) newAffected <- rep(0, nOrig)
     
-    if(is.matrix(ped$affected)) {
+    if(is.matrix(ped$affected)) \{
       newAffected <- ped$affected[keep,]
-    } else {
+    \} else \{
       newAffected <- ped$affected[keep]
-    }
+    \}
     
     id.new <- ped$id[keep] 
     
@@ -3161,21 +3082,21 @@ pedigree.trim <- function(removeID, ped){
     if(!is.null(ped$relation)) 
       newPed$relation <- ped$relation[keep.relate,,drop=FALSE]
 
-  } else {
+  \} else \{
     ## empty pedigree
     newPed <- list(id=NULL, dadid=NULL, momid=NULL, sex=NULL)
     class(newPed) <- "pedigree"
-  }    
+  \}    
   return(newPed)
-}
+\}
 
 
-@ 
+\nwendcode{}\nwbegindocs{118}\nwdocspar
 
 Place the two exclude functions within the same file as findUnavailable
 because that is the only place they are used. Pretty self-documenting.
 
-<<findUnavailable>>=
+\nwenddocs{}\nwbegincode{119}\moddef{findUnavailable}\endmoddef
 
 
 #$Log: pedTrim.q,v $
@@ -3193,7 +3114,7 @@ because that is the only place they are used. Pretty self-documenting.
 #
 
 
-findUnavailable <-function(ped, avail) {
+findUnavailable <-function(ped, avail) \{
 
   ## find id within pedigree anyone who is not available and
   ## does not have an available descendant
@@ -3212,53 +3133,53 @@ findUnavailable <-function(ped, avail) {
                         sex=ped$sex, avail, is.terminal)  
   iter <- 1
 
-  while(cont)  {
+  while(cont)  \{
     ##print(paste("Working on iter", iter))
     
     num.found <- 0
     idx.to.remove <- NULL
     
     for(i in 1:nrow(pedData))
-      {
+      \{
         
         if(pedData$is.terminal[i])
-          {
+          \{
             if( pedData$avail[i] == FALSE )   # if not genotyped         
-              {
+              \{
                 idx.to.remove <- c(idx.to.remove, i)
                 num.found <- num.found + 1
                 
                 ## print(paste("  removing", num.found, "of", nrow(pedData)))
-              }
-          }
+              \}
+          \}
        
-      }
+      \}
 
-    if(num.found > 0) {
+    if(num.found > 0) \{
 
       pedData <- pedData[-idx.to.remove, ]
       ## re-index parents, which varies depending on if the removed indx is
       ## prior to parent index
-      for(k in 1:nrow(pedData)){
-        if(pedData$father[k] > 0) {
+      for(k in 1:nrow(pedData))\{
+        if(pedData$father[k] > 0) \{
           pedData$father[k] <- pedData$father[k] -
               sum(idx.to.remove < pedData$father[k])
-        }
-        if(pedData$mother[k]+0) {
+        \}
+        if(pedData$mother[k]+0) \{
           pedData$mother[k] <- pedData$mother[k] -
               sum(idx.to.remove < pedData$mother[k])
-        }
-      }
+        \}
+      \}
       pedData$is.terminal <-
         (is.parent(pedData$id, pedData$father, pedData$mother) == FALSE)
       
-    }
-    else {
+    \}
+    else \{
       cont <- FALSE
-    }
+    \}
     iter <- iter + 1   
     
-  }
+  \}
   
   ## A few more clean up steps
 
@@ -3274,10 +3195,10 @@ findUnavailable <-function(ped, avail) {
 
   return(id.remove)
   
-}
+\}
 
 
-excludeStrayMarryin <- function(id, father, mother){
+excludeStrayMarryin <- function(id, father, mother)\{
   # get rid of founders who are not parents (stray available marryins
   # who are isolated after trimming their unavailable offspring)
   
@@ -3289,10 +3210,10 @@ excludeStrayMarryin <- function(id, father, mother){
   trio <- trio[!exclude,,drop=FALSE]
   return(trio)
 
-}
+\}
 
 excludeUnavailFounders <- function(id, father, mother, avail)
-  {
+  \{
     nOriginal <- length(id)
     idOriginal <- id   
     zed <- father!=0 & mother !=0
@@ -3313,38 +3234,38 @@ excludeUnavailFounders <- function(id, father, mother, avail)
     nmarr.mom <- table(mom)
     skip <- NULL
     
-    if(any(nmarr.dad > 1)) {
+    if(any(nmarr.dad > 1)) \{
       ## Dads in >1 marriage
       ckdad <- which(as.logical(match(dad,
                       names(nmarr.dad)[which(nmarr.dad > 1)],nomatch=FALSE)))
       skip <- unique(c(skip, ckdad))
-    }
+    \}
     
-    if(any(nmarr.mom > 1)) {
+    if(any(nmarr.mom > 1)) \{
       ## Moms in >1 marriage
       ckmom <- which(as.logical(match(mom,
                       names(nmarr.mom)[which(nmarr.mom > 1)],nomatch=FALSE)))
       skip <- unique(c(skip, ckmom))
-    }
+    \}
       
-    if(length(skip) > 0) {
+    if(length(skip) > 0) \{
       dad <- dad[-skip]
       mom <- mom[-skip]
       zed <- (sibship[-skip]==1) 
-    } else {
+    \} else \{
       zed <- (sibship==1)
-    }
+    \}
 
     
     n <- sum(zed)
     idTrimmed <- NULL
     if(n>0)
-      {
+      \{
         
         # dad and mom are the parents of sibships of size 1
         dad <- dad[zed]
         mom <- mom[zed]
-        for(i in 1:n){
+        for(i in 1:n)\{
           ## check if mom and dad are founders (where their parents = 0)
           dad.founder <- (father[id==dad[i]] == 0) & (mother[id==dad[i]] == 0)
           mom.founder <- (father[id==mom[i]] == 0) & (mother[id==mom[i]] == 0)
@@ -3357,7 +3278,7 @@ excludeUnavailFounders <- function(id, father, mother, avail)
           ## define not.avail = T if both mom & dad not avail
           not.avail <- (dad.avail==FALSE & mom.avail==FALSE)
         
-          if(both.founder & not.avail)   {
+          if(both.founder & not.avail)   \{
               ## remove mom and dad from ped, and zero-out parent 
               ## ids of their child
                         
@@ -3380,9 +3301,9 @@ excludeUnavailFounders <- function(id, father, mother, avail)
               1*(mother > which(!excludeParents)[2])
 
             avail <- avail[excludeParents]
-          } 
-        }
-      }
+          \} 
+        \}
+      \}
     
     nFinal <- length(id)
     nTrimmed = nOriginal - nFinal 
@@ -3390,11 +3311,11 @@ excludeUnavailFounders <- function(id, father, mother, avail)
     
     return(list(nTrimmed = nTrimmed, idTrimmed=idTrimmed,
                 id=id, father=father, mother=mother))
-  }
+  \}
 
 
 
-@ 
+\nwendcode{}\nwbegindocs{120}\nwdocspar
 
 
 Function to calculate pedigree bit size, which is 
@@ -3405,15 +3326,15 @@ the likelihood of the observed genotypes given the pedigree structure.
 The Lander-Green handles smaller pedigrees and many markers
 The Elston-Stewart handles larger pedigrees and fewer markers.
 
-<<bitSize>>=
+\nwenddocs{}\nwbegincode{121}\moddef{bitSize}\endmoddef
  
 ## renamed from pedBits, part of pedigree.shrink functions
 
-bitSize <- function(ped) {
+bitSize <- function(ped) \{
   ## calculate bit size of a pedigree
   
   if(class(ped) != "pedigree")
-    stop("Must be a pegigree object.\n")
+    stop("Must be a pegigree object.\\n")
   
   father = ped$findex
   mother = ped$mindex
@@ -3427,9 +3348,9 @@ bitSize <- function(ped) {
   return(list(bitSize=bitSize,
               nFounder = nFounder,
               nNonFounder = nNonFounder))
-}
+\}
 
-@
+\nwendcode{}\nwbegindocs{122}\nwdocspar
 
 
 Two functions to identify subjects to remove by other indicators0
@@ -3447,9 +3368,9 @@ size equally, randomly choose one of them.
 This function was formerly named pedTrimOneSubj().
 
 
-<<findAvailNonInform>>=
+\nwenddocs{}\nwbegincode{123}\moddef{findAvailNonInform}\endmoddef
 
-findAvailNonInform <- function(ped, avail){
+findAvailNonInform <- function(ped, avail)\{
 
   ## trim persons who are available but not informative b/c not parent
   ## by setting their availability to FALSE, then call findUnavailable()
@@ -3459,58 +3380,58 @@ findAvailNonInform <- function(ped, avail){
   
   checkParent <- is.parent(pedData$id, pedData$father, pedData$mother)
   
-  for(i in 1:nrow(pedData)){
+  for(i in 1:nrow(pedData))\{
     
     if(checkParent[i]==FALSE & avail[i]==TRUE & 
-       all(ped$affected[i]==0, na.rm=TRUE)) {
+       all(ped$affected[i]==0, na.rm=TRUE)) \{
 
       ## could use ped$affected[i,] if keep matrix
       
         fa <- pedData$id[pedData$father[i]]
         mo <- pedData$id[pedData$mother[i]]
         if(avail[pedData$id==fa] & avail[pedData$id==mo])
-          {
+          \{
             pedData$avail[i] <- FALSE
-          }
-      }
-  }
+          \}
+      \}
+  \}
 
   idTrim <- findUnavailable(ped, pedData$avail)
   return(idTrim)
-} 
+\} 
 
-@ 
+\nwendcode{}\nwbegindocs{124}\nwdocspar
 
 
 
-<<findAvailAffected>>=
+\nwenddocs{}\nwbegincode{125}\moddef{findAvailAffected}\endmoddef
 
 findAvailAffected <- function(ped, avail, affstatus)
   ## Try trimming one subject by affection status indicator
   ## If ties for bits removed, randomly select one of the subjects
 
-  {
+  \{
  
     notParent <- !is.parent(ped$id, ped$findex, ped$mindex)
     
-    if(is.na(affstatus)) {
+    if(is.na(affstatus)) \{
       possiblyTrim <- ped$id[notParent & avail & is.na(ped$affected)]
-    } else {
+    \} else \{
       possiblyTrim <- ped$id[notParent & avail & ped$affected==affstatus]
-    }
+    \}
     nTrim <- length(possiblyTrim)
     
     if(nTrim == 0)
-      {
+      \{
         return(list(ped=ped,
                     idTrimmed = NA,
                     isTrimmed = FALSE,
                     bitSize = bitSize(ped)$bitSize))
-      }
+      \}
     
     trimDat <- NULL
     
-  for(idTrim in possiblyTrim) {
+  for(idTrim in possiblyTrim) \{
 
     
       avail.try <- avail
@@ -3519,7 +3440,7 @@ findAvailAffected <- function(ped, avail, affstatus)
       newPed <- pedigree.trim(id.rm, ped)
       trimDat <- rbind(trimDat,
                   c(id=idTrim, bitSize=bitSize(newPed)$bitSize))
-    }
+    \}
 
     bits <- trimDat[,2]
 
@@ -3530,10 +3451,10 @@ findAvailAffected <- function(ped, avail, affstatus)
     
     ## break ties by random choice
     if(length(idTrim) > 1)
-      {
+      \{
         rord <- order(runif(length(idTrim)))
         idTrim <- idTrim[rord][1]
-      }
+      \}
 
     
     avail[ped$id==idTrim] <- FALSE
@@ -3547,9 +3468,9 @@ findAvailAffected <- function(ped, avail, affstatus)
                 idTrimmed = idTrim,
                 isTrimmed = TRUE,
                 bitSize = pedSize))
-  }
+  \}
 
-@ 
+\nwendcode{}\nwbegindocs{126}\nwdocspar
 
 Group other functions used in the above main functions
 together as pedigree.shrink.minor.R
@@ -3558,7 +3479,7 @@ together as pedigree.shrink.minor.R
 These functions get indicator vectors of who is a parent, 
 founder, or disconnected
 
-<<pedigree.shrink.minor>>=
+\nwenddocs{}\nwbegincode{127}\moddef{pedigree.shrink.minor}\endmoddef
 
 #$Log: pedigree.shrink.minor.q,v $
 #Revision 1.5  2009/11/19 18:10:26  sinnwell
@@ -3575,7 +3496,7 @@ founder, or disconnected
 #
 
 
-is.parent <- function(id, findex, mindex){
+is.parent <- function(id, findex, mindex)\{
   # determine subjects who are parents
   # assume input of father/mother indices, not ids
   
@@ -3587,16 +3508,16 @@ is.parent <- function(id, findex, mindex){
   isMother <- !is.na(match(id, unique(mother[mother!=0])))
   isParent <- isFather |isMother
   return(isParent)
-}
+\}
 
-is.founder <- function(mother, father){
+is.founder <- function(mother, father)\{
   check <- (father==0) & (mother==0)
   return(check)
-}
+\}
 
 
 is.disconnected <- function(id, findex, mindex)
-{
+\{
 
   # check to see if any subjects are disconnected in pedigree by checking for
   # kinship = 0 for all subjects excluding self
@@ -3607,14 +3528,14 @@ is.disconnected <- function(id, findex, mindex)
   disconnected <- apply(kinMat==0.0, 1, all)
 
   return(disconnected)
-}
+\}
 
-@ 
+\nwendcode{}\nwbegindocs{128}\nwdocspar
 
 
 Print a pedigree.shrink object.  Tell the original bit size and the trimmed bit size.
 
-<<print.pedigree.shrink>>=
+\nwenddocs{}\nwbegincode{129}\moddef{print.pedigree.shrink}\endmoddef
 #$Log: print.pedigree.shrink.q,v $
 #Revision 1.2  2009/11/19 14:35:01  sinnwell
 #add ...
@@ -3626,22 +3547,22 @@ Print a pedigree.shrink object.  Tell the original bit size and the trimmed bit 
 #Initial revision
 #
 
-print.pedigree.shrink <- function(x, ...){
+print.pedigree.shrink <- function(x, ...)\{
 
   printBanner(paste("Shrink of Pedigree ", unique(x$pedObj$ped), sep=""))
  
-  cat("Pedigree Size:\n")
+  cat("Pedigree Size:\\n")
 
   if(length(x$idTrimmed) > 2)
-    {
+    \{
       n <- c(x$pedSizeOriginal, x$pedSizeIntermed, x$pedSizeFinal)
       b <- c(x$bitSize[1], x$bitSize[2], x$bitSize[length(x$bitSize)])
       row.nms <- c("Original","Only Informative","Trimmed")
-    } else {
+    \} else \{
       n <- c(x$pedSizeOriginal, x$pedSizeIntermed)
       b <- c(x$bitSize[1], x$bitSize[2])
       row.nms <- c("Original","Trimmed")
-    }
+    \}
 
   df <- data.frame(N.subj = n, Bits = b)
   rownames(df) <- row.nms
@@ -3649,26 +3570,26 @@ print.pedigree.shrink <- function(x, ...){
   
   
   if(!is.null(x$idList$unavail)) 
-    cat("\n Unavailable subjects trimmed:\n", x$idList$unavail, "\n")
+    cat("\\n Unavailable subjects trimmed:\\n", x$idList$unavail, "\\n")
   
   if(!is.null(x$idList$noninform)) 
-    cat("\n Non-informative subjects trimmed:\n", x$idList$noninform, "\n")
+    cat("\\n Non-informative subjects trimmed:\\n", x$idList$noninform, "\\n")
   
   if(!is.null(x$idList$affect)) 
-    cat("\n Informative subjects trimmed:\n", x$idList$affect, "\n")
+    cat("\\n Informative subjects trimmed:\\n", x$idList$affect, "\\n")
   
   
-  ##cat("\n Pedigree after trimming:", x$bitSize, "\n")
+  ##cat("\\n Pedigree after trimming:", x$bitSize, "\\n")
   
   invisible()
-}
+\}
 
-@ 
+\nwendcode{}\nwbegindocs{130}\nwdocspar
 
-<<printBanner>>=
+\nwenddocs{}\nwbegincode{131}\moddef{printBanner}\endmoddef
 #$Log: printBanner.q,v $
 #Revision 1.4  2007/01/23 21:00:27  sinnwell
-#rm ending newline \n.  Users can space if desired.
+#rm ending newline \\n.  Users can space if desired.
 #
 #Revision 1.3  2005/02/04 20:57:18  sinnwell
 #banner.width now based on options()$width
@@ -3681,33 +3602,33 @@ print.pedigree.shrink <- function(x, ...){
 #Initial revision
 #
 
-printBanner <- function(str, banner.width=options()$width, char.perline=.75*banner.width, border = "="){
+printBanner <- function(str, banner.width=options()$width, char.perline=.75*banner.width, border = "=")\{
 
 # char.perline was calculated taking the floor of banner.width/3
 
   vec <- str
   new<-NULL
   onespace<-FALSE
-  for(i in 1:nchar(vec)){
-    if (substring(vec,i,i)==' ' && onespace==FALSE){
+  for(i in 1:nchar(vec))\{
+    if (substring(vec,i,i)==' ' && onespace==FALSE)\{
       onespace<-TRUE
-      new<-paste(new,substring(vec,i,i),sep="")}
+      new<-paste(new,substring(vec,i,i),sep="")\}
     else if (substring(vec,i,i)==' ' && onespace==TRUE)
-      {onespace<-TRUE}
-    else{
+      \{onespace<-TRUE\}
+    else\{
       onespace<-FALSE
-      new<-paste(new,substring(vec,i,i),sep="")}
-  }
+      new<-paste(new,substring(vec,i,i),sep="")\}
+  \}
   
   where.blank<-NULL
   indx <- 1
   
-  for(i in 1:nchar(new)){
-    if((substring(new,i,i)==' ')){
+  for(i in 1:nchar(new))\{
+    if((substring(new,i,i)==' '))\{
       where.blank[indx]<-i
       indx <- indx+1
-    }
-  }
+    \}
+  \}
   
 
 # Determine the position in the where.blank vector to insert the Nth character position of "new"
@@ -3723,26 +3644,26 @@ printBanner <- function(str, banner.width=options()$width, char.perline=.75*bann
   end.ok <- is.na(end) 
 
 # Calculate a new char.perline. 
-  if (end.ok==TRUE){ 
+  if (end.ok==TRUE)\{ 
     char.perline <- floor(banner.width/2)
     end<-max(where.blank[where.blank<=char.perline])
-  }
+  \}
 
-  cat(paste(rep(border, banner.width), collapse = ""),"\n")
+  cat(paste(rep(border, banner.width), collapse = ""),"\\n")
 
-  repeat {
+  repeat \{
     titleline<-substring(new,begin,end)
     n <- nchar(titleline)
     if(n < banner.width)
-      {
+      \{
         n.remain <- banner.width - n
         n.left <- floor(n.remain/2)
         n.right <- n.remain - n.left
         for(i in 1:n.left) titleline <- paste(" ",titleline,sep="")
         for(i in 1:n.right) titleline <- paste(titleline," ",sep="")
         n <- nchar(titleline)
-      }
-     cat(titleline,"\n")
+      \}
+     cat(titleline,"\\n")
     begin<-end+1
     end.old <- end
    # Next line has a problem when used in R.  Use print.banner.R until fixed.
@@ -3755,20 +3676,20 @@ printBanner <- function(str, banner.width=options()$width, char.perline=.75*bann
 #   end.ok <- is.na(end)
 #   if (end.ok==TRUE)
 #      break
-  }
+  \}
   
-  cat(paste(rep(border, banner.width), collapse = ""), "\n")
+  cat(paste(rep(border, banner.width), collapse = ""), "\\n")
   invisible()
   
-}
+\}
 
-@ 
+\nwendcode{}\nwbegindocs{132}\nwdocspar
 
 
 Plot a pedigree.shrink object, which calls the plot.pedigree function on the trimmed 
 pedigree object.
 
-<<plot.pedigree.shrink>>=
+\nwenddocs{}\nwbegincode{133}\moddef{plot.pedigree.shrink}\endmoddef
 #$Log: plot.pedigree.shrink.q,v $
 #Revision 1.4  2010/09/03 21:12:16  sinnwell
 #use shrunk "avail" vector for the colored labels
@@ -3784,28 +3705,28 @@ pedigree object.
 #
 
 plot.pedigree.shrink <- function(x, bigped=FALSE, title="", 
-                                 xlegend="topright", ...){
+                                 xlegend="topright", ...)\{
 
   ##  Plot pedigrees, coloring subjects according
   ##   to availability, shaded by affected status used in shrink
 
-  if(bigped==FALSE){
+  if(bigped==FALSE)\{
     tmp <- plot(x$pedObj, col=x$avail+1)
-  } else {
+  \} else \{
     tmp <- plot.pedigree(x$pedObj, align=FALSE, packed=FALSE,
                          col=x$avail+1, cex=0.5,symbolsize=0.5)
-  }
+  \}
   
   legend(x=xlegend,
          legend=c("Available","UnAvailable"),
          pch=c(1,1), col=c(2,1),bty="n")
   
   
-  title(paste(title, "\nbits = ", x$bitSize[length(x$bitSize)]))
-}
+  title(paste(title, "\\nbits = ", x$bitSize[length(x$bitSize)]))
+\}
 
 
-@ 
+\nwendcode{}\nwbegindocs{134}\nwdocspar
 
 
 /section{Pedigree Unrelated}
@@ -3822,7 +3743,7 @@ contain a married-in uncle and any of a set of siblings from his
 sister-in-law's family.  Therefore, the maximal sets include the uncle and 
 any of the sibship of his wife's sister.
 
-<<pedigree.unrelated>>=
+\nwenddocs{}\nwbegincode{135}\moddef{pedigree.unrelated}\endmoddef
 
 
 #$Log: pedigree.unrelated.q,v $
@@ -3838,7 +3759,7 @@ any of the sibship of his wife's sister.
 ## Authors: Dan Schaid, Shannon McDonnell
 ## Updated by Jason Sinnwell
 
-pedigree.unrelated <- function(ped, avail) {
+pedigree.unrelated <- function(ped, avail) \{
   
   # Requires: kinship function
 
@@ -3883,7 +3804,7 @@ pedigree.unrelated <- function(ped, avail) {
   diag(kin.avail) <- 0
 
   while(any(kin.avail > 0))
-    {
+    \{
       nr <- nrow(kin.avail)
       indx <- 1:nrow(kin.avail)
       zero.count <- apply(kin.avail==0, 1, sum)
@@ -3895,15 +3816,15 @@ pedigree.unrelated <- function(ped, avail) {
 
       kin.avail <- kin.avail[- exclude, , drop=FALSE][, -exclude, drop=FALSE]
 
-    }
+    \}
 
   choice <- sort(dimnames(kin.avail)[[1]])
   
   return(choice)
-}
+\}
 
 
-@ 
+\nwendcode{}\nwbegindocs{136}\nwdocspar
 
 \section{Checks}
 Last are various helper routines and data checks.
@@ -3916,14 +3837,14 @@ founder.
 This can be called with a pedigree object, or with the 
 full argument list.  In the former case we can simply
 skip a step.
-<<kindepth>>=
-kindepth <- function(id, dad.id, mom.id, align=FALSE) {
-    if (class(id)=='pedigree' || class(id)=='pedigreeList') {
+\nwenddocs{}\nwbegincode{137}\moddef{kindepth}\endmoddef
+kindepth <- function(id, dad.id, mom.id, align=FALSE) \{
+    if (class(id)=='pedigree' || class(id)=='pedigreeList') \{
         didx <- id$findex
         midx <- id$mindex
         n <- length(didx)
-        } 
-    else {
+        \} 
+    else \{
         n <- length(id)
         if (missing(dad.id) || length(dad.id) !=n)
             stop("Invalid father id")
@@ -3931,26 +3852,26 @@ kindepth <- function(id, dad.id, mom.id, align=FALSE) {
             stop("Invalid mother id")
         midx <- match(mom.id, id, nomatch=0) # row number of my mom
         didx <- match(dad.id, id, nomatch=0) # row number of my dad
-        }
+        \}
     if (n==1) return (0)  # special case of a single subject 
     parents <- which(midx==0 & didx==0)  #founders
 
     depth <- rep(0,n)
     # At each iteration below, all children of the current "parents" are
     #    labeled with depth 'i', and become the parents of the next iteration
-    for (i in 1:n) {
-	child  <- match(midx, parents, nomatch=0) +
-		  match(didx, parents, nomatch=0)
+    for (i in 1:n) \{
+        child  <- match(midx, parents, nomatch=0) +
+                  match(didx, parents, nomatch=0)
 
-	if (all(child==0)) break
-	if (i==n) 
-	    stop("Impossible pedegree: someone is their own ancestor")
+        if (all(child==0)) break
+        if (i==n) 
+            stop("Impossible pedegree: someone is their own ancestor")
 
-	parents <- which(child>0) #next generation of parents
-	depth[parents] <- i
-	}
+        parents <- which(child>0) #next generation of parents
+        depth[parents] <- i
+        \}
     if (!align) return(depth)
-@ 
+\nwendcode{}\nwbegindocs{138}\nwdocspar
 
 The align argument is used only by the plotting routines.  
 It makes the plotted result prettier in the following (fairly common)
@@ -3992,83 +3913,83 @@ One particular case that we've seen was a pair of brothers that married
 a pair of sisters.  Pulling one brother down fixes the other at the
 same time.
 The code below, however, says "loop! stay away!".
-<<kindepth>>=
+\nwenddocs{}\nwbegincode{139}\moddef{kindepth}\plusendmoddef
 
-    chaseup <- function(x, midx, didx) {
-	new <- c(midx[x], didx[x])  # mother and father
-	new <- new[new>0]
-	while (length(new) >1) {
-	    x <- unique(c(x, new))
-	    new <- c(midx[new], didx[new])
-	    new <- new[new>0]
-	    }
-	x
-	}
-    	
+    chaseup <- function(x, midx, didx) \{
+        new <- c(midx[x], didx[x])  # mother and father
+        new <- new[new>0]
+        while (length(new) >1) \{
+            x <- unique(c(x, new))
+            new <- c(midx[new], didx[new])
+            new <- new[new>0]
+            \}
+        x
+        \}
+        
     dads <- didx[midx>0 & didx>0]   # the father side of all spouse pairs
     moms <- midx[midx>0 & didx>0]
     # Get rid of duplicate pairs
     dups <- duplicated(dads + moms*n)
-    if (any(dups)) {
-	dads <- dads[!dups]
-	moms <- moms[!dups]
-	}
+    if (any(dups)) \{
+        dads <- dads[!dups]
+        moms <- moms[!dups]
+        \}
     npair<- length(dads)
     done <- rep(FALSE, npair)  #couples that are taken care of
-    while (TRUE) {
+    while (TRUE) \{
         pairs.to.fix <- (1:npair)[(depth[dads] != depth[moms]) & !done]
-	if (length(pairs.to.fix) ==0) break
-	temp <- pmax(depth[dads], depth[moms])[pairs.to.fix]
-	who <- min(pairs.to.fix[temp==min(temp)])  # the chosen couple
-	
-	good <- moms[who]; bad <- dads[who]
-	if (depth[dads[who]] > depth[moms[who]]) {
-	    good <- dads[who]; bad <- moms[who]
-	    }
-	abad  <- chaseup(bad,  midx, didx)
-	if (length(abad) ==1 && sum(c(dads,moms)==bad)==1) {
-	    # simple case, a solitary marry-in
-	    depth[bad] <- depth[good]
-	    }
-	else {
-	    agood <- chaseup(good, midx, didx)  #ancestors of the "good" side
+        if (length(pairs.to.fix) ==0) break
+        temp <- pmax(depth[dads], depth[moms])[pairs.to.fix]
+        who <- min(pairs.to.fix[temp==min(temp)])  # the chosen couple
+        
+        good <- moms[who]; bad <- dads[who]
+        if (depth[dads[who]] > depth[moms[who]]) \{
+            good <- dads[who]; bad <- moms[who]
+            \}
+        abad  <- chaseup(bad,  midx, didx)
+        if (length(abad) ==1 && sum(c(dads,moms)==bad)==1) \{
+            # simple case, a solitary marry-in
+            depth[bad] <- depth[good]
+            \}
+        else \{
+            agood <- chaseup(good, midx, didx)  #ancestors of the "good" side
             # For spouse chasing, I need to exclude the given pair
             tdad <- dads[-who]
             tmom <- moms[-who]
-	    while (1) {
-		# spouses of any on agood list
+            while (1) \{
+                # spouses of any on agood list
                 spouse <- c(tmom[!is.na(match(tdad, agood))],
                             tdad[!is.na(match(tmom, agood))])
-		temp <- unique(c(agood, spouse))
-		temp <- unique(chaseup(temp, midx, didx)) #parents
+                temp <- unique(c(agood, spouse))
+                temp <- unique(chaseup(temp, midx, didx)) #parents
                 kids <- (!is.na(match(midx, temp)) | !is.na(match(didx, temp)))
                 temp <- unique(c(temp, (1:n)[kids & depth <= depth[good]]))
-		if (length(temp) == length(agood)) break
-		else agood <- temp
-		}
+                if (length(temp) == length(agood)) break
+                else agood <- temp
+                \}
 
-	    if (all(match(abad, agood, nomatch=0) ==0)) {
-		# shift it down
-		depth[abad] <- depth[abad] + (depth[good] - depth[bad])
+            if (all(match(abad, agood, nomatch=0) ==0)) \{
+                # shift it down
+                depth[abad] <- depth[abad] + (depth[good] - depth[bad])
                 #
                 # Siblings may have had children: make sure all kids are
                 #   below their parents.  It's easiest to run through the
                 #   whole tree
-                for (i in 0:n) {
+                for (i in 0:n) \{
                     parents <- which(depth==i)
                     child <- match(midx, parents, nomatch=0) +
-		             match(didx, parents, nomatch=0)
+                             match(didx, parents, nomatch=0)
                     if (all(child==0)) break
                     depth[child>0] <- pmax(i+1, depth[child>0])
-                    }
-                }
-	    }
-	done[who] <- TRUE
-	}
+                    \}
+                \}
+            \}
+        done[who] <- TRUE
+        \}
     if (all(depth>0)) stop("You found a bug in kindepth's alignment code!")
     depth
-    }
-@ 
+    \}
+\nwendcode{}\nwbegindocs{140}\nwdocspar
 
 \subsection{familycheck}
 The familycheck routine checks out a family id, by trying to construct its own
@@ -4081,7 +4002,7 @@ vector for other reasons, then putting the arg in saves time.
    a matrix with famid as row labels, new-family-id as the columns, and
    the number of subjects as entries.  
 
-<<familycheck>>=
+\nwenddocs{}\nwbegincode{141}\moddef{familycheck}\endmoddef
 # This routine checks out a family id, by trying to construct its own
 #  and comparing the results
 #
@@ -4107,7 +4028,7 @@ vector for other reasons, then putting the arg in saves time.
 #   a matrix with famid as row labels, new-family-id as the columns, and
 #   the number of subjects as entries.  
 #
-familycheck <- function(famid, id, father.id, mother.id, newfam) {
+familycheck <- function(famid, id, father.id, mother.id, newfam) \{
     if (is.numeric(famid) && any(is.na(famid)))
         stop ("Family id of missing not allowed")
     nfam <- length(unique(famid))
@@ -4117,11 +4038,11 @@ familycheck <- function(famid, id, father.id, mother.id, newfam) {
         stop("Invalid length for newfam")
 
     xtab <- table(famid, newfam)
-    if (any(newfam==0)) {
+    if (any(newfam==0)) \{
         unrelated <- xtab[,1]
         xtab <- xtab[,-1, drop=FALSE] 
         ## bug fix suggested by Amanda Blackford 6/2011
-      }
+      \}
     else unrelated <-  rep(0, nfam)
 
     splits <- apply(xtab>0, 1, sum)
@@ -4135,18 +4056,18 @@ familycheck <- function(famid, id, father.id, mother.id, newfam) {
                       split = as.vector(splits),
                       join = temp,
                       row.names=1:nfam)
-    if (any(joins >1)) {
+    if (any(joins >1)) \{
       tab1 <- xtab[temp>0,]  #families with multiple outcomes
       tab1 <- tab1[,apply(tab1>0,2,sum) >0] #only keep non-zero columns
       dimnames(tab1) <- list(dimnames(tab1)[[1]], NULL)
       attr(out, 'join') <- tab1
-    }
+    \}
     
     out
-  }
+  \}
 
 
-@ 
+\nwendcode{}\nwbegindocs{142}\nwdocspar
 
 
 \subsection{check.hint}
@@ -4158,8 +4079,8 @@ Actually, these used to arise in autohint, I don't know if it's so
 after the recent rewrite.
 Users can introduce problems as well if they modify the hints.
 
-<<check.hint>>=
-check.hint <- function(hints, sex) {
+\nwenddocs{}\nwbegincode{143}\moddef{check.hint}\endmoddef
+check.hint <- function(hints, sex) \{
     if (is.null(hints$order)) stop("Missing order component")
     if (!is.numeric(hints$order)) stop("Invalid order component")
     n <- length(sex)
@@ -4167,7 +4088,7 @@ check.hint <- function(hints, sex) {
     
     spouse <- hints$spouse
     if (is.null(spouse)) hints
-    else {
+    else \{
         lspouse <- spouse[,1]
         rspouse <- spouse[,2]
         if (any(lspouse <1 | lspouse >n | rspouse <1 | rspouse > n))
@@ -4184,8 +4105,9 @@ check.hint <- function(hints, sex) {
 
         # Break any loops: A left of B, B left of C, C left of A.
         #  Not yet done 
-      }
+      \}
     hints
-  }
-@ 
+  \}
+\nwendcode{}\nwbegindocs{144}\nwdocspar
 \end{document}
+\nwenddocs{}
