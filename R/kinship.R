@@ -59,7 +59,7 @@ kinship.default <- function(id, dadid, momid, sex, chrtype="autosome", ...) {
 }
 kinship.pedigree <- function(id, chrtype="autosome", ...) {
     chrtype <- match.arg(casefold(chrtype), c("autosome", "x"))
-    if (any(duplicated(id))) stop("All id values must be unique")
+    if (any(duplicated(id$id))) stop("All id values must be unique")
     n <- length(id$id)
     pdepth <- kindepth(id)
     

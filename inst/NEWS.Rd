@@ -1,5 +1,13 @@
 \name{NEWS}
 \title{NEWS file for the kinship2 package}
+\section{Changes in version 1.5.4}{
+  \itemize{
+    \item bug introduced in kinship.pedigree in making other updates in
+    version 1.5.0: if(duplicated(id)) set back to be if(duplicated(id$id))
+    \item vignette added to vignettes directory, no more need for
+    inst/doc dir in source version    
+  }  
+}
 \section{Changes in version 1.5.0}{
   \itemize{
     \item kinship function allows chrtype="X" for X chromosome kinship 

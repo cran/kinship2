@@ -190,7 +190,7 @@ A variable [[havemz]] is set to TRUE if there are any, and an index array
 <<kinship>>=
 kinship.pedigree <- function(id, chrtype="autosome", ...) {
     chrtype <- match.arg(casefold(chrtype), c("autosome", "x"))
-    if (any(duplicated(id))) stop("All id values must be unique")
+    if (any(duplicated(id$id))) stop("All id values must be unique")
     n <- length(id$id)
     pdepth <- kindepth(id)
     

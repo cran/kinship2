@@ -36,12 +36,33 @@ ped2$sex[9] <- "unknown"
 kinship(ped2)
 
 ## now with unknown sex, gets NAs
-kinship(ped2, chr="X")
+kinship(ped2, chrtype="X")
 
 ped2$sex[9]="unknown"
-kinship(ped2, chr="x")
+kinship(ped2, chrtype="x")
 
 
 # all descendants of sex=unknown to be NAs as well
 ped2$sex[8]="unknown"
-kinship(ped2, chr="x")
+kinship(ped2, chr="X")
+
+
+## testing kinship2 on pedigreeList when only one subject in a family
+peddf <- rbind(ped2df, c(2,1,0,0,1,1,0,1,0)) 
+
+peds <- with(peddf, pedigree(id, dad, mom, sex, status=vitalstatus,fam=fam,
+         affected=cbind(disease,smoker, availstatus)))
+
+kinfam <- kinship(peds)
+
+kinfam
+
+## now add two more for ped2, and check again
+peddf <- rbind(peddf, c(2,2,0,0,2,1,0,1,0),c(2,3,1,2,1,1,0,1,0))
+
+peds <- with(peddf, pedigree(id, dad, mom, sex, status=vitalstatus,fam=fam,
+         affected=cbind(disease,smoker, availstatus)))
+
+kin2fam <- kinship(peds)
+
+kin2fam
