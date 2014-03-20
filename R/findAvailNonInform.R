@@ -4,9 +4,9 @@ findAvailNonInform <- function(ped, avail){
 
   ## trim persons who are available but not informative b/c not parent
   ## by setting their availability to FALSE, then call findUnavailable()
- 
+  ## JPS 3/10/14 add strings check in case of char ids
   pedData <- data.frame(id=ped$id, father=ped$findex, 
-                        mother=ped$mindex, avail=avail)
+                        mother=ped$mindex, avail=avail, stringsAsFactors=FALSE )
   
   checkParent <- is.parent(pedData$id, pedData$father, pedData$mother)
   

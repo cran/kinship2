@@ -96,7 +96,10 @@ The random seed used
 }
 }
 \details{
-No further details.
+  If the subject ids are character, make sure none of the characters
+  in the ids is a colon (":"), which is a special character used to
+  concatenate and split subjects within the findUnavailable utility
+  within the pedigree.shrink function. 
 }
 \seealso{
 \code{\link{findUnavailable}},

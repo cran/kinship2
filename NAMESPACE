@@ -1,4 +1,5 @@
 import(Matrix)
+import(quadprog)
 export(align.pedigree, familycheck, kinship, kindepth)
 export(makefamid, makekinship, pedigree, autohint)
 export(kinship.default)

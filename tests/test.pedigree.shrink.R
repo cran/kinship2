@@ -4,7 +4,6 @@
 ## Jason Sinnwell
 ##
 
-
 require(kinship2)
 
 
@@ -33,7 +32,7 @@ shrink.mnf8 <- pedigree.shrink(mnf8,
 shrink.mnf8
 
 
-## use sample.ped
+## use sample.ped from the package
 data(sample.ped)
 
 pedAll <- pedigree(sample.ped$id, sample.ped$father, sample.ped$mother, 
@@ -46,9 +45,12 @@ ped1 <- pedAll['1']
 
 color1 <- sample.ped$avail[1:41] + 1
 
-
-plot(ped1, col=color1)
-
+if(0) {
+  pdf("sampleped1.pdf")
+   plot(ped1, col=color1)
+   plot(ped1, col=color1, pconnect=1.5)
+  dev.off()
+}
 
 
 ped2 <- pedAll['2']
@@ -62,8 +64,9 @@ ped2$affected[c(7,9),2] <- NA
 
 ## show diamond and triangle for different sex codes.
 ## also show 2 shadings of affected, with ? as NA in affected matrix.
+if(0) {
 plot(ped2, col=col2)
-
+}
 
 set.seed(10)
 shrink1.avail.B32 <- pedigree.shrink(ped=ped1, avail=ped1$affected[,2], maxBits=32)
@@ -79,6 +82,7 @@ shrink1.avail.B25$idTrimmed
 print(shrink1.avail.B32)
 print(shrink1.avail.B25)
 
+
 #Pedigree Size:
 #                 N.subj Bits
 #Original             41   49
@@ -90,3 +94,23 @@ print(shrink1.avail.B25)
 #
 # Informative subjects trimmed:
 # 125 126
+
+ped1df <- as.data.frame(ped1)
+
+ped1df$idchar <- gsub("^1","A-", as.character(ped1df$id))
+ped1df$dadidchar <- gsub("^1","A-", as.character(ped1df$dadid))
+ped1df$momidchar <- gsub("^1","A-", as.character(ped1df$momid))
+#ped1df$dadidchar <- ifelse(ped1df$dadidchar=="0", NA, ped1df$dadidchar)
+#ped1df$momidchar <- ifelse(ped1df$momidchar=="0", NA, ped1df$momidchar)
+ped1char <- with(ped1df, pedigree(idchar, dadidchar, momidchar, sex, affected,missid=c("0")))
+
+options(stringsAsFactors=TRUE)
+set.seed(10)
+shrink1.p1char.B32 <- pedigree.shrink(ped=ped1char, avail=ped1char$affected[,2], maxBits=32)
+shrink1.p1char.B32$idTrimmed
+shrink1.avail.B32$idTrimmed
+
+set.seed(10)
+shrink1.p1char.B25 <- pedigree.shrink(ped=ped1char, avail=ped1char$affected[,2], maxBits=25)
+shrink1.p1char.B25$idTrimmed
+shrink1.avail.B25$idTrimmed

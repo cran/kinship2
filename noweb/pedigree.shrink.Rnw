@@ -48,19 +48,6 @@ Accepts the following input
 #Revision 1.1  2008/07/16 20:23:07  sinnwell
 #Initial revision
 #
-#$Log: pedigree.shrink.q,v $
-#Revision 1.5  2010/09/03 21:11:16  sinnwell
-#add shrunk "avail" vector to result, keep status and affected in pedObj
-#
-#Revision 1.4  2010/09/03 19:15:03  sinnwell
-#add avail arg which is not part of ped object.  Re-make ped object at the end with status and affected, if given
-#
-#Revision 1.2  2009/11/17 23:08:18  sinnwell
-#*** empty log message ***
-#
-#Revision 1.1  2008/07/16 20:23:07  sinnwell
-#Initial revision
-#
 pedigree.shrink <- function(ped, avail, affected=NULL, seed=NULL, maxBits = 16){
   if(class(ped) != "pedigree")
     stop("Must be a pegigree object.\n")
@@ -297,9 +284,9 @@ findUnavailable <-function(ped, avail) {
   cont <- TRUE                  # flag for whether to keep iterating
   
   is.terminal <- (is.parent(ped$id, ped$findex, ped$mindex) == FALSE)
-
+  ## JPS 3/10/14 add strings check in case of char ids
   pedData <- data.frame(id=ped$id, father=ped$findex, mother=ped$mindex,
-                        sex=ped$sex, avail, is.terminal)  
+                        sex=ped$sex, avail, is.terminal, stringsAsFactors=FALSE)  
   iter <- 1
 
   while(cont)  {
@@ -370,8 +357,8 @@ findUnavailable <-function(ped, avail) {
 excludeStrayMarryin <- function(id, father, mother){
   # get rid of founders who are not parents (stray available marryins
   # who are isolated after trimming their unavailable offspring)
-  
-  trio <- data.frame(id=id, father=father, mother=mother)
+  ## JPS 3/10/14 add strings check in case of char ids
+  trio <- data.frame(id=id, father=father, mother=mother, stringsAsFactors=FALSE)
   parent <- is.parent(id, father, mother)
   founder <- is.founder(father, mother)
 
@@ -386,12 +373,14 @@ excludeUnavailFounders <- function(id, father, mother, avail)
     nOriginal <- length(id)
     idOriginal <- id   
     zed <- father!=0 & mother !=0
-    marriage <- paste(id[father[zed]], id[mother[zed]], sep="-" )
+    ## concat ids to represent marriages. 
+    ## Bug if there is ":" in char subj ids
+    marriage <- paste(id[father[zed]], id[mother[zed]], sep=":" )
 
     sibship <- tapply(marriage, marriage, length)
     nm <- names(sibship)
 
-    splitPos <- regexpr("-",nm)
+    splitPos <- regexpr(":",nm)
     dad <- substring(nm, 1, splitPos-1)
     mom <- substring(nm, splitPos+1,  nchar(nm))
     
@@ -533,8 +522,9 @@ findAvailAffected: id subjects to remove who were not removed by
 findUnavailable(), but who would be best to remove given their 
 affected status.  Try trimming one subject by with affected matching 
 affstatus.  If there are ties of multiple subjects that reduce bit 
-size equally, randomly choose one of them.
-This function was formerly named pedTrimOneSubj().
+size equally, randomly choose one of them. This function was formerly named pedTrimOneSubj().
+On 3/10/14, Nick Larson found a bug with char ids when stringsAsFactors was TRUE; this
+is now fixed with the option set specifically in the data.frames sset to FALSE.
 
 
 <<findAvailNonInform>>=
@@ -543,9 +533,9 @@ findAvailNonInform <- function(ped, avail){
 
   ## trim persons who are available but not informative b/c not parent
   ## by setting their availability to FALSE, then call findUnavailable()
- 
+  ## JPS 3/10/14 add strings check in case of char ids
   pedData <- data.frame(id=ped$id, father=ped$findex, 
-                        mother=ped$mindex, avail=avail)
+                        mother=ped$mindex, avail=avail, stringsAsFactors=FALSE )
   
   checkParent <- is.parent(pedData$id, pedData$father, pedData$mother)
   

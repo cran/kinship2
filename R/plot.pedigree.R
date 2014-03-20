@@ -6,7 +6,7 @@ plot.pedigree <- function(x, id = x$id, status = x$status,
                           packed = TRUE, align = c(1.5,2), width = 8, 
                           density=c(-1, 35,55,25), mar=c(4.1, 1, 4.1, 1),
                           angle=c(90,65,40,0), keep.par=FALSE,
-                          subregion, ...)
+                          subregion, pconnect=.5, ...)
 {
     Call <- match.call()
     n <- length(x$id)        
@@ -227,7 +227,8 @@ plot.pedigree <- function(x, id = x$id, status = x$status,
             drawbox(plist$pos[i,j], i, sex[k], affected[k,],
                     status[k], col[k], polylist, density, angle,
                     boxw, boxh)
-            text(plist$pos[i,j], i + boxh + labh*.7, id[k], cex=cex, adj=c(.5,1))
+            text(plist$pos[i,j], i + boxh + labh*.7, id[k], cex=cex, 
+               adj=c(.5,1), ...)
             }
     }
     maxcol <- ncol(plist$nid)  #all have the same size
@@ -290,8 +291,12 @@ plot.pedigree <- function(x, id = x$id, status = x$status,
             # Add the horizontal line 
             segments(min(target), i-legh, max(target), i-legh)
 
-            # Draw line to parents
-            x1 <- mean(range(target))
+            # Draw line to parents.  The original rule corresponded to
+            #  pconnect a large number, forcing the bottom of each parent-child
+            #  line to be at the center of the bar uniting the children.
+            if (diff(range(target)) < 2*pconnect) x1 <- mean(range(target))
+            else x1 <- pmax(min(target)+ pconnect, pmin(max(target)-pconnect, 
+                                                        parentx))
             y1 <- i-legh
             if(branch == 0)
                 segments(x1, y1, parentx, (i-1) + boxh/2)

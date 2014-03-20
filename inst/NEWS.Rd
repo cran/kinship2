@@ -1,5 +1,14 @@
 \name{NEWS}
 \title{NEWS file for the kinship2 package}
+\section{Changes in version 1.5.6}{
+  \itemize{
+    \item Bug found in pedigree.shrink when character ids used and
+    stringsAsFactors set to TRUE. Fix: when making data.frame()s in
+    findUnavail and findAvalNonInform, add stringsAsFactors=FALSE
+    \item Add pconnect option to plot.pedigree.  This gives more control
+    over the lines from parent to child.
+  }
+}
 \section{Changes in version 1.5.4}{
   \itemize{
     \item bug introduced in kinship.pedigree in making other updates in

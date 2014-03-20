@@ -55,7 +55,10 @@ vector of subject ids of persons to trim from a pedigree
   Originally written as pedTrim by Steve Iturria, modified by Dan Schaid
   2007. findUnavailable also calls excludeStrayMarryin to find stray
   available marry-ins who are isolated after trimming their unavailable
-  offspring, and excludeUnavailFounders. 
+  offspring, and excludeUnavailFounders.
+  If the subject ids are character, make sure none of the characters
+  in the ids is a colon (":"), which is a special character used to
+  concatenate and split subjects within the utlity.
 }
 \seealso{
 \code{\link{pedigree.shrink}},

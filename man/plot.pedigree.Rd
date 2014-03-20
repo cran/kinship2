@@ -12,7 +12,7 @@ plot objects created with the pedigree function
                  0.6, packed = TRUE, align = c(1.5,2), width = 8,
                  density = c(-1, 35, 55, 25), mar = c(4.1, 1, 4.1, 1),
                  angle = c(90, 65, 40, 0), keep.par = FALSE, subregion,
-                 ...)
+                 pconnect= .5, ...)
 }
 \arguments{
 \item{x}{
@@ -67,7 +67,14 @@ were for plotting (useful for adding extras to the plot)
 \item{subregion}{4-element vector for (min x, max x, min depth, max depth),
   used to edit away portions of the plot coordinates returned by
   align.pedigree
-  }
+}
+\item{pconnect}{when connecting parent to children the program will try
+  to make the connecting line as close to vertical as possible, subject
+  to it lying inside the endpoints of the line that connects the
+  children by at least \code{pconnect} people.  Setting this option
+  to a large number will force the line to connect at the midpoint of
+  the children.}
+
 \item{\dots}{
 Extra options that feed into the plot function.
 }

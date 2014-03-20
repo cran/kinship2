@@ -55,12 +55,12 @@ require(kinship2)
 \subsection*{Example Data}
 Two datasets are provided within the kinship2 package: 
 \begin{itemize}
-\item{\em breast:}{ 17 families from a breast cancer study}
+\item{\em minnbreast:}{ 17 families from a breast cancer study}
 \item{\em sample.ped:}{ two sample pedigrees, with 41 and 14 subjects}
 \end{itemize}
 
 \noindent This vignette uses the two pedigrees in $sample.ped$. For more 
-information on these datasets, see $help(breast)$ and 
+information on these datasets, see $help(minnbreast)$ and 
 $help(sample.ped)$. 
 
 \subsection*{Pedigree}

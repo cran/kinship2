@@ -30,9 +30,9 @@ findUnavailable <-function(ped, avail) {
   cont <- TRUE                  # flag for whether to keep iterating
   
   is.terminal <- (is.parent(ped$id, ped$findex, ped$mindex) == FALSE)
-
+  ## JPS 3/10/14 add strings check in case of char ids
   pedData <- data.frame(id=ped$id, father=ped$findex, mother=ped$mindex,
-                        sex=ped$sex, avail, is.terminal)  
+                        sex=ped$sex, avail, is.terminal, stringsAsFactors=FALSE)  
   iter <- 1
 
   while(cont)  {
@@ -103,8 +103,8 @@ findUnavailable <-function(ped, avail) {
 excludeStrayMarryin <- function(id, father, mother){
   # get rid of founders who are not parents (stray available marryins
   # who are isolated after trimming their unavailable offspring)
-  
-  trio <- data.frame(id=id, father=father, mother=mother)
+  ## JPS 3/10/14 add strings check in case of char ids
+  trio <- data.frame(id=id, father=father, mother=mother, stringsAsFactors=FALSE)
   parent <- is.parent(id, father, mother)
   founder <- is.founder(father, mother)
 
@@ -119,12 +119,14 @@ excludeUnavailFounders <- function(id, father, mother, avail)
     nOriginal <- length(id)
     idOriginal <- id   
     zed <- father!=0 & mother !=0
-    marriage <- paste(id[father[zed]], id[mother[zed]], sep="-" )
+    ## concat ids to represent marriages. 
+    ## Bug if there is ":" in char subj ids
+    marriage <- paste(id[father[zed]], id[mother[zed]], sep=":" )
 
     sibship <- tapply(marriage, marriage, length)
     nm <- names(sibship)
 
-    splitPos <- regexpr("-",nm)
+    splitPos <- regexpr(":",nm)
     dad <- substring(nm, 1, splitPos-1)
     mom <- substring(nm, splitPos+1,  nchar(nm))
     

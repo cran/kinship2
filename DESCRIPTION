@@ -1,6 +1,6 @@
 Package: kinship2
-Version: 1.5.4
-Date: 2013-7-15
+Version: 1.5.7
+Date: 2014-03-20
 Title: Pedigree functions
 Author: Terry Therneau, Elizabeth Atkinson, Jason Sinnwell, Daniel Schaid, Shannon McDonnell
 Maintainer: Jason Sinnwell <sinnwell.jason@mayo.edu>
@@ -16,7 +16,7 @@ Description: Routines to handle family data with a pedigree object. The
 LazyData: yes
 License: GPL (>= 2)
 URL: http://r-forge.r-project.org
-Packaged: 2013-07-15 15:49:43 UTC; sinnwell
+Packaged: 2014-03-20 15:10:42 UTC; sinnwell
 NeedsCompilation: no
 Repository: CRAN
-Date/Publication: 2013-07-15 18:21:35
+Date/Publication: 2014-03-20 16:15:54

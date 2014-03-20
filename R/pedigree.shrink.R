@@ -13,19 +13,6 @@
 #Revision 1.1  2008/07/16 20:23:07  sinnwell
 #Initial revision
 #
-#$Log: pedigree.shrink.q,v $
-#Revision 1.5  2010/09/03 21:11:16  sinnwell
-#add shrunk "avail" vector to result, keep status and affected in pedObj
-#
-#Revision 1.4  2010/09/03 19:15:03  sinnwell
-#add avail arg which is not part of ped object.  Re-make ped object at the end with status and affected, if given
-#
-#Revision 1.2  2009/11/17 23:08:18  sinnwell
-#*** empty log message ***
-#
-#Revision 1.1  2008/07/16 20:23:07  sinnwell
-#Initial revision
-#
 pedigree.shrink <- function(ped, avail, affected=NULL, seed=NULL, maxBits = 16){
   if(class(ped) != "pedigree")
     stop("Must be a pegigree object.\n")
