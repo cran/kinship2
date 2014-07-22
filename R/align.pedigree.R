@@ -13,8 +13,12 @@ align.pedigree <- function(ped, packed=TRUE, width=10,
         return(ped)
         }
     
-    if (is.null(hints)) hints <- autohint(ped)
-    else     hints <- check.hint(hints, ped$sex)
+    if (is.null(hints)) {
+      hints <- try({autohint(ped)}, silent=TRUE)
+      if(class(hints)=="try-error") hints <- list(order=1:dim(ped))
+    } else {
+      hints <- check.hint(hints, ped$sex)
+    }
     
     n <- length(ped$id)
     dad <- ped$findex; mom <- ped$mindex  #save typing

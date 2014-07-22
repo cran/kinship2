@@ -70,38 +70,23 @@ family id given in the data.
 \code{\link{makefamid}}, \code{\link{makekinship}}
 }
 \examples{
-#
-# This is from a pedigree that had some identifier errors
-#
-\dontrun{
-> checkit<- familycheck(ids2$famid, ids2$gid, ids2$fatherid, ids2$motherid)
-> table(checkit$split)    # should be all 1's
-   0   1 2 
- 112 424 4
-# Shows 112 of the "families" were actually isolated individuals,
-#  and that 4 of the families actually split into 2.  
-#  In one case, a mistyped father id caused one child, along with his spouse
-#  and children, to be "set adrift" from the connected pedigree.
+# use 2 sample peds
+data(sample.ped)
+pedAll <- with(sample.ped, pedigree(id, father, mother, sex,
+                    affected=cbind(affected, avail), famid=ped))
 
-> table(checkit$join)
-   0 1 2 
- 531 6 3
-#
-# There are 6 families with 1 other joined to them (3 pairs), and 3 with
-#  2 others added to them (one triplet).
-# For instance, a single mistyped father id of someone in family 319,
-#  which was by bad luck the id of someone else in family 339,
-#  was sufficient to join two groups.
-> attr(checkit, 'join')
-    [,1] [,2] [,3] [,4] [,5] [,6] [,7] 
- 31   78    0    0    0    0    0    0
- 32    3   15    0    0    0    0    0
- 33    6    0   12    0    0    0    0
- 63    0    0    0   63    0    0    0
- 65    0    0    0   17   16    0    0
-122    0    0    0    0    0   16    0
-127    0    0    0    0    0   30    0
-319    0    0    0    0    0    0   20
-339    0    0    0    0    0    0   37
-}}
+## check them giving separate ped ids
+fcheck.sep <- with(sample.ped, familycheck(ped, id, father, mother))
+fcheck.sep
+
+## check assigning them same ped id
+fcheck.combined <- with(sample.ped, familycheck(rep(1,nrow(sample.ped)), id, father, mother))
+fcheck.combined
+
+#make person 120's father be her son.
+sample.ped[20,3] <- 131
+fcheck1.bad <- try({with(sample.ped, familycheck(ped, id, father, mother))}, silent=FALSE)
+
+## fcheck1.bad is a try-error
+}
 \keyword{genetics}

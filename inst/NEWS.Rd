@@ -1,5 +1,18 @@
 \name{NEWS}
 \title{NEWS file for the kinship2 package}
+\section{Changes in version 1.5.8}{
+  \itemize{
+    \item For some complex non-human pedigrees, multiple sires for a
+    female cause errors in autohint.  For these cases, we put a
+    try-catch around the call to autohint and supress error messages,
+    allowing the plot to proceed with ped$hints=1:nrow(ped), and thus
+    drawing lots of lines
+    \item Add dim.pedigree method, which allows nrow to work as well. It
+    returns the number of subjects in the pedigree
+    \item Add pconnect arg for plot.pedigree to give flexibility to plot
+    children directly under their parents, or loosen this restriction
+  }
+  }
 \section{Changes in version 1.5.6}{
   \itemize{
     \item Bug found in pedigree.shrink when character ids used and

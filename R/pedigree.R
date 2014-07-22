@@ -317,3 +317,4 @@ pedigree <- function(id, dadid, momid, sex, affected, status, relation,
     class(z) <- 'pedigree'
     z
     }
+dim.pedigree <- function(x) length(x$id)

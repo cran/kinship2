@@ -95,6 +95,7 @@ pedigree <- function(id, dadid, momid, sex, affected, status, relation,
     temp
     }
 <<pedigree-subscript>>
+<<pedigree-dim>>
 @ 
 
 \subsection{Data checks}
@@ -372,6 +373,15 @@ The final structure will be in the order of the original data, and all the
 components except [[relation]] will have the
 same number of rows as the original data.
 
+\subsection{Dimension}
+
+Often times it is handy to be able to check or use the number of subjects. We want nrow to work on the pedigree object, but it dispatches to the dim() function for objects. We write dim to just return
+the number of subjects and nrow will work. 
+
+<<pedigree-dim>>=
+dim.pedigree <- function(x) length(x$id)
+@ 
+
 
 \subsection{Subscripting}
 
@@ -533,7 +543,7 @@ as.data.frame.pedigree <- function(x, ...) {
 @ 
 
 
-This function is useful for checking the pedigree object with the
+This function, similar to the one above, is useful for checking the pedigree object with the
 $findex$ and $mindex$ vector instead of them replaced with the ids of 
 the parents.  This is not currently included in the package.
 
@@ -543,12 +553,9 @@ ped2df <- function(ped) {
   df <- data.frame(id=ped$id, findex=ped$findex, mindex=ped$mindex, sex=ped$sex)
   if(!is.null(ped$affected))
     df$affected = ped$affected
-
   if(!is.null(ped$status))
     df$status = ped$status
-
   return(df)
-
 }
 
 @ 
@@ -1652,8 +1659,12 @@ align.pedigree <- function(ped, packed=TRUE, width=10,
         return(ped)
         }
     
-    if (is.null(hints)) hints <- autohint(ped)
-    else     hints <- check.hint(hints, ped$sex)
+    if (is.null(hints)) {
+      hints <- try({autohint(ped)}, silent=TRUE)
+      if(class(hints)=="try-error") hints <- list(order=1:dim(ped))
+    } else {
+      hints <- check.hint(hints, ped$sex)
+    }
     
     <<align-setup>>
     <<align-founders>>
