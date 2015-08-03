@@ -1,5 +1,11 @@
 \name{NEWS}
 \title{NEWS file for the kinship2 package}
+\section{Changes in version 1.6.3}{
+  \itemize{
+    \item Change factors to character in pedigree
+    \item Fix kinship for all unrelateds to not iterate 1:0
+  }
+}    
 \section{Changes in version 1.5.8}{
   \itemize{
     \item For some complex non-human pedigrees, multiple sires for a
@@ -12,7 +18,7 @@
     \item Add pconnect arg for plot.pedigree to give flexibility to plot
     children directly under their parents, or loosen this restriction
   }
-  }
+}
 \section{Changes in version 1.5.6}{
   \itemize{
     \item Bug found in pedigree.shrink when character ids used and

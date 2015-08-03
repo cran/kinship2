@@ -1,7 +1,6 @@
 
-R version 2.15.0 (2012-03-30)
-Copyright (C) 2012 The R Foundation for Statistical Computing
-ISBN 3-900051-07-0
+R version 3.2.0 (2015-04-16) -- "Full of Ingredients"
+Copyright (C) 2015 The R Foundation for Statistical Computing
 Platform: x86_64-unknown-linux-gnu (64-bit)
 
 R is free software and comes with ABSOLUTELY NO WARRANTY.
@@ -19,7 +18,6 @@ Type 'q()' to quit R.
 > require(kinship2)
 Loading required package: kinship2
 Loading required package: Matrix
-Loading required package: lattice
 Loading required package: quadprog
 > #
 > # Test some twins data from Curtis Oswold
@@ -104,4 +102,4 @@ Loading required package: quadprog
 > 
 > proc.time()
    user  system elapsed 
-  2.740   0.101   2.897 
+  1.751   0.119   1.906 

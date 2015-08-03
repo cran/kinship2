@@ -107,25 +107,19 @@ if (length(momid) != n) stop("Mismatched lengths, id and momid")
 if (length(dadid) != n) stop("Mismatched lengths, id and momid")
 if (length(sex  ) != n) stop("Mismatched lengths, id and sex")
 
-# Don't allow missing id values
-if (any(is.na(id))) stop("Missing value for the id variable")
-if (!is.numeric(id)) {
-    id <- as.character(id)
-    if (length(grep('^ *$', id)) > 0)
-    stop("A blank or empty string is not allowed as the id variable")
-  }
 
 # Allow for character/numeric/factor in the sex variable
 if(is.factor(sex))
         sex <- as.character(sex)
 codes <- c("male","female", "unknown", "terminated")
-if(is.character(sex)) sex<- charmatch(casefold(sex, upper = FALSE), codes, 
-    				  nomatch = 3)	
+if(is.character(sex)) sex<- charmatch(casefold(sex, upper = FALSE), codes, nomatch = 3)	
 
 # assume either 0/1/2/4 =  female/male/unknown/term, or 1/2/3/4
 #  if only 1/2 assume no unknowns
-if(min(sex) == 0)
-        sex <- sex + 1
+if(min(sex) == 0) {
+  warning("Sex values contain 0, but expected codes 1-4.\n Setting 0=male, 1=female, 2=unknown, 3=terminated. \n")
+  sex <- sex + 1
+}
 sex <- ifelse(sex < 1 | sex > 4, 3, sex)
 if(all(sex > 2))
         stop("Invalid values for 'sex'")
@@ -144,14 +138,33 @@ identifiers that are of the form `family/subject'.
 Family identifiers can be factor, character, or numeric.
 <<pedigree-error>>=
 if (missing(missid)) {
-    if (is.numeric(id)) missid <- 0
-    else missid <- ""
+  if (is.numeric(id)) missid <- 0
+  else missid <- ""
+}
+@ 
+
+From r-help mailing list request (5/20/2015) where user pointed out we do not account for factors
+in a robust manner.  If id is not numeric, assume id, dadid, and momid need to be converted
+to character. Set missid to character too.
+
+<<pedigree-error>>=
+## Don't allow missing id values
+if (any(is.na(id))) stop("Missing value for the id variable")
+if (!is.numeric(id)) {
+  id <- as.character(id)
+  dadid <- as.character(dadid)
+  momid <- as.character(momid)
+  missid <- as.character(missid)
+  if (length(grep('^ *$', id)) > 0)
+    stop("A blank or empty string is not allowed as the id variable")
 }
 
 nofather <- (is.na(dadid) | dadid==missid)
 nomother <- (is.na(momid) | momid==missid)
 
 if (!missing(famid)) {
+    if(is.factor(famid)) famid <- as.character(famid)
+    
     if (any(is.na(famid))) stop("The family id cannot contain missing values")
     if (is.factor(famid) || is.character(famid)) {
         if (length(grep('^ *$', famid)) > 0)
@@ -165,19 +178,37 @@ if (!missing(famid)) {
     }
 
 if (any(duplicated(id))) {
-    duplist <- id[duplicated(id)]
-    msg.n <- min(length(duplist), 6)
-    stop(paste("Duplicate subject id:", duplist[1:msg.n]))
-    }
+  duplist <- id[duplicated(id)]
+  msg.n <- min(length(duplist), 6)
+  stop(paste("Duplicate subject id:", duplist[1:msg.n]))
+}
 @ 
 
 Next check that any mother or father identifiers are found in the identifier
 list, and are of the right sex.
-Subjects who don't have a mother or father are founders.  For those people %'
+Subjects who don't have a mother or father are founders.  For those people 
 both of the parents should be missing.
+
+If all non-matches of fathers/mothers are on same people, those are founders
+and assume that the missid code did not get used adequately. Also check this 
+does not mess a lot more up by making fewer than 2 founders.
 
 <<pedigree-parent>>=
 findex <- match(dadid, id, nomatch = 0)
+mindex <- match(momid, id, nomatch = 0)
+    
+## if all non-matches of fathers/mothers are on same people, those are founders
+maybe.founder <- (mindex==0 & !nomother) & (findex==0 & !nofather)    
+founder.momid <- unique(momid[maybe.founder])
+founder.dadid <- unique(dadid[maybe.founder])
+if(length(founder.dadid)==1 & length(founder.momid)==1 && founder.momid == founder.dadid) {
+  warning("Using ", founder.momid, " as momid and dadid of founders.\n")
+  nofather[maybe.founder] <- nomother[maybe.founder] <- TRUE
+} 
+
+if(sum(nofather & nomother)<2) 
+  stop("pedigree must have at least 2 founders\n")
+    
 if(any(sex[findex] != "male")) {
     who <- unique((id[findex])[sex[findex] != "male"])
     msg.n <- 1:min(5, length(who))  #Don't list a zillion
@@ -192,7 +223,6 @@ if (any(findex==0 & !nofather)) {
                paste(who[msg.n], collapse= " ")))
     }
     
-mindex <- match(momid, id, nomatch = 0)
 if(any(sex[mindex] != "female")) {
     who <- unique((id[mindex])[sex[mindex] != "female"])
     msg.n <- 1:min(5, length(who))
@@ -251,8 +281,11 @@ Update by Jason Sinnwell 7/2011: Change relation:id1 and id2 to indx1 and indx2
 because they are the index of the id vector. Both $pedigree.trim$ 
 and $[.pedigree$ now work with these column names.
 
+Request by Dr. Desmond to go is.null check on affected and relate so users
+can generalize code for these optional matrices rather than make exceptions.
+  
 <<pedigree-extra>>=
-if (!missing(affected)) {
+if (!missing(affected) && !is.null(affected)) {
     if (is.matrix(affected)){
         if (nrow(affected) != n) stop("Wrong number of rows in affected")
         if (is.logical(affected)) affected <- 1* affected
@@ -270,8 +303,7 @@ if (!missing(affected)) {
 		stop("Invalid code for affected status")
     temp$affected <- affected
     }
-
-if(!missing(status)) {
+if(!missing(status) && !is.null(status)) {
     if(length(status) != n)
         stop("Wrong length for affected")
     if (is.logical(status)) status <- as.integer(status)
@@ -279,8 +311,7 @@ if(!missing(status)) {
         stop("Invalid status code")
     temp$status <- status
     }
-
-if (!missing(relation)) {
+if (!missing(relation) && !is.null(relation)) {
     if (!missing(famid)) {
         if (is.matrix(relation)) {
             if (ncol(relation) != 4) 

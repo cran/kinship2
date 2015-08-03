@@ -35,7 +35,7 @@ and of arbitrary case.
   A variable indicating affection status.  A multi-column matrix
   can be used to give the status with respect to multiple traits.
   Logical, factor, and integer types are converted to 0/1 representing
-  unaffected and affected, respectively. NAs are not allowed.
+  unaffected and affected, respectively. NAs are considered missing.
 }
 \item{status}{
 Status (0="censored", 1="dead")
@@ -45,7 +45,10 @@ A matrix with 3 columns (id1, id2, code) specifying special relationship
 between pairs of individuals. Codes: 1=Monozygotic
 twin,  2=Dizygotic twin, 3=Twin of unknown zygosity, 4=Spouse.
 (The last is necessary in order to place a marriage with no children
-into the plot.)
+into the plot.) Note for tuples of >= 3 with a mixture of zygosities,
+the plotting is limited to showing pairwise zygosity of adjacent subjects,
+so it is only necessary to specify the pairwise zygosity, in the order
+the subjects are given or appear on the plot.
 }
 
 \item{famid}{
@@ -79,16 +82,20 @@ bpeds <- with(minnbreast,
 
 ## pedigree with id=8
 bped.id8 <- bpeds['8']
-
 print(bped.id8)
-
 plot(bped.id8)
+
+## show this pedigree with mixed zygosity quadruplets
+rel8 <- data.frame(id1=c(137,138,139), id2=c(138,139,140), code=c(1,2,2))
+bped.id8 <- with(minnbreast[minnbreast$famid==8,],
+     pedigree(id, fatherid, motherid, sex, affected=proband, relation=rel8))
+plot(bped.id8)
+
 
 ## the 8th pedigree
 bped8 <- bpeds[8]
 
 print(bped8)
-
 plot(bped8, cex=.5)
 
 }

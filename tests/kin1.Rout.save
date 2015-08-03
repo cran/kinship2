@@ -1,8 +1,7 @@
 
-R Under development (unstable) (2013-02-24 r62054) -- "Unsuffered Consequences"
-Copyright (C) 2013 The R Foundation for Statistical Computing
-ISBN 3-900051-07-0
-Platform: i686-pc-linux-gnu (32-bit)
+R version 3.2.0 (2015-04-16) -- "Full of Ingredients"
+Copyright (C) 2015 The R Foundation for Statistical Computing
+Platform: x86_64-unknown-linux-gnu (64-bit)
 
 R is free software and comes with ABSOLUTELY NO WARRANTY.
 You are welcome to redistribute it under certain conditions.
@@ -21,7 +20,6 @@ Type 'q()' to quit R.
 > #
 > library(kinship2)
 Loading required package: Matrix
-Loading required package: lattice
 Loading required package: quadprog
 > aeq <- function(x,y) all.equal(as.vector(x), as.vector(y))
 > 
@@ -74,6 +72,11 @@ Loading required package: quadprog
 > test2$famid <- rep(1:2, c(nrow(test1), 6))
 > 
 > ped <- with(test2, pedigree(id=id, mom=mom, dad=dad, sex=sex, fam=famid))
+Warning message:
+In pedigree(id = id, mom = mom, dad = dad, sex = sex, fam = famid) :
+  Sex values contain 0, but expected codes 1-4.
+ Setting 0=male, 1=female, 2=unknown, 3=terminated. 
+
 > 
 > kmat3 <- kinship(ped)
 > n1 <- nrow(test1)
@@ -98,6 +101,11 @@ Loading required package: quadprog
 > temp <- order(runif(nrow(test2)))
 > ped2 <- with(test2[temp,], 
 +              pedigree(id=id, mom=mom, dad=dad, sex=sex, fam=famid)) 
+Warning message:
+In pedigree(id = id, mom = mom, dad = dad, sex = sex, fam = famid) :
+  Sex values contain 0, but expected codes 1-4.
+ Setting 0=male, 1=female, 2=unknown, 3=terminated. 
+
 > kmat5 <- kinship(ped2)
 > 
 > indx <- match(dimnames(kmat3)[[2]], dimnames(kmat5)[[2]])
@@ -106,4 +114,4 @@ Loading required package: quadprog
 > 
 > proc.time()
    user  system elapsed 
-  1.960   0.048   2.009 
+  1.608   0.102   1.742 
