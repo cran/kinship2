@@ -46,8 +46,8 @@ alignped1 <- function(x, dad, mom, level, horder, packed, spouselist){
         nleft <- nleft - length(lspouse)  #number of undecideds to the left
         if (nleft >0) {
             # JPS fixed 5/2013, don't index when nleft > length(indx)
-            lspouse <- c(lspouse, spouse[indx[1:min(nleft,length(indx))]])
-            indx <- indx[-(1:min(nleft,length(indx)))]
+            lspouse <- c(lspouse, spouse[indx[seq_len(min(nleft,length(indx)))]])
+            indx <- indx[-(seq_len(min(nleft,length(indx))))]       
           }
         if (length(indx)) rspouse <- c(spouse[indx], rspouse)
       }

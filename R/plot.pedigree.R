@@ -4,7 +4,7 @@ plot.pedigree <- function(x, id = x$id, status = x$status,
                           cex = 1, col = 1,
                           symbolsize = 1, branch = 0.6, 
                           packed = TRUE, align = c(1.5,2), width = 8, 
-                          density=c(-1, 35,55,25), mar=c(4.1, 1, 4.1, 1),
+                          density=c(-1, 35,65,20), mar=c(4.1, 1, 4.1, 1),
                           angle=c(90,65,40,0), keep.par=FALSE,
                           subregion, pconnect=.5, ...)
 {
@@ -41,10 +41,12 @@ plot.pedigree <- function(x, id = x$id, status = x$status,
             }
         if(max(affected, na.rm=TRUE) > min(affected, na.rm=TRUE)) {
           affected <- matrix(affected - min(affected, na.rm=TRUE),nrow=n)
-          affected[is.na(affected)] <- -1
+         ## affected[is.na(affected)] <- -1
         } else {
           affected <- matrix(affected,nrow=n)
         }
+        ## JPS 4/28/17 bug fix b/c some cases NAs are not set to -1
+        affected[is.na(affected)] <- -1
         if (!all(affected==0 | affected==1 | affected == -1))
                 stop("Invalid code for affected status")
     }
@@ -222,7 +224,7 @@ plot.pedigree <- function(x, id = x$id, status = x$status,
 
     sex <- as.numeric(x$sex)
     for (i in 1:maxlev) {
-        for (j in 1:plist$n[i]) {
+        for (j in seq_len(plist$n[i])) {
             k <- plist$nid[i,j]
             drawbox(plist$pos[i,j], i, sex[k], affected[k,],
                     status[k], col[k], polylist, density, angle,
@@ -316,7 +318,9 @@ plot.pedigree <- function(x, id = x$id, status = x$status,
         }
 
     uid <- unique(plist$nid)
-    for (id in uid[uid>0]) {
+    ## JPS 4/27/17: unique above only applies to rows
+    ## unique added to for loop iterator
+    for (id in unique(uid[uid>0])) {
         indx <- which(plist$nid == id)
         if (length(indx) >1) {   #subject is a multiple
             tx <- plist$pos[indx]

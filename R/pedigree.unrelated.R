@@ -1,21 +1,10 @@
 # Automatically generated from all.nw using noweb
 
-
-#$Log: pedigree.unrelated.q,v $
-#Revision 1.2  2010/02/11 22:36:48  sinnwell
-#require kinship to be loaded before use
-#
-#Revision 1.1  2009/11/10 19:21:52  sinnwell
-#Initial revision
-#
-#Revision 1.1  2009/11/03 16:42:27  sinnwell
-#Initial revision
-#
-## Authors: Dan Schaid, Shannon McDonnell
-## Updated by Jason Sinnwell
+  ## Authors: Dan Schaid, Shannon McDonnell
+  ## Updated by Jason Sinnwell
 
 pedigree.unrelated <- function(ped, avail) {
-  
+
   # Requires: kinship function
 
   # Given vectors id, father, and mother for a pedigree structure,
@@ -38,7 +27,6 @@ pedigree.unrelated <- function(ped, avail) {
 
   id <- ped$id
   avail <- as.integer(avail)
-
   
   kin <- kinship(ped)
   
@@ -46,36 +34,34 @@ pedigree.unrelated <- function(ped, avail) {
   id <- id[ord]
   avail <- as.logical(avail[ord])
   kin <- kin[ord,][,ord]
-
+  
   rord <- order(runif(nrow(kin)))
-
+  
   id <- id[rord]
   avail <- avail[rord]
   kin <- kin[rord,][,rord]
-
+  
   id.avail <- id[avail]
   kin.avail <- kin[avail,,drop=FALSE][,avail,drop=FALSE]
-
+  
   diag(kin.avail) <- 0
-
-  while(any(kin.avail > 0))
-    {
-      nr <- nrow(kin.avail)
-      indx <- 1:nrow(kin.avail)
-      zero.count <- apply(kin.avail==0, 1, sum)
-      
-      mx <- max(zero.count[zero.count < nr])
-      mx.zero <- indx[zero.count == mx][1]
-
-      exclude <- indx[kin.avail[, mx.zero] > 0]
-
-      kin.avail <- kin.avail[- exclude, , drop=FALSE][, -exclude, drop=FALSE]
-
-    }
-
+  
+  while(any(kin.avail > 0))  {
+    nr <- nrow(kin.avail)
+    indx <- 1:nrow(kin.avail)
+    zero.count <- apply(kin.avail==0, 1, sum)
+    
+    mx <- max(zero.count[zero.count < nr])
+    mx.zero <- indx[zero.count == mx][1]
+    
+    exclude <- indx[kin.avail[, mx.zero] > 0]
+    
+    kin.avail <- kin.avail[- exclude, , drop=FALSE][, -exclude, drop=FALSE]
+    
+  }
+  
   choice <- sort(dimnames(kin.avail)[[1]])
   
   return(choice)
 }
-
 

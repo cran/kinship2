@@ -15,7 +15,8 @@ align.pedigree <- function(ped, packed=TRUE, width=10,
     
     if (is.null(hints)) {
       hints <- try({autohint(ped)}, silent=TRUE)
-      if(class(hints)=="try-error") hints <- list(order=1:dim(ped))
+      ## sometimes appears dim(ped) is empty (ped is NULL), so try fix here: (JPS 6/6/17
+      if(class(hints)=="try-error") hints <- list(order=seq_len(max(1, dim(ped)))) ## 1:dim(ped))
     } else {
       hints <- check.hint(hints, ped$sex)
     }

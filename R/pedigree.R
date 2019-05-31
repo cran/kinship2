@@ -6,19 +6,25 @@ pedigree <- function(id, dadid, momid, sex, affected, status, relation,
     if (length(dadid) != n) stop("Mismatched lengths, id and momid")
     if (length(sex  ) != n) stop("Mismatched lengths, id and sex")
 
+    # Don't allow missing id values
+    if (any(is.na(id))) stop("Missing value for the id variable")
+    if (!is.numeric(id)) {
+        id <- as.character(id)
+        if (length(grep('^ *$', id)) > 0)
+        stop("A blank or empty string is not allowed as the id variable")
+      }
 
     # Allow for character/numeric/factor in the sex variable
     if(is.factor(sex))
             sex <- as.character(sex)
     codes <- c("male","female", "unknown", "terminated")
-    if(is.character(sex)) sex<- charmatch(casefold(sex, upper = FALSE), codes, nomatch = 3)        
+    if(is.character(sex)) sex<- charmatch(casefold(sex, upper = FALSE), codes, 
+                                          nomatch = 3)        
 
     # assume either 0/1/2/4 =  female/male/unknown/term, or 1/2/3/4
     #  if only 1/2 assume no unknowns
-    if(min(sex) == 0) {
-      warning("Sex values contain 0, but expected codes 1-4.\n Setting 0=male, 1=female, 2=unknown, 3=terminated. \n")
-      sex <- sex + 1
-    }
+    if(min(sex) == 0)
+            sex <- sex + 1
     sex <- ifelse(sex < 1 | sex > 4, 3, sex)
     if(all(sex > 2))
             stop("Invalid values for 'sex'")
@@ -26,26 +32,14 @@ pedigree <- function(id, dadid, momid, sex, affected, status, relation,
                 warning("More than 25% of the gender values are 'unknown'")
     sex <- factor(sex, 1:4, labels = codes)
     if (missing(missid)) {
-      if (is.numeric(id)) missid <- 0
-      else missid <- ""
-    }
-    ## Don't allow missing id values
-    if (any(is.na(id))) stop("Missing value for the id variable")
-    if (!is.numeric(id)) {
-      id <- as.character(id)
-      dadid <- as.character(dadid)
-      momid <- as.character(momid)
-      missid <- as.character(missid)
-      if (length(grep('^ *$', id)) > 0)
-        stop("A blank or empty string is not allowed as the id variable")
+        if (is.numeric(id)) missid <- 0
+        else missid <- ""
     }
 
     nofather <- (is.na(dadid) | dadid==missid)
     nomother <- (is.na(momid) | momid==missid)
 
     if (!missing(famid)) {
-        if(is.factor(famid)) famid <- as.character(famid)
-        
         if (any(is.na(famid))) stop("The family id cannot contain missing values")
         if (is.factor(famid) || is.character(famid)) {
             if (length(grep('^ *$', famid)) > 0)
@@ -59,25 +53,11 @@ pedigree <- function(id, dadid, momid, sex, affected, status, relation,
         }
 
     if (any(duplicated(id))) {
-      duplist <- id[duplicated(id)]
-      msg.n <- min(length(duplist), 6)
-      stop(paste("Duplicate subject id:", duplist[1:msg.n]))
-    }
+        duplist <- id[duplicated(id)]
+        msg.n <- min(length(duplist), 6)
+        stop(paste("Duplicate subject id:", duplist[1:msg.n]))
+        }
     findex <- match(dadid, id, nomatch = 0)
-    mindex <- match(momid, id, nomatch = 0)
-        
-    ## if all non-matches of fathers/mothers are on same people, those are founders
-    maybe.founder <- (mindex==0 & !nomother) & (findex==0 & !nofather)    
-    founder.momid <- unique(momid[maybe.founder])
-    founder.dadid <- unique(dadid[maybe.founder])
-    if(length(founder.dadid)==1 & length(founder.momid)==1 && founder.momid == founder.dadid) {
-      warning("Using ", founder.momid, " as momid and dadid of founders.\n")
-      nofather[maybe.founder] <- nomother[maybe.founder] <- TRUE
-    } 
-
-    if(sum(nofather & nomother)<2) 
-      stop("pedigree must have at least 2 founders\n")
-        
     if(any(sex[findex] != "male")) {
         who <- unique((id[findex])[sex[findex] != "male"])
         msg.n <- 1:min(5, length(who))  #Don't list a zillion
@@ -92,6 +72,7 @@ pedigree <- function(id, dadid, momid, sex, affected, status, relation,
                    paste(who[msg.n], collapse= " ")))
         }
         
+    mindex <- match(momid, id, nomatch = 0)
     if(any(sex[mindex] != "female")) {
         who <- unique((id[mindex])[sex[mindex] != "female"])
         msg.n <- 1:min(5, length(who))
@@ -131,7 +112,7 @@ pedigree <- function(id, dadid, momid, sex, affected, status, relation,
         temp <- list(id = id, findex=findex, mindex=mindex, sex=sex)
     else temp<- list(famid=famid, id=oldid, findex=findex, mindex=mindex, 
                      sex=sex)
-    if (!missing(affected) && !is.null(affected)) {
+    if (!missing(affected)) {
         if (is.matrix(affected)){
             if (nrow(affected) != n) stop("Wrong number of rows in affected")
             if (is.logical(affected)) affected <- 1* affected
@@ -149,7 +130,8 @@ pedigree <- function(id, dadid, momid, sex, affected, status, relation,
                     stop("Invalid code for affected status")
         temp$affected <- affected
         }
-    if(!missing(status) && !is.null(status)) {
+
+    if(!missing(status)) {
         if(length(status) != n)
             stop("Wrong length for affected")
         if (is.logical(status)) status <- as.integer(status)
@@ -157,7 +139,8 @@ pedigree <- function(id, dadid, momid, sex, affected, status, relation,
             stop("Invalid status code")
         temp$status <- status
         }
-    if (!missing(relation) && !is.null(relation)) {
+
+    if (!missing(relation)) {
         if (!missing(famid)) {
             if (is.matrix(relation)) {
                 if (ncol(relation) != 4) 
@@ -173,14 +156,14 @@ pedigree <- function(id, dadid, momid, sex, affected, status, relation,
                 code <- relation$code
                 famid <- relation$famid
                 if (is.null(id1) || is.null(id2) || is.null(code) ||is.null(famid)) 
-                stop("Relation data must have id1, id2, family id and code")
+                stop("Relation data must have id1, id2, code, and family id")
                 }
             else stop("Relation argument must be a matrix or a dataframe")
             }
         else {
             if (is.matrix(relation)) {
                 if (ncol(relation) != 3) 
-                    stop("Relation matrix must have 3 columns")
+                    stop("Relation matrix must have 3 columns: id1, id2, code")
                 id1 <- relation[,1]
                 id2 <- relation[,2]
                 code <- relation[,3]
@@ -334,4 +317,3 @@ pedigree <- function(id, dadid, momid, sex, affected, status, relation,
     class(z) <- 'pedigree'
     z
     }
-dim.pedigree <- function(x) length(x$id)

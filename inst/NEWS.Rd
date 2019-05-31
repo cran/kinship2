@@ -1,5 +1,39 @@
 \name{NEWS}
 \title{NEWS file for the kinship2 package}
+\section{Changes in version 1.8.0}{
+  \itemize{
+    \item legendPlot: added function to make a plot with a legend at
+    the bottom, which is a separate sibship, whose parents are plotted
+    over by the pedigree of interest.
+    \item update documentation (Rd and vignette) on specifying
+    relation matrix in pedigreeList objects.
+    \item vignette now written in Rmd, will convert to html
+  }
+} 
+\section{Changes in version 1.7.2}{
+  \itemize{
+    \item fixParents: added new function to add parents when they don't
+    exist, but listed in momid/dadid, or fixes gender of them if it is
+    wrong in the parent id row. Returns a valid pedigree
+    object. Suggested by Tomos Potter.
+    \item adding plot tests to tests suite: test.plot.pedigree.R
+  }
+} 
+\section{Changes in version 1.7.0}{
+  \itemize{
+    \item plot.pedigree: fixed kindepth problem when there are many
+    multiple marriages
+    \item plot.pedigree: fixed bug when affection status is only NA and 1
+    \item pedigree.legend: fixed for when radius not given, and when
+    only one affection status
+  }
+} 
+\section{Changes in version 1.6.6}{
+  \itemize{
+    \item plot.pedigree: if no subjects in a generation, don't try to
+    plot. This is making plot work for an error that exists in aligning
+  }
+}  
 \section{Changes in version 1.6.3}{
   \itemize{
     \item Change factors to character in pedigree

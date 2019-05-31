@@ -1,29 +1,27 @@
 Package: kinship2
-Version: 1.6.4
-Date: 2015-08-03
+Version: 1.8.4
+Date: 2019-5-31
 Title: Pedigree Functions
-Authors@R: c(person(c("Terry", "M"), "Therneau", role=c("aut")),
-             person("Schaid", "Daniel", role="ctb"),
-             person("Jason", "Sinnwell", email="sinnwell.jason@mayo.edu",role=c("aut","cre")),
-	     person("Elizabeth", "Atkinson", role="ctb"))
-Depends: R (>= 3.1.0), Matrix, quadprog
+Authors@R: c(
+	person("Jason", "Sinnwell", email="sinnwell.jason@mayo.edu", role=c("aut","cre")),
+	person("Terry", "Therneau", role="aut"),
+	person("Daniel", "Schaid", role="ctb"),
+	person("Elizabeth", "Atkinson", role="ctb"),
+	person("Carly", "Mester", role='ctb'))
+Depends: R (>= 3.4.0), Matrix, quadprog
+Suggests: knitr
 Imports: graphics, stats, methods
-Description: Routines to handle family data with a pedigree object. The initial purpose was to create correlation structures that describe 
- family relationships such as kinship and identity-by-descent, which
- can be used to model family data in mixed effects models, such as in the 
- coxme function.  Also includes a tool for pedigree drawing which is 
- focused on producing compact layouts without intervention.  Recent additions
- include utilities to trim the pedigree object with various criteria, and 
- kinship for the X chromosome.
-LazyData: yes
+Description: Routines to handle family data with a pedigree object (2014, <doi: 10.1159/000363105>). The initial purpose was to create correlation structures that describe family relationships such as kinship and identity-by-descent, which can be used to model family data in mixed effects models, such as in the coxme function. Also includes a tool for pedigree drawing which is focused on producing compact layouts without intervention. Recent additions include utilities to trim the pedigree object with various criteria, and kinship for the X chromosome.
 License: GPL (>= 2)
-URL: http://r-forge.r-project.org
+VignetteBuilder: knitr
+URL: https://cran.r-project.org/package=kinship2
 NeedsCompilation: no
-Packaged: 2015-08-03 17:03:47 UTC; sinnwell
-Author: Terry M Therneau [aut],
-  Schaid Daniel [ctb],
-  Jason Sinnwell [aut, cre],
-  Elizabeth Atkinson [ctb]
+Packaged: 2019-05-31 19:58:13 UTC; sinnwell
+Author: Jason Sinnwell [aut, cre],
+  Terry Therneau [aut],
+  Daniel Schaid [ctb],
+  Elizabeth Atkinson [ctb],
+  Carly Mester [ctb]
 Maintainer: Jason Sinnwell <sinnwell.jason@mayo.edu>
 Repository: CRAN
-Date/Publication: 2015-08-03 21:10:46
+Date/Publication: 2019-05-31 21:30:17 UTC

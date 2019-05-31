@@ -38,7 +38,7 @@ SFUN =  align.pedigree.R\
 
 RDIR = ../R
 
-all.pdf: all.tex
+all.pdf: all.tex noweb.sty
 	pdflatex all
 
 
@@ -47,7 +47,7 @@ all.nw: $(PARTS)
 	echo "\\end{document}" >> all.nw
 
 all.tex: all.nw
-	noweave -delay all.nw > all.tex
+	echo "library(noweb); noweave('all.nw')" | R  --slave
 
 RFUN = $(SFUN:%=$(RDIR)/%)
 
@@ -67,4 +67,7 @@ $(RFUN): all.nw
 clean:
 	-rm all.nw all.log all.aux all.toc all.tex 
 	-rm $(RFUN)
+
+noweb.sty:
+	echo 'library(noweb); data(noweb); cat(noweb.sty, sep="\n", file="noweb.sty")' |  R  --slave
 

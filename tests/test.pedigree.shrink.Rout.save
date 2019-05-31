@@ -1,7 +1,7 @@
 
-R version 3.0.1 (2013-05-16) -- "Good Sport"
-Copyright (C) 2013 The R Foundation for Statistical Computing
-Platform: x86_64-unknown-linux-gnu (64-bit)
+R Under development (unstable) (2019-04-30 r76446) -- "Unsuffered Consequences"
+Copyright (C) 2019 The R Foundation for Statistical Computing
+Platform: x86_64-pc-linux-gnu (64-bit)
 
 R is free software and comes with ABSOLUTELY NO WARRANTY.
 You are welcome to redistribute it under certain conditions.
@@ -24,7 +24,6 @@ Type 'q()' to quit R.
 > require(kinship2)
 Loading required package: kinship2
 Loading required package: Matrix
-Loading required package: lattice
 Loading required package: quadprog
 > 
 > 
@@ -121,8 +120,7 @@ Trimmed               8    4
  [1] 101 102 107 108 111 113 121 122 123 131 132 134 139
 > ## 101 102 107 108 111 121 122 123 131 132 134 139
 > shrink1.avail.B25$idTrimmed  
-                                                         id 
-101 102 107 108 111 113 121 122 123 131 132 134 139 126 125 
+ [1] 101 102 107 108 111 113 121 122 123 131 132 134 139 133 141
 > ## 101 102 107 108 111 121 122 123 131 132 134 139 125 126
 > 
 > print(shrink1.avail.B32)
@@ -145,13 +143,13 @@ Pedigree Size:
                  N.subj Bits
 Original             41   46
 Only Informative     28   29
-Trimmed              25   23
+Trimmed              26   25
 
  Unavailable subjects trimmed:
  101 102 107 108 111 113 121 122 123 131 132 134 139 
 
  Informative subjects trimmed:
- 126 125 
+ 133 141 
 > 
 > 
 > #Pedigree Size:
@@ -187,14 +185,11 @@ Trimmed              25   23
 > set.seed(10)
 > shrink1.p1char.B25 <- pedigree.shrink(ped=ped1char, avail=ped1char$affected[,2], maxBits=25)
 > shrink1.p1char.B25$idTrimmed
-                                                                             
-"A-01" "A-02" "A-07" "A-08" "A-11" "A-13" "A-21" "A-22" "A-23" "A-31" "A-32" 
-                         id 
-"A-34" "A-39" "A-26" "A-25" 
+ [1] "A-01" "A-02" "A-07" "A-08" "A-11" "A-13" "A-21" "A-22" "A-23" "A-31"
+[11] "A-32" "A-34" "A-39" "A-33" "A-41"
 > shrink1.avail.B25$idTrimmed
-                                                         id 
-101 102 107 108 111 113 121 122 123 131 132 134 139 126 125 
+ [1] 101 102 107 108 111 113 121 122 123 131 132 134 139 133 141
 > 
 > proc.time()
    user  system elapsed 
-  2.828   0.120   2.989 
+  1.363   0.145   1.678 

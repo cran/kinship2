@@ -1,5 +1,6 @@
 \name{plot.pedigree}
 \alias{plot.pedigree}
+\alias{legendPlot}
 \title{
   plot pedigrees
 }
@@ -10,9 +11,11 @@ plot objects created with the pedigree function
 \method{plot}{pedigree}(x, id = x$id, status = x$status, affected =
                  x$affected, cex = 1, col = 1, symbolsize = 1, branch =
                  0.6, packed = TRUE, align = c(1.5,2), width = 8,
-                 density = c(-1, 35, 55, 25), mar = c(4.1, 1, 4.1, 1),
+                 density = c(-1, 35, 65, 20), mar = c(4.1, 1, 4.1, 1),
                  angle = c(90, 65, 40, 0), keep.par = FALSE, subregion,
-                 pconnect= .5, ...)
+                 pconnect= .5, \dots)
+legendPlot(x, id=x$id, affected=x$affected, affected.label=NULL,
+           col=1, col.label=NULL, symbolsize=.75, \dots)
 }
 \arguments{
 \item{x}{
@@ -30,11 +33,17 @@ indicators. Subject's symbol is divided into sections for each
 status, shaded if indicator is 1, not-shaded for 0, and symbol "?"
 if missing (NA)
 }
+\item{affected.label}{
+vector of text labels to describe affection statuses
+}
 \item{cex}{
 controls text size.  Default=1.
 }
 \item{col}{
 color for each id.  Default assigns the same color to everyone.
+}
+\item{col.label}{
+vector of text labels associated with each color in the legend.
 }
 \item{symbolsize}{
 controls symbolsize. Default=1.
@@ -75,9 +84,7 @@ were for plotting (useful for adding extras to the plot)
   to a large number will force the line to connect at the midpoint of
   the children.}
 
-\item{\dots}{
-Extra options that feed into the plot function.
-}
+\item{\dots}{ Extra options that feed into the plot function}
 }
 \value{
   an invisible list containing
@@ -100,12 +107,10 @@ Extra options that feed into the plot function.
 creates plot on current plotting device.
 } 
 \details{  
-  Two important parameters control the looks of the result.
-  One is the user specified
-maximum width.  The smallest possible width is the maximum number of subjects
-on a line, if the user's suggestion  %'
-is too low it is increased to 1+ that
-amount (to give just a little wiggle room).
+Two important parameters control the looks of the result.
+One is the user specified maximum width.  The smallest possible width
+is the maximum number of subjects on a line, if the user's suggestion  %'
+is too low it is increased to 1+ that amount (to give just a little wiggle room).
 To make a pedigree where all children are centered under parents simply
 make the width large enough, however, the symbols may get very small.
 
@@ -144,10 +149,10 @@ pedAll <- pedigree(sample.ped$id, sample.ped$father, sample.ped$mother,
 ped2 <- pedAll['2']
 
 print(ped2)
-
-
-## plot(ped2)
-
+\dontrun{
+plot(ped2)
+legendPlot(ped2)
 }
+}
+\keyword{genetics}
 
-\keyword{hplot, genetics}

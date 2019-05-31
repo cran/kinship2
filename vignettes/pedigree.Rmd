@@ -1,115 +1,131 @@
-%\VignetteIndexEntry{pedigree Example}
-%\VignetteDepends{kinship2}
-%\VignetteKeywords{pedigree, kinship, shrink}
-%\VignettePackage{kinship2}
+---
+title: "Pedigree Examples"
+author: "Jason Sinnwell"
+date: '`r format(Sys.time(),"%d %B, %Y")`'
+output:
+  rmarkdown::html_vignette:
+    toc: yes
+    toc_depth: 3
+header-includes: \usepackage{tabularx}
+vignette: |
+  %\VignetteIndexEntry{Pedigree Examples}
+  %\VignetteEncoding{UTF-8}
+  %\VignetteEngine{knitr::rmarkdown}
+---
 
-%**************************************************************************
-%
-% # $Id:$
+  
+```{r echo = FALSE}
+knitr::opts_chunk$set(echo = TRUE, tidy.opts=list(width.cutoff=80), tidy=TRUE, comment=NA)
+options(width=80, max.print=1000)
+.libPaths(c("~/Rlib352", .libPaths()))
+```
 
-% $Revision:  $
-% $Author: Jason Sinnwell$
-% $Date:  $
+Introduction
+===============
 
-
-\documentclass[letterpaper]{article}
-
-\usepackage{Sweave}
-
-\textwidth 7.5in
-\textheight 8.9in
-\topmargin  0.1in
-\headheight 0.0in
-\headsep 0.0in
-\oddsidemargin  -30pt
-\evensidemargin  -30pt
-
-
-<<desc, include=FALSE, echo=FALSE>>=
-options(width = 90)
-desc <- packageDescription("kinship2")
-@
-
-\title{kinship2 package vignette \\ 
-        Version \Sexpr{desc$Version}}
-\author{Jason Sinnwell and Beth Atkinson}
-\begin{document}
-\maketitle
-
-
-\section{Introduction}
 This document is a brief tutorial for the kinship2 package, with examples 
 of creating pedigree objects and kinship matrices, and other pedigree 
 utilities.  If the kinship2 package is not loaded, we load it now.
 
-<<echo=TRUE, eval=FALSE>>=
-library(kinship2)
-@
-
-<<echo=FALSE, eval=TRUE>>=
+```{r, message=FALSE}
 require(kinship2)
-@
+```
 
-\section{Basic Usage}
+Basic Usage
+=============
 
-\subsection*{Example Data}
+## Example Data
 Two datasets are provided within the kinship2 package: 
-\begin{itemize}
-\item{\em minnbreast:}{ 17 families from a breast cancer study}
-\item{\em sample.ped:}{ two sample pedigrees, with 41 and 14 subjects}
-\end{itemize}
++ minnbreast: 17 families from a breast cancer study
++ sample.ped: two sample pedigrees, with 41 and 14 subjects
 
-\noindent This vignette uses the two pedigrees in $sample.ped$. For more 
-information on these datasets, see $help(minnbreast)$ and 
-$help(sample.ped)$. 
 
-\subsection*{Pedigree}
+This vignette uses the two pedigrees in ~sample.ped~. For more information on these
+datasets, see help(minnbreast) and help(sample.ped).
 
-First, we load $sample.ped$ and look at some of the values 
-in the dataset, and create a {\em pedigreeList} object using the 
-$pedigree()$ function.  We use the required arguments 
+## Pedigree
+
+First, we load ~sample.ped~ and look at some of the values 
+in the dataset, and create a *pedigreeList* object using the 
+*pedigree()* function.  We use the required arguments 
 $id$, $father$, $mother$, and $sex$.  The $famid$ argument is 
 required to make a {\em pedigreeList} object, but not for a single 
-{\em pedigree} object. 
+*pedigree}* object. 
 
-<<pedList>>=
-
+```{r, pedList}
 data(sample.ped)
 sample.ped[1:10,]
-
 pedAll <- pedigree(id=sample.ped$id, 
                 dadid=sample.ped$father, momid=sample.ped$mother, 
                 sex=sample.ped$sex, famid=sample.ped$ped)
-
 print(pedAll)
+``` 
 
-@ 
-
-\noindent The {\em pedigreeList} object can be subset to individual pedigrees 
+The {\em pedigreeList} object can be subset to individual pedigrees 
 by their family id.  The pedigree object has a print and plot method, which 
 we show below.  The print method prints a short summary of the pedigree, 
-while the plot in Figure~\ref{basicPed2} displays the smaller pedigree.
+while the figure below displays the smaller pedigree.
 
-\begin{figure}[h]
-  \begin{center}
-<<eval=TRUE, fig=TRUE, echo=TRUE>>=
-
+```{r, plot12}
 ped1basic <- pedAll['1']
 ped2basic <- pedAll['2']
-
 print(ped1basic)
 print(ped2basic)
-
 plot(ped2basic)
-# plot(ped1basic)
-@ 
-   \caption{Basic Plot: pedigree 2} \label{basicPed2}
-  \end{center}
-\end{figure}
-\clearpage
 
+```
 
-\subsection*{Kinship}
+Fixing Pedigree Issues
+=======================
+
+To "break" the pedigree, we can manipulate the sex value to not match the
+parent value (in this example, we change $203$ from a male to a female, even
+though $203$ is a father). To do this, we first subset ~datped2~, locate the *id* column, 
+and match it to a specific id (in this case, $203$). Within id $203$, then locate in the *sex* column.
+Assign this subset to the incorrect value of *2* (female) to change the original/correct
+value of *1* (male).
+
+To further break the pedigree, we can delete subjects who seem irrelevant to the
+pedigree (in this example, we delete $209$ because he is a married-in father). 
+To do this, we subset ~datped2~ and use the *-which()* function to locate and delete
+the specified subject (in this case, $209$). Reassign this code to ~datped22~ to drop 
+the specified subject entirely.
+
+```{r, datped2}
+datped2 <- sample.ped[sample.ped$ped %in% 2,]
+datped2[datped2$id %in% 203, "sex"] <- 2
+datped2 <- datped2[-which(datped2$id %in% 209),]
+```
+
+An error occurs when the *pedigree()* function notices that id $203$ is not 
+coded to be male (*1*) but is a father. To correct this, we simply employ the
+*fixParents()* function to adjust the *sex* value to match either *mother/momid*
+or *father/dadid*. *fixParents()* will also add back in any deleted subjects,
+further fixing the pedigree.
+
+```{r, fixpederr, eval=FALSE}
+ped2 <- with(datped2, pedigree(id, father, mother, sex))
+```
+
+To correct this, we simply employ the *fixParents()* function to adjust the *sex*
+value to match either *mother/momid* or *father/dadid*. *fixParents()* will also add
+back in any deleted subjects, further fixing the pedigree.
+
+```{r, fixped}
+fixped2 <- with(datped2, fixParents(id, father, mother, sex))
+fixped2
+ped2 <- with(fixped2, pedigree(id, dadid, momid, sex))
+plot(ped2)
+```
+
+If the fix is straightforward (changing one sex value based on either being
+a mother or father), *fixParents()* will resolve the issue. If the issue is 
+more complicated, say if $203$ is coded to be both a father *and* a mother, 
+fixParents will not know which one is correct and therefore the issue will 
+not be resolved.
+
+Kinship
+==============
 
 A common use for pedigrees is to make a matrix of kinship coefficients that 
 can be used in mixed effect models.  A kinship coefficient is the probability 
@@ -125,50 +141,59 @@ result is a special symmetrix matrix class from the
 $Matrix$ R package\cite{BatesMaechler},  which is stored efficiently to avoid
 repeating elements.
 
-<<kinship>>=
-
+```{r, calckinship}
 kin2 <- kinship(ped2basic)
-
 kin2
+``` 
 
-@ 
-
-\noindent For family 2, see that the row and column names match the id in 
-Figure~\ref{basicPed2}, and see that each person's coefficient with 
+For family 2, see that the row and column names match the id in 
+the figure below, and see that each kinship coefficient with 
 themselves is $0.50$, siblings are $0.25$ (e.g. $204-205$), and pedigree 
 marry-ins 
 only share alleles IBD with their children with coefficient $0.25$ 
 (e.g. $203-210$). The plot can be used to verify other kinship coefficients.
 
-\subsection*{Kinship for pedigreeList object}
+## Kinship for pedigreeList object
 
 The kinship function also works on a {\em pedigreeList} object. 
 We show how to create the kinship matrix, then 
 show a snapshot of them for the two families, where the row and columns names
 are the ids of the subject.
 
-<<kinAll>>=
-
+```{r, kinAll}
 pedAll <- pedigree(id=sample.ped$id, 
                 dadid=sample.ped$father, momid=sample.ped$mother, 
                 sex=sample.ped$sex, famid=sample.ped$ped)
-
 kinAll <- kinship(pedAll)
-
 kinAll[1:14,1:14]
-
 kinAll[40:43,40:43]
-
 kinAll[42:46, 42:46]
+```
 
-@
+## Kinship for twins in pedigreeList object
 
-\noindent Note that subject $113$ is not in pedigree 1 because they 
+Specifying twin relationships in a pedigreeList object is complicated by the fact that the user must specify the family id to which the ~id1~ and ~id2~ belong. We show below the relation matrix
+requires the family id to be in the last column, with the column names as done below, to make the plotting and kinship matrices to show up with the monozygotic twins correctly. We show how to
+specify monozygosity for subjects 206 and 207 in sample pedigree 2, and subjects 125 and 126 in pedigree 1. We check it by looking at the kinship matrix for these pairs, which are correctly at $0.5$.
+
+```{r, kinAlltwins}
+reltwins <- rbind(c(206, 207, 1, 2), c(125, 126, 1, 1))
+colnames(reltwins)=c("id1","id2","code","famid")
+pedAll <- with(sample.ped, pedigree(id=id, dadid=father, momid=mother,
+  sex=sex, famid=ped, relation=reltwins))
+kinAll <- kinship(pedAll)
+kinAll[21:31,21:31]
+kinAll[42:50,42:50]
+```
+
+Note that subject $113$ is not in pedigree 1 because they 
 are a marry-in without children in the pedigree. Subject $113$ is in their own 
 pedigree of size 1 in the $kinAll$ matrix at index $41$. We later show how 
 to handle such marry-ins for plotting.
 
-\section{Optional Pedigree Features}
+
+Optional Pedigree Features
+===============================
 
 We use pedigree 2 from $sample.ped$ to sequentially 
 add optional information to the pedigree object.
@@ -179,43 +204,35 @@ vital status. The $sample.ped$ data does not include such an
 indicator, so we create one to indicate that the first generation of 
 pedigree 2, subjects 1 and 2, are deceased.  
 
-<<censor>>=
-
+```{r, censor}
 df2 <- sample.ped[sample.ped$ped==2,]
 names(df2)
-
 df2$censor <- c(1,1, rep(0, 12))
-
 ped2 <- pedigree(df2$id, df2$father, df2$mother, 
                  df2$sex, status=df2$censor)
+``` 
 
-@ 
-
-\subsection*{Affected Indicators}
+## Affected Indicators
 
 We show how to specify affected status with a single indicator and 
 multiple indicators in a matrix.  First, we use the affected indicator from 
-$sample.ped$, which contains 0/1 indicators and NA as missing, and let's 
-imagine it indicates blue eyes. Next, we create a matrix to contain the 
+$sample.ped$, which contains 0/1 indicators and NA as missing, and let it
+it indicate blue eyes. Next, we create a matrix to contain the 
 affected indicator from $sample.ped$ and a second indicator that we create, 
 imagine as an indicator for baldness.
 
-<<affected>>=
-
+```{r, affected}
 ped2 <- pedigree(df2$id, df2$father, df2$mother, 
                  df2$sex, affected=df2$affected,
                  status=df2$censor)
-
 aff2 <- data.frame(blue=df2$affected, 
                    bald=c(0,0,0,0,1,0,0,0,0,1,1,0,0,1))
-
-ped2 <- pedigree(df2$id, df2$father, df2$mother, 
+ped2aff <- pedigree(df2$id, df2$father, df2$mother, 
                  df2$sex, affected=as.matrix(aff2),
                  status=df2$censor)
+```        
 
-@        
-
-\subsection*{Special Relationships}
+## Special Relationships
 
 Special pedigree relationships can be specified in a matrix 
 as the $relation$ argument.  There are 4 relationships that can 
@@ -226,25 +243,39 @@ indicate a marry-in when a couple does not have children together.
 Below, we create a matrix of relationships for monozygotic and 
 unknown-zygosity twins in the most recent generation of pedigree 2.  
 
-<<twins>>=
-
+```{r, twins}
 ## create twin relationships
 relate2 <- matrix(c(210,211,1,
                    212,213,3), nrow=2, byrow=TRUE)
-
 ped2 <- pedigree(df2$id, df2$father, df2$mother, 
                  df2$sex, affected=as.matrix(aff2),
                  status=df2$censor,
                  relation=relate2)
-@
+```
 
-\section{Pedigree Plot Details}
+Another special relationship is inbreeding. Inbreeding of founders implies the founder parents are related (the maternal and paternal genes descended from a single ancestral gene). One thing we can do is add more people to the pedigree to show this inbreeding.
+
+To show that a pair of founders (subjects $201$ and $202$) are inbred, we must show that their parents are siblings. To do this, we create subjects $197$ and $198$ to be the parents of $201$ and also create subjects $199$ and $200$ to be the parents of $202$. To make subjects $198$ and $199$ siblings, we give *them* the same parents, creating subjects $195$ and $196$. This results in subjects $201$ and $202$ being first cousins, and therefore inbred.
+
+```{r, inbreeding}
+id <- 195:202
+dadid <- c(0,0,0,196,196,0,197,199)
+momid <- c(0,0,0,195,195,0,198,200)
+sex <- c(2,1,1,2,1,2,1,2)
+ped3 <- pedigree(id, dadid, momid, sex)
+ped4df <- rbind.data.frame(as.data.frame(ped2)[-c(1,2),1:4], as.data.frame(ped3))
+ped4 <- with(ped4df, pedigree(id, dadid, momid, sex))
+plot(ped4, cex=.5)
+```
+
+Pedigree Plot Details
+===========================
 
 The plot method does an admirable job plotting pedigrees within the
 standard R plotting paradigm.  It attempts to adhere to many standards
-in pedigree plotting, as presented in Bennet et al., 2008\cite{Bennet2008}.
+in pedigree plotting, as presented in Bennet et al. 2008.
 
-We show in Figure~\ref{updatePed2} the plot of the updated 
+We show in the following figure, the plot of the updated 
 pedigree 2.  The plot shapes for each subject are divided into two equal 
 parts and shaded differently to indicate the two affected indicators.
 Also, the two deceased subjects are displayed with a diagonal line 
@@ -254,12 +285,12 @@ additional line connecting the diverging lines, while the other twins have
 a question mark to indicate unknown zygosity.
 
 We also show how the subjects can be colored individually, where we 
-color a subject's shape red if their $avail$ indicator is 1, which can 
+color a subject red if their ~avail~ indicator is 1, which can 
 represent their DNA availability, a useful indicator in genetic studies.
 Lastly, we show how to use the $id$ argument in the plot method to add 
 additional information under each subject. In the example below, we add 
 names to the existing $id$ vector using the newline character as the 
-$sep$ argument in $paste()$.  As space permits, more lines 
+$sep$ argument in *paste()*.  As space permits, more lines 
 and characters per line can be made using the $id$ argument.
 
 Finally, we show how a pedigree.legend can place a simple legend in one
@@ -267,207 +298,164 @@ of the corners of the pedigree plot to show the sections of the plot
 symbols corresponding to the multiple affected indicators.
 
 
-\begin{figure}[h]
-  \begin{center}
-<<ped2update, eval=TRUE, fig=TRUE, echo=TRUE>>=
+```{r, ped2update}
 id2 <- paste(df2$id, c("John", "Linda", "Jack", "Rachel", "Joe", "Deb", 
                          "Lucy", "Ken", "Barb", "Mike", "Matt", 
                          "Mindy", "Mark", "George"), sep="\n")
+plot(ped2aff, col=ifelse(df2$avail, 2, 1), id=id2, cex=.7)
+pedigree.legend(ped2aff, location="topright", radius=.3) 
+``` 
 
-plot(ped2, col=ifelse(df2$avail, 2, 1),
-     id=id2)
-
-pedigree.legend(ped2, location="topright", radius=.3) 
-@ 
-   \caption{Updated plot: pedigree 2} \label{updatePed2}
-  \end{center}
-\end{figure}
-\clearpage
-
-\noindent To show some other tricks with pedigree plotting, we use pedigree 1 
-from $sample.ped$, which has 41 subjects in 4 generations, including a
-generation with double first cousins. After the first marriage of $114$, they
-remarried subject $113$ without children between them.  If we do not 
+To show some other tricks with pedigree plotting, we use pedigree 1 
+from ~sample.ped~, which has 41 subjects in 4 generations, including a
+generation with double first cousins. After the first marriage of 114, they
+remarried subject 113 without children between them.  If we do not 
 specify the marriage with the $relation$ argument, the plot method excludes
 subject $113$ from the plot. The basic plot of pedigree 1 is shown 
-in Figure~\ref{basicPed1}, where the subjects are colored red if their 
-$avail$ indicator is 1.
+in the figure below, where the subjects are colored red if their 
+~avail~ indicator is 1.
 
-\begin{figure}[h]
-  \begin{center}
-<<fig=TRUE, echo=TRUE>>=
-df1<- sample.ped[sample.ped$ped==1,]
+
+```{r, plotped1}
+df1 <- sample.ped[sample.ped$ped==1,]
 relate1 <- matrix(c(113, 114, 4), nrow=1)
-
 ped1 <- pedigree(df1$id, df1$father, df1$mother, 
        df1$sex, affected=df1$affected, 
                  relation=relate1)
-
 print(ped1)
-plot(ped1, col=df1$avail+1)
+plot(ped1, col=ifelse(df1$avail==1, "red","black"))
+```
 
-@ 
-   \caption{Pedigree 1, Original} \label{basicPed1}
-  \end{center}
-\end{figure}
-\clearpage
-
-\subsection*{Align by Input Order}
+## Align by Input Order
 
 The plot method does a decent job aligning subjects given the order of the 
 subjects when the pedigree object is made, and sometimes has to make two 
 copies of a subject.  If we change the order of the subjects when creating 
 the pedigree, we can help the plot method reduce the need to duplicate 
-subjects, as Figure~\ref{reordPed1} no longer has subject $110$ duplicated.
+subjects, as the figure below no longer has subject $110$ duplicated.
 
-\begin{figure}[h]
-  \begin{center}
-<<ordering, echo=TRUE, fig=TRUE>>=
-
+```{r, ordering}
 df1reord <- df1[c(35:41,1:34),]
 ped1reord <- pedigree(df1reord$id, df1reord$father, df1reord$mother, 
        df1reord$sex, affected=df1reord$affected, relation=relate1)
-
 plot(ped1reord, col=df1reord$avail+1)
+``` 
+  
+## Legend Plot
 
-@ 
-   \caption{Pedigree 1, Re-Ordered} \label{reordPed1}
-  \end{center}
-\end{figure}
-\clearpage
+The *legendPlot* function creates a dynamic legend based on the arguments
+passed to it for the affection and color vector. The first example below shows how it uses
+the affected matrix for the first legend.
 
+```{r, legendplot}
 
-\section{Pedigree Utility Functions}
+legendPlot(ped2aff)
 
-\subsection*{Data.Frame}
+```
 
-A pedigree object's main features are vectors with an element
+The second example adds more legend symbols to explain the colors, with the ability to add more detail to the *affected.label* argument. The color here shades by the second affected indicator, but we could have it mean something like DNA available, which we show below. The ~col.label~ requires the same number of text labels as there are colors. 
+
+```{r, legend2plot}
+legendPlot(ped2aff, col=ped2$affected[,2]+1,
+  col.label=c("DNA Avail", "no DNA"), affected.label=c("blue eyes","bald"))
+
+```  
+  
+Pedigree Utility Functions
+=================================
+
+## Pedigree as a Data.Frame
+
+A main features of a pedigree object are vectors with an element
 for each subject. It is sometimes useful to extract these vectors from 
 the pedigree object into a $data.frame$ with basic information that can
 be used to construct a new pedigree object. This is possible with the
 $as.data.frame()$ method, as shown below.
 
-<<ped2df>>=
-
-
+```{r, ped2df}
 dfped2 <- as.data.frame(ped2)
 dfped2
+``` 
 
-@ 
-
-\subsection*{Subsetting and Trimming}
+## Subsetting and Trimming
 
 Pedigrees with large size can be a bottleneck for programs that run 
 calculations on them. The kinship2 package contains some routines to 
 identify which subjects to remove.  We show how a subject 
 (e.g. subject 210) can be removed from 
-$ped2$, and how the pedigree object is changed by verifying that the
-$relation$ matrix no longer has the twin relationship between subjects 
-210 and 211, as indicated by $indx1$ and $indx2$. Also note that
-the $relation$ matrix indices are updated for persons $212$ and $213$ who
-have index $11$ and $12$ after subject $210$ is removed.
+~ped2~, and how the pedigree object is changed by verifying that the
+~relation~ matrix no longer has the twin relationship between subjects 
+210 and 211, as indicated by $indx1$ and ~indx2~. Also note that
+the $relation$ matrix indices are updated for persons 212 and 213 who
+have index 11 and 12 after subject 210 is removed.
 
-<<subset>>=
-
+```{r, subset}
 ped2.rm210 <- ped2[-10]
-
 data.frame(ped2.rm210)
-
 ped2.rm210$relation
-
 ped2$relation
+``` 
 
-
-@ 
-
-\noindent The steps above only work for subsetting by the index of the 
-pedigree object vectors, not by the $id$ of the subjects themselves.  
-We provide $pedigree.trim$, which trims subjects from a pedigree by 
+The steps above only work for subsetting by the index of the 
+pedigree object vectors, not by the ~id~ of the subjects themselves.  
+We provide *pedigree.trim()*, which trims subjects from a pedigree by 
 their $id$.  Below is an example of removing subject 110, as done above, 
 then we further trim the pedigree by a vector of subject ids. We check the
 trimming by looking at the $id$ vector and the $relation$ matrix.
 
-<<trim>>=
-
+```{r, trim}
 ped2.trim210 <- pedigree.trim(210, ped2)
-
 ped2.trim210$id
 ped2.trim210$relation
-
 ped2.trim.more <- pedigree.trim(c(212,214), ped2.trim210)
 ped2.trim.more$id
-
 ped2.trim.more$relation
+``` 
 
-@ 
 
+Shrinking
+==============
 
-\section{Shrinking}
-
-A new function in kinship2 is $pedigree.shrink$, which shrinks a pedigree
+An additional function in kinship2 is *pedigree.shrink()*, which shrinks a pedigree
 to a specified bit size while maintaining the maximal amount of 
 information for genetic linkage and association studies.  Using an indicator 
 for availability and affected status, it removes subjects in this order:
-\begin{enumerate}
-  \item unavailable with no available descendants
-  \item available and are not parents
-  \item available who have missing affected status
-  \item available who are unaffected
-  \item available who are affected
-\end{enumerate}
+  + unavailable with no available descendants
+  + available and are not parents
+  + available who have missing affected status
+  + available who are unaffected
+  + available who are affected
 
-\noindent We show how to shrink pedigree 1 to bit size $30$, which happens 
+We show how to shrink pedigree 1 to bit size $30$, which happens 
 to be the bit size after removing only the unavailable subjects.  We show how 
 to extract the shrunken pedigree object from the $pedigree.shrink$ result, 
 and plot it.
 
-\begin{figure}[h]
-  \begin{center}
-<<fig=TRUE, echo=TRUE, eval=TRUE>>=
-
+```{r, shrink1}
 shrink1.B30 <- pedigree.shrink(ped=ped1,
                  avail=df1$avail, maxBits=30)
-
 print(shrink1.B30)
 ped1.B30 <- shrink1.B30$pedObj
 plot(ped1.B30, col=shrink1.B30$avail + 1)
+```
 
-
-@ 
-  \caption{Pedigree 1, 30 bits} \label{bit30Ped1}
-  \end{center}
-\end{figure}
-\clearpage
-
-\noindent Now shrink pedigree 1 to bit size $25$, which requires removing 
+Now shrink pedigree 1 to bit size $25$, which requires removing 
 subjects who are informative.  If there is a tie between multiple subjects 
 about who to remove, the method randomly chooses one of them. With this 
 seed setting, the method removes subjects $126$ then $125$.
 
 
-\begin{figure}[h]
-  \begin{center}
-<<fig=TRUE, echo=TRUE, eval=TRUE>>=
-
+```{r, shrink2}
 set.seed(10)
 shrink1.B25 <- pedigree.shrink(ped=ped1, avail=df1$avail, 
                                maxBits=25)
 print(shrink1.B25)
 ped1.B25 <- shrink1.B25$pedObj
+plot(ped1.B25, col=shrink1.B25$avail + 1, cex=.8)
+``` 
 
-plot(ped1.B25, col=shrink1.B25$avail + 1)
-
-@ 
- \caption{Pedigree 1, 25 bits} \label{bit25Ped1}
-  \end{center}
-\end{figure}
-\clearpage
-
-
-%\section{Acknowledgements}
-%The datasets are provided by...
-
-\section{Select Unrelateds}
+Select Unrelateds
+=======================
 
 In this section we briefly show how to use $pedigree.unrelated$ to find
 a set of the maximum number of unrelated available subjects from a pedigree.
@@ -477,50 +465,44 @@ number of unrelateds, so the method randomly chooses from the set. We
 show two sets of subject ids that are selected by the routine and discuss 
 below.
 
-<<unrelated>>=
-
+```{r, unrelateds}
 df2<- sample.ped[sample.ped$ped==2,]
-
 ped2 <- pedigree(df2$id, df2$father, df2$mother, 
        df2$sex, affected=df2$affected)
-
 set.seed(10)
 set1 <- pedigree.unrelated(ped2, avail=df2$avail)
 set1
 set2 <- pedigree.unrelated(ped2, avail=df2$avail)
 set2
+``` 
 
-@ 
-
-
-\noindent We can easily verify the sets selected by $pedigree.unrelated$ by
-referring to Figure~\ref{basicPed2} and see that subjects $203$ and $209$ are
+We can easily verify the sets selected by $pedigree.unrelated$ by
+referring to the plot below and see that subjects 203 and 209 are
 unrelated to everyone else in the pedigree except their children. Furthermore, 
-we see in $df2$ that of these two, only subject $203$ is available. Therefore,
+we see in df2 that of these two, only subject 203 is available. Therefore,
 any set of unrelateds who are available must include subject
-$203$ and one of the these subjects: $201$, $204$, $206$, $207$, $212$, 
-and $214$, as indicated by the kinship matrix for pedigree 2 subset to those 
-with availability status of $1$.
+203 and one of the these subjects: 201, 204, 206, 207, 212, 
+and 214, as indicated by the kinship matrix for pedigree 2 subset to those 
+with availability status of 1.
 
-<<unrelVerify>>=
-
+```{r, unrelVerify}
 df2
 kin2[df2$avail==1,df2$avail==1]
+``` 
 
-@ 
+R Session Information
+===========================
 
-
-\section{R Session Information}
-<<results=tex>>=
-toLatex(sessionInfo())
-@
+```{r, sessInfo}
+sessionInfo()
+```
 
 \begin{thebibliography}{}
 
 \bibitem{BatesMaechler}
 Bates D and Maechler M. (2011). {\bf Matrix: Sparse and Dense Matrix
 Classes and Methods.} R package version 0.999375-50.
-{\em http://CRAN.R-project.org/package=Matrix}
+{\em http://Matrix.R-forge.R-project.org/}
 
   
 \bibitem{Bennet2008}
@@ -529,10 +511,10 @@ Bennet RL, Steinhaus French K, Resta RG, Lochner Doyle D. (2008).
     the Recommendations of the National Society of Genetic Counselors.} 
 {\em J. Gene. Counsel.,} 17, 1424-433.
 
-\bibitem{Sinnwell2011}
+\bibitem{Sinnwell2014}
 Sinnwell JP, Therneau TM, Atkinson EJ, Schaid DJ, Matsumoto ME, 
-McDonnell SK (2011). {\bf kinship2: An enhancement to the kinship R package 
-with additional pedigree utilities}. Submitted.
+McDonnell SK (2011). {\bf The kinship2 R Package For Pedigree Data.}
+{\em Hum Hered.,} 2014; 78(2): 91-93.
 
 \end{thebibliography}
   

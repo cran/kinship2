@@ -65,6 +65,7 @@ in the following order
   \item $K(i,j)$ with $i$ from generation 2 and $j$ from generation 0 or 1
   \item $K(i,j)$ with $i$ and $j$ from generation 2.
   \item \ldots
+\end{enumerate}
 The kindepth routine assigns a plotting depth to each subject in such
 a way that parents are always above children.  
 For each depth we need to do the compuations of formula \eqref{recur}

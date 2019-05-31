@@ -2,10 +2,11 @@
 
 pedigree.legend <- function (ped, labels = dimnames(ped$affected)[[2]],
     edges = 200, radius=NULL, location="bottomright", new=TRUE,
-    density = c(-1, 35, 55, 25),  angle = c(90, 65, 40, 0), ...) 
+    density=c(-1, 35,65,20),  angle = c(90, 65, 40, 0), ...) 
 {
    
-    naff <- ncol(ped$affected)
+    naff <- max(ncol(ped$affected),1)
+
     x <- rep(1,naff)
     
     # Defaults for plotting on separate page:
@@ -53,14 +54,14 @@ pedigree.legend <- function (ped, labels = dimnames(ped$affected)[[2]],
       usr.orig <- par("usr")
       plot.window(xlim=usr.orig[1:2], ylim=usr.orig[3:4], "", asp=1)
       usr.asp1 <- par("usr")
-
-      ## set line lengths
-      llen <- radius*.15
      
       ## also decide on good center/radius if not given
       if(is.null(radius))
         radius <- .5
-     
+      
+      ## set line lengths
+      llen <- radius*.15
+      
       ## get center of pie chart for coded
       pctusr <- .10*abs(diff(usr.asp1[3:4]))
       center = switch(location,

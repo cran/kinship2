@@ -1,15 +1,14 @@
 \documentclass{article}
 \usepackage{noweb}
-\usepackage[pdftex]{graphicx}
-%\usepackage{times}
+\usepackage{amsmath}
+\usepackage{fancyvrb}
 \addtolength{\textwidth}{1in}
 \addtolength{\oddsidemargin}{-.5in}
 \setlength{\evensidemargin}{\oddsidemargin}
 
 \newcommand{\myfig}[1]{\resizebox{\textwidth}{!}
                         {\includegraphics{figure/#1.pdf}}}
-
-\noweboptions{breakcode}
+\newcommand{\code}[1]{\texttt{#1}}
 \title{The \emph{pedigree} functions in R}
 \author{Terry Therneau and Elizabeth Atkinson}
 
@@ -95,7 +94,6 @@ pedigree <- function(id, dadid, momid, sex, affected, status, relation,
     temp
     }
 <<pedigree-subscript>>
-<<pedigree-dim>>
 @ 
 
 \subsection{Data checks}
@@ -107,19 +105,25 @@ if (length(momid) != n) stop("Mismatched lengths, id and momid")
 if (length(dadid) != n) stop("Mismatched lengths, id and momid")
 if (length(sex  ) != n) stop("Mismatched lengths, id and sex")
 
+# Don't allow missing id values
+if (any(is.na(id))) stop("Missing value for the id variable")
+if (!is.numeric(id)) {
+    id <- as.character(id)
+    if (length(grep('^ *$', id)) > 0)
+    stop("A blank or empty string is not allowed as the id variable")
+  }
 
 # Allow for character/numeric/factor in the sex variable
 if(is.factor(sex))
         sex <- as.character(sex)
 codes <- c("male","female", "unknown", "terminated")
-if(is.character(sex)) sex<- charmatch(casefold(sex, upper = FALSE), codes, nomatch = 3)	
+if(is.character(sex)) sex<- charmatch(casefold(sex, upper = FALSE), codes, 
+    				  nomatch = 3)	
 
 # assume either 0/1/2/4 =  female/male/unknown/term, or 1/2/3/4
 #  if only 1/2 assume no unknowns
-if(min(sex) == 0) {
-  warning("Sex values contain 0, but expected codes 1-4.\n Setting 0=male, 1=female, 2=unknown, 3=terminated. \n")
-  sex <- sex + 1
-}
+if(min(sex) == 0)
+        sex <- sex + 1
 sex <- ifelse(sex < 1 | sex > 4, 3, sex)
 if(all(sex > 2))
         stop("Invalid values for 'sex'")
@@ -138,33 +142,14 @@ identifiers that are of the form `family/subject'.
 Family identifiers can be factor, character, or numeric.
 <<pedigree-error>>=
 if (missing(missid)) {
-  if (is.numeric(id)) missid <- 0
-  else missid <- ""
-}
-@ 
-
-From r-help mailing list request (5/20/2015) where user pointed out we do not account for factors
-in a robust manner.  If id is not numeric, assume id, dadid, and momid need to be converted
-to character. Set missid to character too.
-
-<<pedigree-error>>=
-## Don't allow missing id values
-if (any(is.na(id))) stop("Missing value for the id variable")
-if (!is.numeric(id)) {
-  id <- as.character(id)
-  dadid <- as.character(dadid)
-  momid <- as.character(momid)
-  missid <- as.character(missid)
-  if (length(grep('^ *$', id)) > 0)
-    stop("A blank or empty string is not allowed as the id variable")
+    if (is.numeric(id)) missid <- 0
+    else missid <- ""
 }
 
 nofather <- (is.na(dadid) | dadid==missid)
 nomother <- (is.na(momid) | momid==missid)
 
 if (!missing(famid)) {
-    if(is.factor(famid)) famid <- as.character(famid)
-    
     if (any(is.na(famid))) stop("The family id cannot contain missing values")
     if (is.factor(famid) || is.character(famid)) {
         if (length(grep('^ *$', famid)) > 0)
@@ -178,37 +163,19 @@ if (!missing(famid)) {
     }
 
 if (any(duplicated(id))) {
-  duplist <- id[duplicated(id)]
-  msg.n <- min(length(duplist), 6)
-  stop(paste("Duplicate subject id:", duplist[1:msg.n]))
-}
+    duplist <- id[duplicated(id)]
+    msg.n <- min(length(duplist), 6)
+    stop(paste("Duplicate subject id:", duplist[1:msg.n]))
+    }
 @ 
 
 Next check that any mother or father identifiers are found in the identifier
 list, and are of the right sex.
-Subjects who don't have a mother or father are founders.  For those people 
+Subjects who don't have a mother or father are founders.  For those people %'
 both of the parents should be missing.
-
-If all non-matches of fathers/mothers are on same people, those are founders
-and assume that the missid code did not get used adequately. Also check this 
-does not mess a lot more up by making fewer than 2 founders.
 
 <<pedigree-parent>>=
 findex <- match(dadid, id, nomatch = 0)
-mindex <- match(momid, id, nomatch = 0)
-    
-## if all non-matches of fathers/mothers are on same people, those are founders
-maybe.founder <- (mindex==0 & !nomother) & (findex==0 & !nofather)    
-founder.momid <- unique(momid[maybe.founder])
-founder.dadid <- unique(dadid[maybe.founder])
-if(length(founder.dadid)==1 & length(founder.momid)==1 && founder.momid == founder.dadid) {
-  warning("Using ", founder.momid, " as momid and dadid of founders.\n")
-  nofather[maybe.founder] <- nomother[maybe.founder] <- TRUE
-} 
-
-if(sum(nofather & nomother)<2) 
-  stop("pedigree must have at least 2 founders\n")
-    
 if(any(sex[findex] != "male")) {
     who <- unique((id[findex])[sex[findex] != "male"])
     msg.n <- 1:min(5, length(who))  #Don't list a zillion
@@ -223,6 +190,7 @@ if (any(findex==0 & !nofather)) {
                paste(who[msg.n], collapse= " ")))
     }
     
+mindex <- match(momid, id, nomatch = 0)
 if(any(sex[mindex] != "female")) {
     who <- unique((id[mindex])[sex[mindex] != "female"])
     msg.n <- 1:min(5, length(who))
@@ -281,11 +249,8 @@ Update by Jason Sinnwell 7/2011: Change relation:id1 and id2 to indx1 and indx2
 because they are the index of the id vector. Both $pedigree.trim$ 
 and $[.pedigree$ now work with these column names.
 
-Request by Dr. Desmond to go is.null check on affected and relate so users
-can generalize code for these optional matrices rather than make exceptions.
-  
 <<pedigree-extra>>=
-if (!missing(affected) && !is.null(affected)) {
+if (!missing(affected)) {
     if (is.matrix(affected)){
         if (nrow(affected) != n) stop("Wrong number of rows in affected")
         if (is.logical(affected)) affected <- 1* affected
@@ -303,7 +268,8 @@ if (!missing(affected) && !is.null(affected)) {
 		stop("Invalid code for affected status")
     temp$affected <- affected
     }
-if(!missing(status) && !is.null(status)) {
+
+if(!missing(status)) {
     if(length(status) != n)
         stop("Wrong length for affected")
     if (is.logical(status)) status <- as.integer(status)
@@ -311,7 +277,8 @@ if(!missing(status) && !is.null(status)) {
         stop("Invalid status code")
     temp$status <- status
     }
-if (!missing(relation) && !is.null(relation)) {
+
+if (!missing(relation)) {
     if (!missing(famid)) {
         if (is.matrix(relation)) {
             if (ncol(relation) != 4) 
@@ -403,15 +370,6 @@ if (!missing(relation) && !is.null(relation)) {
 The final structure will be in the order of the original data, and all the
 components except [[relation]] will have the
 same number of rows as the original data.
-
-\subsection{Dimension}
-
-Often times it is handy to be able to check or use the number of subjects. We want nrow to work on the pedigree object, but it dispatches to the dim() function for objects. We write dim to just return
-the number of subjects and nrow will work. 
-
-<<pedigree-dim>>=
-dim.pedigree <- function(x) length(x$id)
-@ 
 
 
 \subsection{Subscripting}
@@ -574,7 +532,7 @@ as.data.frame.pedigree <- function(x, ...) {
 @ 
 
 
-This function, similar to the one above, is useful for checking the pedigree object with the
+This function is useful for checking the pedigree object with the
 $findex$ and $mindex$ vector instead of them replaced with the ids of 
 the parents.  This is not currently included in the package.
 
@@ -584,9 +542,12 @@ ped2df <- function(ped) {
   df <- data.frame(id=ped$id, findex=ped$findex, mindex=ped$mindex, sex=ped$sex)
   if(!is.null(ped$affected))
     df$affected = ped$affected
+
   if(!is.null(ped$status))
     df$status = ped$status
+
   return(df)
+
 }
 
 @ 
@@ -678,6 +639,7 @@ in the following order
   \item $K(i,j)$ with $i$ from generation 2 and $j$ from generation 0 or 1
   \item $K(i,j)$ with $i$ and $j$ from generation 2.
   \item \ldots
+\end{enumerate}
 The kindepth routine assigns a plotting depth to each subject in such
 a way that parents are always above children.  
 For each depth we need to do the compuations of formula \eqref{recur}
@@ -1693,7 +1655,8 @@ align.pedigree <- function(ped, packed=TRUE, width=10,
     
     if (is.null(hints)) {
       hints <- try({autohint(ped)}, silent=TRUE)
-      if(class(hints)=="try-error") hints <- list(order=1:dim(ped))
+      ## sometimes appears dim(ped) is empty (ped is NULL), so try fix here: (JPS 6/6/17
+      if(class(hints)=="try-error") hints <- list(order=seq_len(max(1, dim(ped)))) ## 1:dim(ped))
     } else {
       hints <- check.hint(hints, ped$sex)
     }
@@ -2013,8 +1976,8 @@ indx to be indexed beyond its length, fix by JPS 5/2013.
         nleft <- nleft - length(lspouse)  #number of undecideds to the left
         if (nleft >0) {
             # JPS fixed 5/2013, don't index when nleft > length(indx)
-            lspouse <- c(lspouse, spouse[indx[1:min(nleft,length(indx))]])
-            indx <- indx[-(1:min(nleft,length(indx)))]
+            lspouse <- c(lspouse, spouse[indx[seq_len(min(nleft,length(indx)))]])
+            indx <- indx[-(seq_len(min(nleft,length(indx))))]       
           }
         if (length(indx)) rspouse <- c(spouse[indx], rspouse)
       }
@@ -2435,7 +2398,7 @@ plot.pedigree <- function(x, id = x$id, status = x$status,
 			  cex = 1, col = 1,
 			  symbolsize = 1, branch = 0.6, 
 			  packed = TRUE, align = c(1.5,2), width = 8, 
-			  density=c(-1, 35,55,25), mar=c(4.1, 1, 4.1, 1),
+			  density=c(-1, 35,65,20), mar=c(4.1, 1, 4.1, 1),
 			  angle=c(90,65,40,0), keep.par=FALSE,
                           subregion, pconnect=.5, ...)
 {
@@ -2511,10 +2474,12 @@ else {
         }
     if(max(affected, na.rm=TRUE) > min(affected, na.rm=TRUE)) {
       affected <- matrix(affected - min(affected, na.rm=TRUE),nrow=n)
-      affected[is.na(affected)] <- -1
+     ## affected[is.na(affected)] <- -1
     } else {
       affected <- matrix(affected,nrow=n)
     }
+    ## JPS 4/28/17 bug fix b/c some cases NAs are not set to -1
+    affected[is.na(affected)] <- -1
     if (!all(affected==0 | affected==1 | affected == -1))
     	stop("Invalid code for affected status")
 }
@@ -2605,7 +2570,7 @@ deferred until later.
 
 sex <- as.numeric(x$sex)
 for (i in 1:maxlev) {
-    for (j in 1:plist$n[i]) {
+    for (j in seq_len(plist$n[i])) {
         k <- plist$nid[i,j]
         drawbox(plist$pos[i,j], i, sex[k], affected[k,],
                 status[k], col[k], polylist, density, angle,
@@ -2722,7 +2687,9 @@ arcconnect <- function(x, y) {
     }
 
 uid <- unique(plist$nid)
-for (id in uid[uid>0]) {
+## JPS 4/27/17: unique above only applies to rows
+## unique added to for loop iterator
+for (id in unique(uid[uid>0])) {
     indx <- which(plist$nid == id)
     if (length(indx) >1) {   #subject is a multiple
         tx <- plist$pos[indx]
@@ -3042,10 +3009,11 @@ for shading sections of each subject's symbol with polygon.
 
 pedigree.legend <- function (ped, labels = dimnames(ped$affected)[[2]],
     edges = 200, radius=NULL, location="bottomright", new=TRUE,
-    density = c(-1, 35, 55, 25),  angle = c(90, 65, 40, 0), ...) 
+    density=c(-1, 35,65,20),  angle = c(90, 65, 40, 0), ...) 
 {
    
-    naff <- ncol(ped$affected)
+    naff <- max(ncol(ped$affected),1)
+
     x <- rep(1,naff)
     
     # Defaults for plotting on separate page:
@@ -3093,14 +3061,14 @@ pedigree.legend <- function (ped, labels = dimnames(ped$affected)[[2]],
       usr.orig <- par("usr")
       plot.window(xlim=usr.orig[1:2], ylim=usr.orig[3:4], "", asp=1)
       usr.asp1 <- par("usr")
-
-      ## set line lengths
-      llen <- radius*.15
      
       ## also decide on good center/radius if not given
       if(is.null(radius))
         radius <- .5
-     
+      
+      ## set line lengths
+      llen <- radius*.15
+      
       ## get center of pie chart for coded
       pctusr <- .10*abs(diff(usr.asp1[3:4]))
       center = switch(location,
@@ -3196,50 +3164,35 @@ Accepts the following input
 
 <<pedigree.shrink>>=
 
-#$Log: pedigree.shrink.q,v $
-#Revision 1.5  2010/09/03 21:11:16  sinnwell
-#add shrunk "avail" vector to result, keep status and affected in pedObj
-#
-#Revision 1.4  2010/09/03 19:15:03  sinnwell
-#add avail arg which is not part of ped object.  Re-make ped object at the end with status and affected, if given
-#
-#Revision 1.2  2009/11/17 23:08:18  sinnwell
-#*** empty log message ***
-#
-#Revision 1.1  2008/07/16 20:23:07  sinnwell
-#Initial revision
-#
 pedigree.shrink <- function(ped, avail, affected=NULL, seed=NULL, maxBits = 16){
   if(class(ped) != "pedigree")
     stop("Must be a pegigree object.\n")
-   
-  ## set the seed for random selections
-  if(is.null(seed))
-    {
-      seed <- sample(2^20, size=1)
-    }
-  set.seed(seed)
+  
+  ##set the seed for random selections
 
+  if(is.null(seed))  {
+    seed <- sample(2^20, size=1)
+  }
+  set.seed(seed)
+  
   if(any(is.na(avail)))
     stop("NA values not allowed in avail vector.")
   
   if(is.null(affected))
     affected = if(is.matrix(ped$affected)) ped$affected[,1] else ped$affected
-
+  
   ped$affected = affected
- 
- 
+  
   idTrimmed <- numeric()
   idList <- list()
   nOriginal <- length(ped$id)
- 
+  
   bitSizeOriginal <- bitSize(ped)$bitSize
   
   ## first find unavailable subjects to remove anyone who is not 
   ## available and does not have an available descendant
   
   idTrimUnavail <- findUnavailable(ped, avail)
-
   
   if(length(idTrimUnavail)) {    
     
@@ -3247,12 +3200,11 @@ pedigree.shrink <- function(ped, avail, affected=NULL, seed=NULL, maxBits = 16){
     avail <- avail[match(pedTrimmed$id, ped$id)]
     idTrimmed <- c(idTrimmed, idTrimUnavail)
     idList$unavail <- paste(idTrimUnavail, collapse=' ')
-
+    
   } else {
-    ## no trimming, reset to original ped
+  ## no trimming, reset to original ped
     pedTrimmed <- ped
   }
-
   
   ## Next trim any available terminal subjects with unknown phenotype
   ## but only if both parents are available
@@ -3262,7 +3214,7 @@ pedigree.shrink <- function(ped, avail, affected=NULL, seed=NULL, maxBits = 16){
   nChange <- 1
   idList$noninform = NULL
   nNew <- length(pedTrimmed$id)
-
+  
   while(nChange > 0 & nNew > 0){
     nOld <- length(pedTrimmed$id)
     
@@ -3271,13 +3223,13 @@ pedigree.shrink <- function(ped, avail, affected=NULL, seed=NULL, maxBits = 16){
     idTrimNonInform <- findAvailNonInform(pedTrimmed, avail)
     
     if(length(idTrimNonInform)) {
-        pedNew <- pedigree.trim(idTrimNonInform, pedTrimmed)
-        avail <- avail[match(pedNew$id, pedTrimmed$id)]
-        idTrimmed <- c(idTrimmed, idTrimNonInform)
-        idList$noninform = paste(c(idList$noninform, 
-               idTrimNonInform), collapse=' ')
-        pedTrimmed <- pedNew
-        
+      pedNew <- pedigree.trim(idTrimNonInform, pedTrimmed)
+      avail <- avail[match(pedNew$id, pedTrimmed$id)]
+      idTrimmed <- c(idTrimmed, idTrimNonInform)
+      idList$noninform = paste(c(idList$noninform, 
+                                 idTrimNonInform), collapse=' ')
+      pedTrimmed <- pedNew
+      
     }
     nNew <- length(pedTrimmed$id)
     nChange <- nOld - nNew
@@ -3288,51 +3240,51 @@ pedigree.shrink <- function(ped, avail, affected=NULL, seed=NULL, maxBits = 16){
   nIntermed <- length(pedTrimmed$id)
   
   bitSize <- bitSize(pedTrimmed)$bitSize
-    
+  
   ## Now sequentially shrink to fit bitSize <= maxBits
-    
+  
   bitVec <- c(bitSizeOriginal,bitSize)
   
   isTrimmed <- TRUE
   idList$affect=NULL 
   
   while(isTrimmed & (bitSize > maxBits))
-    {  
-        
-      ## First, try trimming by unknown status
-      save <- findAvailAffected(pedTrimmed, avail, affstatus=NA)
+  {  
+    
+    ## First, try trimming by unknown status
+    save <- findAvailAffected(pedTrimmed, avail, affstatus=NA)
+    isTrimmed <- save$isTrimmed
+    
+    ## Second, try trimming by unaffected status if no unknowns to trim
+    if(!isTrimmed)
+    {
+      save <- findAvailAffected(pedTrimmed, avail, affstatus=0)
       isTrimmed <- save$isTrimmed
       
-      ## Second, try trimming by unaffected status if no unknowns to trim
-      if(!isTrimmed)
-        {
-          save <- findAvailAffected(pedTrimmed, avail, affstatus=0)
-          isTrimmed <- save$isTrimmed
-          
-        }
-      
-      
-      ## Third, try trimming by affected status if no unknowns & no unaffecteds
-      ## to trim
-      if(!isTrimmed) {
-        save <- findAvailAffected(pedTrimmed, avail, affstatus=1)
-        isTrimmed <- save$isTrimmed
-      }
-      
-      if(isTrimmed)  {
-        pedTrimmed <- save$ped
-        avail <- save$newAvail
-        bitSize <- save$bitSize
-        bitVec <- c(bitVec, bitSize)          
-        idTrimmed <- c(idTrimmed, save$idTrimmed)
-        idList$affect = paste(c(idList$affect, save$idTrimmed), 
-          collapse=' ')
-      }
-      
-      
-    } # end while (isTrimmed) & (bitSize > maxBits)
-  
-  
+    }
+    
+    
+   ## Third, try trimming by affected status if no unknowns & no unaffecteds
+   ## to trim
+    if(!isTrimmed) {
+      save <- findAvailAffected(pedTrimmed, avail, affstatus=1)
+      isTrimmed <- save$isTrimmed
+    }
+    
+    if(isTrimmed)  {
+      pedTrimmed <- save$ped
+      avail <- save$newAvail
+      bitSize <- save$bitSize
+      bitVec <- c(bitVec, bitSize)          
+      idTrimmed <- c(idTrimmed, save$idTrimmed)
+      idList$affect = paste(c(idList$affect, save$idTrimmed), 
+                            collapse=' ')
+    }
+   
+    
+  } 
+    ## end while (isTrimmed) & (bitSize > maxBits)
+
   nFinal <- length(pedTrimmed$id)
   
   obj <- list(pedObj = pedTrimmed,
@@ -3344,17 +3296,15 @@ pedigree.shrink <- function(ped, avail, affected=NULL, seed=NULL, maxBits = 16){
               pedSizeIntermed = nIntermed,
               pedSizeFinal  = nFinal,
               seed = seed)
-
-
+  
   oldClass(obj) <- "pedigree.shrink"
-
+  
   return(obj)
 } 
 
-
 @
-
-
+  
+  
 \subsection{Sub-Functions}
 
 
@@ -3370,7 +3320,7 @@ a marriage to be split and have parentless children, it will cause a problem.
 
 Therefore, when using functions like findAvalNonInform and findAvalAffected
 for persons to remove, follow them up with a call findUnavailable, after 
-setting the removal candidate's availability to FALSE, so clear up any 
+setting the removal candidates availability to FALSE, so clear up any 
 removals.
 
 This last step was re-written by Jason Sinnwell on 6/1/2011, and his test cases
@@ -3393,21 +3343,21 @@ by Dan Schaid.
 <<pedigree.trim>>=
 
 pedigree.trim <- function(removeID, ped){
-  ## trim subjects from a pedigree who match the removeID 
-  ## trim relation matrix as well
+## trim subjects from a pedigree who match the removeID 
+## trim relation matrix as well
 
-  if(class(ped) != "pedigree")
-    stop("Must be a pegigree object.\n")
+if(class(ped) != "pedigree")
+stop("Must be a pegigree object.\n")
 
-  rmidx <- match(removeID, ped$id)
-  if(length(rmidx)>0) {
-    pedtrimmed <- ped[-rmidx]
-    return(pedtrimmed)
-  } else {
-    return(ped)
-  }
+rmidx <- match(removeID, ped$id)
+if(length(rmidx)>0) {
+pedtrimmed <- ped[-rmidx]
+return(pedtrimmed)
+} else {
+return(ped)
 }
- 
+}
+
 @ 
 
 Place the two exclude functions within the same file as findUnavailable
@@ -3415,227 +3365,203 @@ because that is the only place they are used. Pretty self-documenting.
 
 <<findUnavailable>>=
 
-
-#$Log: pedTrim.q,v $
-#Revision 1.4  2009/11/19 15:00:31  sinnwell
-#*** empty log message ***
-#
-#Revision 1.3  2009/11/19 14:57:05  sinnwell
-#*** empty log message ***
-#
-#Revision 1.2  2009/11/17 23:11:09  sinnwell
-#change for ped object
-#
-#Revision 1.1  2008/07/16 20:23:29  sinnwell
-#Initial revision
-#
-
-
 findUnavailable <-function(ped, avail) {
 
   ## find id within pedigree anyone who is not available and
   ## does not have an available descendant
-  
+
   ## avail = TRUE/1 if available, FALSE/0 if not
-  
+
   ## will do this iteratively by successively removing unavailable
   ## terminal nodes
   ## Steve Iturria, PhD, modified by Dan Schaid
-  
-  cont <- TRUE                  # flag for whether to keep iterating
-  
-  is.terminal <- (is.parent(ped$id, ped$findex, ped$mindex) == FALSE)
+
+cont <- TRUE                  # flag for whether to keep iterating
+
+is.terminal <- (is.parent(ped$id, ped$findex, ped$mindex) == FALSE)
   ## JPS 3/10/14 add strings check in case of char ids
-  pedData <- data.frame(id=ped$id, father=ped$findex, mother=ped$mindex,
-                        sex=ped$sex, avail, is.terminal, stringsAsFactors=FALSE)  
-  iter <- 1
+pedData <- data.frame(id=ped$id, father=ped$findex, mother=ped$mindex,
+sex=ped$sex, avail, is.terminal, stringsAsFactors=FALSE)  
+iter <- 1
 
-  while(cont)  {
-    ##print(paste("Working on iter", iter))
-    
-    num.found <- 0
-    idx.to.remove <- NULL
-    
-    for(i in 1:nrow(pedData))
-      {
-        
-        if(pedData$is.terminal[i])
-          {
-            if( pedData$avail[i] == FALSE )   # if not genotyped         
-              {
-                idx.to.remove <- c(idx.to.remove, i)
-                num.found <- num.found + 1
-                
-                ## print(paste("  removing", num.found, "of", nrow(pedData)))
-              }
-          }
-       
-      }
+while(cont)  {
+  ##print(paste("Working on iter", iter))
 
-    if(num.found > 0) {
+num.found <- 0
+idx.to.remove <- NULL
 
-      pedData <- pedData[-idx.to.remove, ]
-      ## re-index parents, which varies depending on if the removed indx is
-      ## prior to parent index
-      for(k in 1:nrow(pedData)){
-        if(pedData$father[k] > 0) {
-          pedData$father[k] <- pedData$father[k] -
-              sum(idx.to.remove < pedData$father[k])
-        }
-        if(pedData$mother[k]+0) {
-          pedData$mother[k] <- pedData$mother[k] -
-              sum(idx.to.remove < pedData$mother[k])
-        }
-      }
-      pedData$is.terminal <-
-        (is.parent(pedData$id, pedData$father, pedData$mother) == FALSE)
-      
-    }
-    else {
-      cont <- FALSE
-    }
-    iter <- iter + 1   
-    
+for(i in 1:nrow(pedData))
+{
+  
+  if(pedData$is.terminal[i])
+  {
+  if( pedData$avail[i] == FALSE )   # if not genotyped         
+  {
+  idx.to.remove <- c(idx.to.remove, i)
+  num.found <- num.found + 1
+  
+  ## print(paste("  removing", num.found, "of", nrow(pedData)))
   }
-  
-  ## A few more clean up steps
-
-  ## remove unavailable founders
-  tmpPed <- excludeUnavailFounders(pedData$id, 
-                        pedData$father, pedData$mother, pedData$avail)
-
-  ## 
-  tmpPed <- excludeStrayMarryin(tmpPed$id, tmpPed$father, tmpPed$mother)
-
-  
-  id.remove <- ped$id[is.na(match(ped$id, tmpPed$id))]
-
-  return(id.remove)
+  }
   
 }
 
+if(num.found > 0) {
+
+pedData <- pedData[-idx.to.remove, ]
+  ## re-index parents, which varies depending on if the removed indx is
+  ## prior to parent index
+for(k in 1:nrow(pedData)){
+if(pedData$father[k] > 0) {
+pedData$father[k] <- pedData$father[k] -
+sum(idx.to.remove < pedData$father[k])
+}
+if(pedData$mother[k]+0) {
+pedData$mother[k] <- pedData$mother[k] -
+sum(idx.to.remove < pedData$mother[k])
+}
+}
+pedData$is.terminal <-
+(is.parent(pedData$id, pedData$father, pedData$mother) == FALSE)
+
+}
+else {
+cont <- FALSE
+}
+iter <- iter + 1   
+
+}
+
+  ## A few more clean up steps
+
+  ## remove unavailable founders
+tmpPed <- excludeUnavailFounders(pedData$id, 
+pedData$father, pedData$mother, pedData$avail)
+
+tmpPed <- excludeStrayMarryin(tmpPed$id, tmpPed$father, tmpPed$mother)
+
+id.remove <- ped$id[is.na(match(ped$id, tmpPed$id))]
+
+return(id.remove)
+
+}
 
 excludeStrayMarryin <- function(id, father, mother){
   # get rid of founders who are not parents (stray available marryins
   # who are isolated after trimming their unavailable offspring)
   ## JPS 3/10/14 add strings check in case of char ids
-  trio <- data.frame(id=id, father=father, mother=mother, stringsAsFactors=FALSE)
-  parent <- is.parent(id, father, mother)
-  founder <- is.founder(father, mother)
+trio <- data.frame(id=id, father=father, mother=mother, stringsAsFactors=FALSE)
+parent <- is.parent(id, father, mother)
+founder <- is.founder(father, mother)
 
-  exclude <- !parent & founder
-  trio <- trio[!exclude,,drop=FALSE]
-  return(trio)
+exclude <- !parent & founder
+trio <- trio[!exclude,,drop=FALSE]
+return(trio)
 
 }
 
 excludeUnavailFounders <- function(id, father, mother, avail)
-  {
-    nOriginal <- length(id)
-    idOriginal <- id   
-    zed <- father!=0 & mother !=0
-    ## concat ids to represent marriages. 
-    ## Bug if there is ":" in char subj ids
-    marriage <- paste(id[father[zed]], id[mother[zed]], sep=":" )
-
-    sibship <- tapply(marriage, marriage, length)
-    nm <- names(sibship)
-
-    splitPos <- regexpr(":",nm)
-    dad <- substring(nm, 1, splitPos-1)
-    mom <- substring(nm, splitPos+1,  nchar(nm))
-    
-    ##  Want to look at parents with only one child.
-    ##  Look for parents with > 1 marriage.  If any
-    ##  marriage has > 1 child then skip this mom/dad pair.
-    
-    nmarr.dad <- table(dad)
-    nmarr.mom <- table(mom)
-    skip <- NULL
-    
-    if(any(nmarr.dad > 1)) {
-      ## Dads in >1 marriage
-      ckdad <- which(as.logical(match(dad,
-                      names(nmarr.dad)[which(nmarr.dad > 1)],nomatch=FALSE)))
-      skip <- unique(c(skip, ckdad))
-    }
-    
-    if(any(nmarr.mom > 1)) {
-      ## Moms in >1 marriage
-      ckmom <- which(as.logical(match(mom,
-                      names(nmarr.mom)[which(nmarr.mom > 1)],nomatch=FALSE)))
-      skip <- unique(c(skip, ckmom))
-    }
-      
-    if(length(skip) > 0) {
-      dad <- dad[-skip]
-      mom <- mom[-skip]
-      zed <- (sibship[-skip]==1) 
-    } else {
-      zed <- (sibship==1)
-    }
-
-    
-    n <- sum(zed)
-    idTrimmed <- NULL
-    if(n>0)
-      {
-        
-        # dad and mom are the parents of sibships of size 1
-        dad <- dad[zed]
-        mom <- mom[zed]
-        for(i in 1:n){
-          ## check if mom and dad are founders (where their parents = 0)
-          dad.founder <- (father[id==dad[i]] == 0) & (mother[id==dad[i]] == 0)
-          mom.founder <- (father[id==mom[i]] == 0) & (mother[id==mom[i]] == 0)
-          both.founder <- dad.founder & mom.founder
-
-          ## check if mom and dad have avail
-          dad.avail <- avail[id==dad[i]]
-          mom.avail <- avail[id==mom[i]]
-
-          ## define not.avail = T if both mom & dad not avail
-          not.avail <- (dad.avail==FALSE & mom.avail==FALSE)
-        
-          if(both.founder & not.avail)   {
-              ## remove mom and dad from ped, and zero-out parent 
-              ## ids of their child
-                        
-            child <- which(father==which(id==dad[i]))          
-            father[child] <- 0
-            mother[child] <- 0
-            
-            idTrimmed <- c(idTrimmed, dad[i], mom[i])
-            
-            excludeParents <- (id!=dad[i]) & (id!=mom[i])
-            id <- id[excludeParents]
-            father <- father[excludeParents]
-            mother <- mother[excludeParents]
-
-            ## re-index father and mother, assume len(excludeParents)==2
-            father <- father - 1*(father > which(!excludeParents)[1]) -
-              1*(father > which(!excludeParents)[2])
-            
-            mother <- mother - 1*(mother > which(!excludeParents)[1]) -
-              1*(mother > which(!excludeParents)[2])
-
-            avail <- avail[excludeParents]
-          } 
-        }
-      }
-    
-    nFinal <- length(id)
-    nTrimmed = nOriginal - nFinal 
+{
+  nOriginal <- length(id)
+  idOriginal <- id   
+  zed <- father!=0 & mother !=0
+  ## concat ids to represent marriages. 
+  ## Bug if there is ":" in char subj ids
+  marriage <- paste(id[father[zed]], id[mother[zed]], sep=":" )
   
-    
-    return(list(nTrimmed = nTrimmed, idTrimmed=idTrimmed,
-                id=id, father=father, mother=mother))
+  sibship <- tapply(marriage, marriage, length)
+  nm <- names(sibship)
+  
+  splitPos <- regexpr(":",nm)
+  dad <- substring(nm, 1, splitPos-1)
+  mom <- substring(nm, splitPos+1,  nchar(nm))
+  
+  ##  Want to look at parents with only one child.
+  ##  Look for parents with > 1 marriage.  If any
+  ##  marriage has > 1 child then skip this mom/dad pair.
+  
+  nmarr.dad <- table(dad)
+  nmarr.mom <- table(mom)
+  skip <- NULL
+  
+  if(any(nmarr.dad > 1)) {
+  ## Dads in >1 marriage
+  ckdad <- which(as.logical(match(dad,
+  names(nmarr.dad)[which(nmarr.dad > 1)],nomatch=FALSE)))
+  skip <- unique(c(skip, ckdad))
   }
-
-
+  
+  if(any(nmarr.mom > 1)) {
+  ## Moms in >1 marriage
+  ckmom <- which(as.logical(match(mom,
+  names(nmarr.mom)[which(nmarr.mom > 1)],nomatch=FALSE)))
+  skip <- unique(c(skip, ckmom))
+  }
+  
+  if(length(skip) > 0) {
+  dad <- dad[-skip]
+  mom <- mom[-skip]
+  zed <- (sibship[-skip]==1) 
+  } else {
+  zed <- (sibship==1)
+  }
+  
+  n <- sum(zed)
+  idTrimmed <- NULL
+  if(n>0)
+  {
+  
+  # dad and mom are the parents of sibships of size 1
+  dad <- dad[zed]
+  mom <- mom[zed]
+  for(i in 1:n){
+  ## check if mom and dad are founders (where their parents = 0)
+  dad.founder <- (father[id==dad[i]] == 0) & (mother[id==dad[i]] == 0)
+  mom.founder <- (father[id==mom[i]] == 0) & (mother[id==mom[i]] == 0)
+  both.founder <- dad.founder & mom.founder
+  
+  ## check if mom and dad have avail
+  dad.avail <- avail[id==dad[i]]
+  mom.avail <- avail[id==mom[i]]
+  
+  ## define not.avail = T if both mom & dad not avail
+  not.avail <- (dad.avail==FALSE & mom.avail==FALSE)
+  
+  if(both.founder & not.avail)   {
+  ## remove mom and dad from ped, and zero-out parent 
+  ## ids of their child
+  
+  child <- which(father==which(id==dad[i]))          
+  father[child] <- 0
+  mother[child] <- 0
+  
+  idTrimmed <- c(idTrimmed, dad[i], mom[i])
+  
+  excludeParents <- (id!=dad[i]) & (id!=mom[i])
+  id <- id[excludeParents]
+  father <- father[excludeParents]
+  mother <- mother[excludeParents]
+  
+  ## re-index father and mother, assume len(excludeParents)==2
+  father <- father - 1*(father > which(!excludeParents)[1]) -
+  1*(father > which(!excludeParents)[2])
+  
+  mother <- mother - 1*(mother > which(!excludeParents)[1]) -
+  1*(mother > which(!excludeParents)[2])
+  
+  avail <- avail[excludeParents]
+  } 
+  }
+  }
+  
+  nFinal <- length(id)
+  nTrimmed = nOriginal - nFinal 
+  
+  return(list(nTrimmed = nTrimmed, idTrimmed=idTrimmed,
+  id=id, father=father, mother=mother))
+}
 
 @ 
-
 
 Function to calculate pedigree bit size, which is 
 2 * n.NonFounder  - n.Founder.  It is an indicator for how much resources
@@ -3646,31 +3572,28 @@ The Lander-Green handles smaller pedigrees and many markers
 The Elston-Stewart handles larger pedigrees and fewer markers.
 
 <<bitSize>>=
- 
-## renamed from pedBits, part of pedigree.shrink functions
-
+ ## renamed from pedBits, part of pedigree.shrink functions
 bitSize <- function(ped) {
   ## calculate bit size of a pedigree
-  
-  if(class(ped) != "pedigree")
-    stop("Must be a pegigree object.\n")
-  
-  father = ped$findex
-  mother = ped$mindex
-  id = ped$id
-  
-  founder <- father==0 & mother==0
-  pedSize <- length(father)
-  nFounder <- sum(founder)
-  nNonFounder <- pedSize - nFounder
-  bitSize <- 2*nNonFounder - nFounder
-  return(list(bitSize=bitSize,
-              nFounder = nFounder,
-              nNonFounder = nNonFounder))
+
+if(class(ped) != "pedigree")
+stop("Must be a pegigree object.\n")
+
+father = ped$findex
+mother = ped$mindex
+id = ped$id
+
+founder <- father==0 & mother==0
+pedSize <- length(father)
+nFounder <- sum(founder)
+nNonFounder <- pedSize - nFounder
+bitSize <- 2*nNonFounder - nFounder
+return(list(bitSize=bitSize,
+nFounder = nFounder,
+nNonFounder = nNonFounder))
 }
 
 @
-
 
 Two functions to identify subjects to remove by other indicators0
 than availability. 
@@ -3689,106 +3612,100 @@ is now fixed with the option set specifically in the data.frames sset to FALSE.
 
 
 <<findAvailNonInform>>=
-
 findAvailNonInform <- function(ped, avail){
 
   ## trim persons who are available but not informative b/c not parent
   ## by setting their availability to FALSE, then call findUnavailable()
   ## JPS 3/10/14 add strings check in case of char ids
-  pedData <- data.frame(id=ped$id, father=ped$findex, 
-                        mother=ped$mindex, avail=avail, stringsAsFactors=FALSE )
-  
-  checkParent <- is.parent(pedData$id, pedData$father, pedData$mother)
-  
-  for(i in 1:nrow(pedData)){
-    
-    if(checkParent[i]==FALSE & avail[i]==TRUE & 
-       all(ped$affected[i]==0, na.rm=TRUE)) {
+pedData <- data.frame(id=ped$id, father=ped$findex, 
+mother=ped$mindex, avail=avail, stringsAsFactors=FALSE )
 
-      ## could use ped$affected[i,] if keep matrix
-      
-        fa <- pedData$id[pedData$father[i]]
-        mo <- pedData$id[pedData$mother[i]]
-        if(avail[pedData$id==fa] & avail[pedData$id==mo])
-          {
-            pedData$avail[i] <- FALSE
-          }
-      }
-  }
+checkParent <- is.parent(pedData$id, pedData$father, pedData$mother)
 
-  idTrim <- findUnavailable(ped, pedData$avail)
-  return(idTrim)
+for(i in 1:nrow(pedData)){
+
+if(checkParent[i]==FALSE & avail[i]==TRUE & 
+all(ped$affected[i]==0, na.rm=TRUE)) {
+
+  ## could use ped$affected[i,] if keep matrix
+
+fa <- pedData$id[pedData$father[i]]
+mo <- pedData$id[pedData$mother[i]]
+if(avail[pedData$id==fa] & avail[pedData$id==mo])
+{
+  pedData$avail[i] <- FALSE
+}
+}
+}
+
+idTrim <- findUnavailable(ped, pedData$avail)
+return(idTrim)
 } 
 
 @ 
 
-
-
 <<findAvailAffected>>=
-
 findAvailAffected <- function(ped, avail, affstatus)
   ## Try trimming one subject by affection status indicator
   ## If ties for bits removed, randomly select one of the subjects
 
-  {
- 
-    notParent <- !is.parent(ped$id, ped$findex, ped$mindex)
-    
-    if(is.na(affstatus)) {
-      possiblyTrim <- ped$id[notParent & avail & is.na(ped$affected)]
-    } else {
-      possiblyTrim <- ped$id[notParent & avail & ped$affected==affstatus]
-    }
-    nTrim <- length(possiblyTrim)
-    
-    if(nTrim == 0)
-      {
-        return(list(ped=ped,
-                    idTrimmed = NA,
-                    isTrimmed = FALSE,
-                    bitSize = bitSize(ped)$bitSize))
-      }
-    
-    trimDat <- NULL
-    
-  for(idTrim in possiblyTrim) {
-
-    
-      avail.try <- avail
-      avail.try[ped$id==idTrim] <- FALSE
-      id.rm <- findUnavailable(ped, avail.try)
-      newPed <- pedigree.trim(id.rm, ped)
-      trimDat <- rbind(trimDat,
-                  c(id=idTrim, bitSize=bitSize(newPed)$bitSize))
-    }
-
-    bits <- trimDat[,2]
-
-    # trim by subject with min bits. This trims fewer subject than
-    # using max(bits).
-
-    idTrim <- trimDat[bits==min(bits), 1]
-    
-    ## break ties by random choice
-    if(length(idTrim) > 1)
-      {
-        rord <- order(runif(length(idTrim)))
-        idTrim <- idTrim[rord][1]
-      }
-
-    
-    avail[ped$id==idTrim] <- FALSE
-    id.rm <- findUnavailable(ped, avail)
-    newPed <- pedigree.trim(id.rm, ped)
-    pedSize <- bitSize(newPed)$bitSize
-    avail <- avail[!(ped$id %in% id.rm)]
-
-    return(list(ped=newPed,
-                newAvail = avail,
-                idTrimmed = idTrim,
-                isTrimmed = TRUE,
-                bitSize = pedSize))
+{
+  
+  notParent <- !is.parent(ped$id, ped$findex, ped$mindex)
+  
+  if(is.na(affstatus)) {
+  possiblyTrim <- ped$id[notParent & avail & is.na(ped$affected)]
+  } else {
+  possiblyTrim <- ped$id[notParent & avail & ped$affected==affstatus]
   }
+  nTrim <- length(possiblyTrim)
+  
+  if(nTrim == 0)
+  {
+  return(list(ped=ped,
+  idTrimmed = NA,
+  isTrimmed = FALSE,
+  bitSize = bitSize(ped)$bitSize))
+ }
+  
+  trimDat <- NULL
+  
+  for(idTrim in possiblyTrim) {
+ 
+  avail.try <- avail
+  avail.try[ped$id==idTrim] <- FALSE
+  id.rm <- findUnavailable(ped, avail.try)
+  newPed <- pedigree.trim(id.rm, ped)
+  trimDat <- rbind(trimDat,
+  c(id=idTrim, bitSize=bitSize(newPed)$bitSize))
+  }
+  
+  bits <- trimDat[,2]
+  
+  # trim by subject with min bits. This trims fewer subject than
+  # using max(bits).
+  
+  idTrim <- trimDat[bits==min(bits), 1]
+  
+  ## break ties by random choice
+  if(length(idTrim) > 1)
+  {
+  rord <- order(runif(length(idTrim)))
+  idTrim <- idTrim[rord][1]
+  }
+  
+  avail[ped$id==idTrim] <- FALSE
+  id.rm <- findUnavailable(ped, avail)
+  newPed <- pedigree.trim(id.rm, ped)
+  pedSize <- bitSize(newPed)$bitSize
+  avail <- avail[!(ped$id %in% id.rm)]
+  
+  return(list(ped=newPed,
+  newAvail = avail,
+  idTrimmed = idTrim,
+  isTrimmed = TRUE,
+  bitSize = pedSize))
+}
 
 @ 
 
@@ -3801,44 +3718,28 @@ founder, or disconnected
 
 <<pedigree.shrink.minor>>=
 
-#$Log: pedigree.shrink.minor.q,v $
-#Revision 1.5  2009/11/19 18:10:26  sinnwell
-#F to FALSE
-#
-#Revision 1.4  2009/11/19 14:57:13  sinnwell
-#*** empty log message ***
-#
-#Revision 1.3  2009/11/17 23:11:41  sinnwell
-#*** empty log message ***
-#
-#Revision 1.1  2008/07/16 20:22:55  sinnwell
-#Initial revision
-#
-
-
 is.parent <- function(id, findex, mindex){
   # determine subjects who are parents
   # assume input of father/mother indices, not ids
-  
-  father <- mother <- rep(0, length(id))
-  father[findex>0] <- id[findex]
-  mother[mindex>0] <- id[mindex]
-  
-  isFather <- !is.na(match(id, unique(father[father!=0])))
-  isMother <- !is.na(match(id, unique(mother[mother!=0])))
-  isParent <- isFather |isMother
-  return(isParent)
+
+father <- mother <- rep(0, length(id))
+father[findex>0] <- id[findex]
+mother[mindex>0] <- id[mindex]
+
+isFather <- !is.na(match(id, unique(father[father!=0])))
+isMother <- !is.na(match(id, unique(mother[mother!=0])))
+isParent <- isFather |isMother
+return(isParent)
 }
 
 is.founder <- function(mother, father){
-  check <- (father==0) & (mother==0)
-  return(check)
+check <- (father==0) & (mother==0)
+return(check)
 }
-
 
 is.disconnected <- function(id, findex, mindex)
 {
-
+  
   # check to see if any subjects are disconnected in pedigree by checking for
   # kinship = 0 for all subjects excluding self
   father <- id[findex]
@@ -3846,211 +3747,166 @@ is.disconnected <- function(id, findex, mindex)
   kinMat <- kinship(id, father, mother)
   diag(kinMat) <- 0
   disconnected <- apply(kinMat==0.0, 1, all)
-
+  
   return(disconnected)
 }
 
 @ 
 
-
 Print a pedigree.shrink object.  Tell the original bit size and the trimmed bit size.
 
 <<print.pedigree.shrink>>=
-#$Log: print.pedigree.shrink.q,v $
-#Revision 1.2  2009/11/19 14:35:01  sinnwell
-#add ...
-#
-#Revision 1.1  2009/11/17 14:39:32  sinnwell
-#Initial revision
-#
-#Revision 1.1  2008/07/16 20:23:14  sinnwell
-#Initial revision
-#
-
 print.pedigree.shrink <- function(x, ...){
 
-  printBanner(paste("Shrink of Pedigree ", unique(x$pedObj$ped), sep=""))
- 
-  cat("Pedigree Size:\n")
+printBanner(paste("Shrink of Pedigree ", unique(x$pedObj$ped), sep=""))
 
-  if(length(x$idTrimmed) > 2)
-    {
-      n <- c(x$pedSizeOriginal, x$pedSizeIntermed, x$pedSizeFinal)
-      b <- c(x$bitSize[1], x$bitSize[2], x$bitSize[length(x$bitSize)])
-      row.nms <- c("Original","Only Informative","Trimmed")
-    } else {
-      n <- c(x$pedSizeOriginal, x$pedSizeIntermed)
-      b <- c(x$bitSize[1], x$bitSize[2])
-      row.nms <- c("Original","Trimmed")
-    }
+cat("Pedigree Size:\n")
 
-  df <- data.frame(N.subj = n, Bits = b)
-  rownames(df) <- row.nms
-  print(df, quote=FALSE)
-  
-  
-  if(!is.null(x$idList$unavail)) 
-    cat("\n Unavailable subjects trimmed:\n", x$idList$unavail, "\n")
-  
-  if(!is.null(x$idList$noninform)) 
-    cat("\n Non-informative subjects trimmed:\n", x$idList$noninform, "\n")
-  
-  if(!is.null(x$idList$affect)) 
-    cat("\n Informative subjects trimmed:\n", x$idList$affect, "\n")
-  
-  
+if(length(x$idTrimmed) > 2)
+{
+  n <- c(x$pedSizeOriginal, x$pedSizeIntermed, x$pedSizeFinal)
+  b <- c(x$bitSize[1], x$bitSize[2], x$bitSize[length(x$bitSize)])
+  row.nms <- c("Original","Only Informative","Trimmed")
+} else {
+  n <- c(x$pedSizeOriginal, x$pedSizeIntermed)
+  b <- c(x$bitSize[1], x$bitSize[2])
+  row.nms <- c("Original","Trimmed")
+}
+
+df <- data.frame(N.subj = n, Bits = b)
+rownames(df) <- row.nms
+print(df, quote=FALSE)
+
+if(!is.null(x$idList$unavail)) 
+cat("\n Unavailable subjects trimmed:\n", x$idList$unavail, "\n")
+
+if(!is.null(x$idList$noninform)) 
+cat("\n Non-informative subjects trimmed:\n", x$idList$noninform, "\n")
+
+if(!is.null(x$idList$affect)) 
+cat("\n Informative subjects trimmed:\n", x$idList$affect, "\n")
+
   ##cat("\n Pedigree after trimming:", x$bitSize, "\n")
-  
-  invisible()
+
+invisible()
 }
 
 @ 
 
 <<printBanner>>=
-#$Log: printBanner.q,v $
-#Revision 1.4  2007/01/23 21:00:27  sinnwell
-#rm ending newline \n.  Users can space if desired.
-#
-#Revision 1.3  2005/02/04 20:57:18  sinnwell
-#banner.width now based on options()$width
-#char.perline based on banner.width
-#
-#Revision 1.2  2004/06/25 15:56:48  sinnwell
-#now compatible with R, changed end when a line is done
-#
-#Revision 1.1  2004/02/26 21:34:55  sinnwell
-#Initial revision
-#
 
 printBanner <- function(str, banner.width=options()$width, char.perline=.75*banner.width, border = "="){
 
-# char.perline was calculated taking the floor of banner.width/3
+  # char.perline was calculated taking the floor of banner.width/3
 
-  vec <- str
-  new<-NULL
-  onespace<-FALSE
-  for(i in 1:nchar(vec)){
-    if (substring(vec,i,i)==' ' && onespace==FALSE){
-      onespace<-TRUE
-      new<-paste(new,substring(vec,i,i),sep="")}
-    else if (substring(vec,i,i)==' ' && onespace==TRUE)
-      {onespace<-TRUE}
-    else{
-      onespace<-FALSE
-      new<-paste(new,substring(vec,i,i),sep="")}
-  }
-  
-  where.blank<-NULL
-  indx <- 1
-  
-  for(i in 1:nchar(new)){
-    if((substring(new,i,i)==' ')){
-      where.blank[indx]<-i
-      indx <- indx+1
-    }
-  }
-  
+vec <- str
+new<-NULL
+onespace<-FALSE
+for(i in 1:nchar(vec)){
+if (substring(vec,i,i)==' ' && onespace==FALSE){
+onespace<-TRUE
+new<-paste(new,substring(vec,i,i),sep="")}
+else if (substring(vec,i,i)==' ' && onespace==TRUE)
+{onespace<-TRUE}
+else{
+onespace<-FALSE
+new<-paste(new,substring(vec,i,i),sep="")}
+}
 
-# Determine the position in the where.blank vector to insert the Nth character position of "new"
-  j<-length(where.blank)+1
+where.blank<-NULL
+indx <- 1
 
-# Add the Nth character position of the "new" string to the where.blank vector.
-  where.blank[j]<-nchar(new)
-  
-  begin<-1
-  end<-max(where.blank[where.blank<=char.perline])
+for(i in 1:nchar(new)){
+if((substring(new,i,i)==' ')){
+where.blank[indx]<-i
+indx <- indx+1
+}
+}
 
-# If end.ok equals NA then the char.perline is less than the position of the 1st blank.
-  end.ok <- is.na(end) 
+  # Determine the position in the where.blank vector to insert the Nth character position of "new"
+j<-length(where.blank)+1
 
-# Calculate a new char.perline. 
-  if (end.ok==TRUE){ 
-    char.perline <- floor(banner.width/2)
-    end<-max(where.blank[where.blank<=char.perline])
-  }
+  # Add the Nth character position of the "new" string to the where.blank vector.
+where.blank[j]<-nchar(new)
 
-  cat(paste(rep(border, banner.width), collapse = ""),"\n")
+begin<-1
+end<-max(where.blank[where.blank<=char.perline])
 
-  repeat {
-    titleline<-substring(new,begin,end)
-    n <- nchar(titleline)
-    if(n < banner.width)
-      {
-        n.remain <- banner.width - n
-        n.left <- floor(n.remain/2)
-        n.right <- n.remain - n.left
-        for(i in 1:n.left) titleline <- paste(" ",titleline,sep="")
-        for(i in 1:n.right) titleline <- paste(titleline," ",sep="")
-        n <- nchar(titleline)
-      }
-     cat(titleline,"\n")
-    begin<-end+1
-    end.old <- end
-   # Next line has a problem when used in R.  Use print.banner.R until fixed.
-   # Does max with an NA argument
-    tmp <- where.blank[(end.old<where.blank) & (where.blank<=end.old+char.perline+1)]
-    if(length(tmp)) end <- max(tmp)
-    else break
-   
-#   end<-max(where.blank[(end.old<where.blank)&(where.blank<=end.old+char.perline+1)])
-#   end.ok <- is.na(end)
-#   if (end.ok==TRUE)
-#      break
-  }
-  
-  cat(paste(rep(border, banner.width), collapse = ""), "\n")
-  invisible()
-  
+  # If end.ok equals NA then the char.perline is less than the position of the 1st blank.
+end.ok <- is.na(end) 
+
+  # Calculate a new char.perline. 
+if (end.ok==TRUE){ 
+char.perline <- floor(banner.width/2)
+end<-max(where.blank[where.blank<=char.perline])
+}
+
+cat(paste(rep(border, banner.width), collapse = ""),"\n")
+
+repeat {
+titleline<-substring(new,begin,end)
+n <- nchar(titleline)
+if(n < banner.width)
+{
+  n.remain <- banner.width - n
+  n.left <- floor(n.remain/2)
+  n.right <- n.remain - n.left
+  for(i in 1:n.left) titleline <- paste(" ",titleline,sep="")
+  for(i in 1:n.right) titleline <- paste(titleline," ",sep="")
+  n <- nchar(titleline)
+}
+cat(titleline,"\n")
+begin<-end+1
+end.old <- end
+  # Next line has a problem when used in R.  Use print.banner.R until fixed.
+  # Does max with an NA argument
+tmp <- where.blank[(end.old<where.blank) & (where.blank<=end.old+char.perline+1)]
+if(length(tmp)) end <- max(tmp)
+else break
+
+  #   end<-max(where.blank[(end.old<where.blank)&(where.blank<=end.old+char.perline+1)])
+  #   end.ok <- is.na(end)
+  #   if (end.ok==TRUE)
+  #      break
+}
+
+cat(paste(rep(border, banner.width), collapse = ""), "\n")
+invisible()
+
 }
 
 @ 
-
 
 Plot a pedigree.shrink object, which calls the plot.pedigree function on the trimmed 
 pedigree object.
 
 <<plot.pedigree.shrink>>=
-#$Log: plot.pedigree.shrink.q,v $
-#Revision 1.4  2010/09/03 21:12:16  sinnwell
-#use shrunk "avail" vector for the colored labels
-#
-#Revision 1.3  2009/11/19 14:57:18  sinnwell
-#*** empty log message ***
-#
-#Revision 1.2  2009/11/17 23:09:51  sinnwell
-#updated for ped object
-#
-#Revision 1.1  2008/07/16 20:23:38  sinnwell
-#Initial revision
-#
 
-plot.pedigree.shrink <- function(x, bigped=FALSE, title="", 
-                                 xlegend="topright", ...){
+plot.pedigree.shrink <- function(x, bigped=FALSE, title="", xlegend="topright", ...){
 
   ##  Plot pedigrees, coloring subjects according
   ##   to availability, shaded by affected status used in shrink
 
-  if (bigped == FALSE) {
-    tmp <- plot(x$pedObj, col = x$avail + 1,keep.par=T)
-  }
-  else {
-    tmp <- plot.pedigree(x$pedObj, align = FALSE, packed = FALSE, 
-                col = x$avail + 1, cex = 0.5, symbolsize = 0.5,keep.par=T)
-  }
-  
-  legend(x = xlegend, legend = c("DNA Available", "UnAvailable"), 
-         pch = c(1, 1), col = c(2, 1), bty = "n", cex=.5)
-  title(paste(title, "\nbits = ", x$bitSize[length(x$bitSize)]),cex.main=.9)
-  invisible(tmp)
+if (bigped == FALSE) {
+tmp <- plot(x$pedObj, col = x$avail + 1,keep.par=T)
+}
+else {
+tmp <- plot.pedigree(x$pedObj, align = FALSE, packed = FALSE, 
+col = x$avail + 1, cex = 0.5, symbolsize = 0.5,keep.par=T)
+}
+
+legend(x = xlegend, legend = c("DNA Available", "UnAvailable"), 
+pch = c(1, 1), col = c(2, 1), bty = "n", cex=.5)
+title(paste(title, "\nbits = ", x$bitSize[length(x$bitSize)]),cex.main=.9)
+invisible(tmp)
 } 
 
 @ 
 
-
 /section{Pedigree Unrelated}
 
 Purpose: Determine set of maximum number of unrelated
-         available subjects from a pedigree
+available subjects from a pedigree
 PI:      Dan Schaid
 Author(s): Dan Schaid, Shannon McDonnell
 Dates:   Created: 10/19/2007, Moved to kinship2: 6/2011
@@ -4063,22 +3919,11 @@ any of the sibship of his wife's sister.
 
 <<pedigree.unrelated>>=
 
-
-#$Log: pedigree.unrelated.q,v $
-#Revision 1.2  2010/02/11 22:36:48  sinnwell
-#require kinship to be loaded before use
-#
-#Revision 1.1  2009/11/10 19:21:52  sinnwell
-#Initial revision
-#
-#Revision 1.1  2009/11/03 16:42:27  sinnwell
-#Initial revision
-#
-## Authors: Dan Schaid, Shannon McDonnell
-## Updated by Jason Sinnwell
+  ## Authors: Dan Schaid, Shannon McDonnell
+  ## Updated by Jason Sinnwell
 
 pedigree.unrelated <- function(ped, avail) {
-  
+
   # Requires: kinship function
 
   # Given vectors id, father, and mother for a pedigree structure,
@@ -4101,7 +3946,6 @@ pedigree.unrelated <- function(ped, avail) {
 
   id <- ped$id
   avail <- as.integer(avail)
-
   
   kin <- kinship(ped)
   
@@ -4109,41 +3953,38 @@ pedigree.unrelated <- function(ped, avail) {
   id <- id[ord]
   avail <- as.logical(avail[ord])
   kin <- kin[ord,][,ord]
-
+  
   rord <- order(runif(nrow(kin)))
-
+  
   id <- id[rord]
   avail <- avail[rord]
   kin <- kin[rord,][,rord]
-
+  
   id.avail <- id[avail]
   kin.avail <- kin[avail,,drop=FALSE][,avail,drop=FALSE]
-
+  
   diag(kin.avail) <- 0
-
-  while(any(kin.avail > 0))
-    {
-      nr <- nrow(kin.avail)
-      indx <- 1:nrow(kin.avail)
-      zero.count <- apply(kin.avail==0, 1, sum)
-      
-      mx <- max(zero.count[zero.count < nr])
-      mx.zero <- indx[zero.count == mx][1]
-
-      exclude <- indx[kin.avail[, mx.zero] > 0]
-
-      kin.avail <- kin.avail[- exclude, , drop=FALSE][, -exclude, drop=FALSE]
-
-    }
-
+  
+  while(any(kin.avail > 0))  {
+    nr <- nrow(kin.avail)
+    indx <- 1:nrow(kin.avail)
+    zero.count <- apply(kin.avail==0, 1, sum)
+    
+    mx <- max(zero.count[zero.count < nr])
+    mx.zero <- indx[zero.count == mx][1]
+    
+    exclude <- indx[kin.avail[, mx.zero] > 0]
+    
+    kin.avail <- kin.avail[- exclude, , drop=FALSE][, -exclude, drop=FALSE]
+    
+  }
+  
   choice <- sort(dimnames(kin.avail)[[1]])
   
   return(choice)
 }
 
-
 @ 
-
 \section{Checks}
 Last are various helper routines and data checks.
 \subsection{kindepth}
@@ -4189,6 +4030,8 @@ kindepth <- function(id, dad.id, mom.id, align=FALSE) {
 	depth[parents] <- i
 	}
     if (!align) return(depth)
+    <<kindepth-align>>
+}
 @ 
 
 The align argument is used only by the plotting routines.  
@@ -4198,16 +4041,22 @@ Assume that subjects A and B marry, we have some ancestry information for
 both, and that A's ancestors go back 3 generations, B's for only two.
 If we add +1 to the depth of B and all her ancestors, then A and B
 will be the same depth, and will plot on the same line.
-A marry-in to the pedigree with no ancestry is also handled nicely
-by the algorithm.
+Founders who marry in are also aligned.
 However, if we have an inbred pedigree, there may not be a simple fix
 of this sort.
 
 The algorithm is
 \begin{enumerate}
-  \item Find any mother-father pairs that are mismatched in depth.
+  \item First deal with founders.  If a particular founder marries in
+    multiple times at multiple deaths (animal pedigrees), given that
+    subject the min(depth of spouses).  These subjects cause trouble
+    for the general algorithm below: the result would depend on the
+    data set order.  Say A has offspring at level 2 and 0.  If ``2'' came
+    first then a later step would pull the spouse at 0 down.
+  \item Find any remaining mother-father pairs that are mismatched in depth.
+    Deal with them one at a time.
     We think that aligning the top of a pedigree is more important
-    than aligning at the bottom, so choose a mismatch pair of minimal
+    than aligning at the bottom, so start with a mismatch pair of minimal
     depth.
   \item The children's depth is max(father, mother) +1.  Call the
     parent closest to the children ``good'' and the other ``bad''.
@@ -4231,82 +4080,102 @@ One particular case that we've seen was a pair of brothers that married
 a pair of sisters.  Pulling one brother down fixes the other at the
 same time.
 The code below, however, says "loop! stay away!".
-<<kindepth>>=
-
-    chaseup <- function(x, midx, didx) {
-	new <- c(midx[x], didx[x])  # mother and father
-	new <- new[new>0]
-	while (length(new) >1) {
-	    x <- unique(c(x, new))
-	    new <- c(midx[new], didx[new])
-	    new <- new[new>0]
-	    }
-	x
-	}
-    	
-    dads <- didx[midx>0 & didx>0]   # the father side of all spouse pairs
-    moms <- midx[midx>0 & didx>0]
-    # Get rid of duplicate pairs
-    dups <- duplicated(dads + moms*n)
-    if (any(dups)) {
-	dads <- dads[!dups]
-	moms <- moms[!dups]
-	}
-    npair<- length(dads)
-    done <- rep(FALSE, npair)  #couples that are taken care of
-    while (TRUE) {
-        pairs.to.fix <- (1:npair)[(depth[dads] != depth[moms]) & !done]
-	if (length(pairs.to.fix) ==0) break
-	temp <- pmax(depth[dads], depth[moms])[pairs.to.fix]
-	who <- min(pairs.to.fix[temp==min(temp)])  # the chosen couple
-	
-	good <- moms[who]; bad <- dads[who]
-	if (depth[dads[who]] > depth[moms[who]]) {
-	    good <- dads[who]; bad <- moms[who]
-	    }
-	abad  <- chaseup(bad,  midx, didx)
-	if (length(abad) ==1 && sum(c(dads,moms)==bad)==1) {
-	    # simple case, a solitary marry-in
-	    depth[bad] <- depth[good]
-	    }
-	else {
-	    agood <- chaseup(good, midx, didx)  #ancestors of the "good" side
-            # For spouse chasing, I need to exclude the given pair
-            tdad <- dads[-who]
-            tmom <- moms[-who]
-	    while (1) {
-		# spouses of any on agood list
-                spouse <- c(tmom[!is.na(match(tdad, agood))],
-                            tdad[!is.na(match(tmom, agood))])
-		temp <- unique(c(agood, spouse))
-		temp <- unique(chaseup(temp, midx, didx)) #parents
-                kids <- (!is.na(match(midx, temp)) | !is.na(match(didx, temp)))
-                temp <- unique(c(temp, (1:n)[kids & depth <= depth[good]]))
-		if (length(temp) == length(agood)) break
-		else agood <- temp
-		}
-
-	    if (all(match(abad, agood, nomatch=0) ==0)) {
-		# shift it down
-		depth[abad] <- depth[abad] + (depth[good] - depth[bad])
-                #
-                # Siblings may have had children: make sure all kids are
-                #   below their parents.  It's easiest to run through the
-                #   whole tree
-                for (i in 0:n) {
-                    parents <- which(depth==i)
-                    child <- match(midx, parents, nomatch=0) +
-		             match(didx, parents, nomatch=0)
-                    if (all(child==0)) break
-                    depth[child>0] <- pmax(i+1, depth[child>0])
-                    }
-                }
-	    }
-	done[who] <- TRUE
-	}
-    if (all(depth>0)) stop("You found a bug in kindepth's alignment code!")
-    depth
+<<kindepth-align>>=
+chaseup <- function(x, midx, didx) {
+    new <- c(midx[x], didx[x])  # mother and father
+    new <- new[new>0]
+    while (length(new) >1) {
+        x <- unique(c(x, new))
+        new <- c(midx[new], didx[new])
+        new <- new[new>0]
     }
+    x
+}
+    	
+# First deal with any parents who are founders
+#  They all start with depth 0
+dads <- didx[midx>0 & didx>0]   # the father side of all spouse pairs
+moms <- midx[midx>0 & didx>0]
+founder <- (midx==0 & didx==0)
+if (any(founder[dads])) {
+    drow <- which(founder[dads])  # which pairs
+    id  <- unique(dads[drow])     # id
+    depth[id] <- tapply(depth[moms[drow]], dads[drow], min)
+    dads <- dads[-drow]
+    moms <- moms[-drow]
+}
+if (any(founder[moms])) {
+    mrow <- which(founder[moms])  # which pairs
+    id  <- unique(moms[mrow])     # id
+    depth[id] <- tapply(depth[dads[mrow]], moms[mrow], min)
+    dads <- dads[-mrow]
+    moms <- moms[-mrow]
+}
+
+# Get rid of duplicate pairs, which occur for any spouse with
+#  multiple offspring
+dups <- duplicated(dads + moms*n)
+if (any(dups)) {
+  dads <- dads[!dups]
+  moms <- moms[!dups]
+}
+
+npair<- length(dads)
+done <- rep(FALSE, npair)  #couples that are taken care of
+while (TRUE) {
+  pairs.to.fix <- which((depth[dads] != depth[moms]) & !done)
+  if (length(pairs.to.fix) ==0) break
+  temp <- pmax(depth[dads], depth[moms])[pairs.to.fix]
+  who <- min(pairs.to.fix[temp==min(temp)])  # the chosen couple
+  
+  good <- moms[who]; bad <- dads[who]
+  if (depth[dads[who]] > depth[moms[who]]) {
+    good <- dads[who]; bad <- moms[who]
+  }
+  abad  <- chaseup(bad,  midx, didx)
+  if (length(abad) ==1 && sum(c(dads,moms)==bad)==1) {
+    # simple case, a solitary marry-in
+    depth[bad] <- depth[good]
+  }
+  else {
+    agood <- chaseup(good, midx, didx)  #ancestors of the "good" side
+    # For spouse chasing, I need to exclude the given pair
+    tdad <- dads[-who]
+    tmom <- moms[-who]
+    while (1) {
+      # spouses of any on agood list
+      spouse <- c(tmom[!is.na(match(tdad, agood))],
+      tdad[!is.na(match(tmom, agood))])
+      temp <- unique(c(agood, spouse))
+      temp <- unique(chaseup(temp, midx, didx)) #parents
+      kids <- (!is.na(match(midx, temp)) | !is.na(match(didx, temp)))
+      temp <- unique(c(temp, (1:n)[kids & depth <= depth[good]]))
+      if (length(temp) == length(agood)) break
+      else agood <- temp
+    }
+
+    if (all(match(abad, agood, nomatch=0) ==0)) {
+      # shift it down
+      depth[abad] <- depth[abad] + (depth[good] - depth[bad])
+      #
+      # Siblings may have had children: make sure all kids are
+      #   below their parents.  It's easiest to run through the
+      #   whole tree
+      for (i in 0:n) {
+        parents <- which(depth==i)
+        child <- match(midx, parents, nomatch=0) +
+            match(didx, parents, nomatch=0)
+        if (all(child==0)) break
+        depth[child>0] <- pmax(i+1, depth[child>0])
+      }
+    }
+  }
+  # Once a subject has been shifted, we don't allow them to instigate
+  #  yet another shift, possibly on another level
+  done[dads==bad | moms==bad] <- TRUE
+}
+if (all(depth>0)) stop("You found a bug in kindepth's alignment code!")
+depth
 @ 
 
 \subsection{familycheck}
