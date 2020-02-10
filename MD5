@@ -1,4 +1,4 @@
-0fcb812797c614c7ddf8683f908b4aac *DESCRIPTION
+c53608019f6e0b6a1846761d28067402 *DESCRIPTION
 cf82810bfadd78c118f6e12bad40db19 *NAMESPACE
 1ef4830a67e62af5c3734e129f47bbe0 *R/align.pedigree.R
 489a15a697aac896ad5bbedd6329e46b *R/alignped1.R
@@ -19,7 +19,7 @@ e0c9e96ce1f550592cbd9de283bcd0a1 *R/fixParents.R
 cb076f1a0bd66a8da48f7694d82e834a *R/fscore.pedigree.R
 93aa16adce9c2063ce9567caeb35c59d *R/ibdMatrix.R
 cb3434d7b4764d03ab1d5ae046d35560 *R/kindepth.R
-dc132e3e97bc1dcf502365fb4f9fbaaa *R/kinship.R
+e045451740e77b3452ff0a8ef0b37330 *R/kinship.R
 b48b5c6b035635cfdf8ae75b5a1182e3 *R/legendPlot.R
 9d5dd93564ece825d66b0b41c0e8f573 *R/makefamid.R
 d5a5c2fc6a7695f343b42e18e4cad95c *R/makekinship.R
@@ -71,12 +71,7 @@ c917f5395ab549fbd0a58346c3b62a62 *man/testped1.Rd
 1216d0d926370b7c0c7099f13a2ebaf5 *noweb/Makefile
 db478822816f9d85595632dccaebde70 *noweb/align.Rnw
 e27d6fb43ca397db44b67d5786f5749e *noweb/align2.Rnw
-fe4505adb8384629c7a55ae07100b636 *noweb/all.aux
-54e6d26bd40c65fbb7cad8d6a80c2284 *noweb/all.log
-f486a1bb199a238b6cc76d1ffd90f7ac *noweb/all.nw
-1aaf81285d8cb34042b9d16e8785a78f *noweb/all.out
-d2038534338526955a35fcfd399c622e *noweb/all.tex
-d41d8cd98f00b204e9800998ecf8427e *noweb/all.toc
+1687c1698b7685bf000618102651e1e1 *noweb/all.nw
 113d94028e6a0643139c853b80a8b996 *noweb/checks.Rnw
 2323b0804ed7923a6081362f222a53c3 *noweb/figure/pdraw1.s
 55259aaed94fcc10560afb3ddb3c9d20 *noweb/figure/pdraw2.s

@@ -1,5 +1,5 @@
 Package: kinship2
-Version: 1.8.4
+Version: 1.8.5
 Date: 2019-5-31
 Title: Pedigree Functions
 Authors@R: c(
@@ -16,7 +16,7 @@ License: GPL (>= 2)
 VignetteBuilder: knitr
 URL: https://cran.r-project.org/package=kinship2
 NeedsCompilation: no
-Packaged: 2019-05-31 19:58:13 UTC; sinnwell
+Packaged: 2020-02-10 08:01:40 UTC; ripley
 Author: Jason Sinnwell [aut, cre],
   Terry Therneau [aut],
   Daniel Schaid [ctb],
@@ -24,4 +24,4 @@ Author: Jason Sinnwell [aut, cre],
   Carly Mester [ctb]
 Maintainer: Jason Sinnwell <sinnwell.jason@mayo.edu>
 Repository: CRAN
-Date/Publication: 2019-05-31 21:30:17 UTC
+Date/Publication: 2020-02-10 08:07:01 UTC
