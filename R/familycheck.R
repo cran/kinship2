@@ -1,5 +1,4 @@
-## Extracted from checks.Rnw
-
+# Automatically generated from all.nw using noweb
 # This routine checks out a family id, by trying to construct its own
 #  and comparing the results
 #
@@ -58,7 +57,9 @@ familycheck <- function(famid, id, father.id, mother.id, newfam) {
       tab1 <- tab1[,apply(tab1>0,2,sum) >0] #only keep non-zero columns
       dimnames(tab1) <- list(dimnames(tab1)[[1]], NULL)
       attr(out, 'join') <- tab1
-    }   
+    }
+    
     out
-}
+  }
+
 

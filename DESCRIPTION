@@ -1,6 +1,6 @@
 Package: kinship2
-Version: 1.9.6
-Date: 2022-10-05
+Version: 1.8.4.1
+Date: 2019-5-31
 Title: Pedigree Functions
 Authors@R: c(
 	person("Jason", "Sinnwell", email="sinnwell.jason@mayo.edu", role=c("aut","cre")),
@@ -8,21 +8,15 @@ Authors@R: c(
 	person("Daniel", "Schaid", role="ctb"),
 	person("Elizabeth", "Atkinson", role="ctb"),
 	person("Carly", "Mester", role='ctb'))
-Depends: R (>= 3.6.0), Matrix, quadprog
-Imports: graphics, stats, methods, knitr
-Description: Routines to handle family data with a pedigree object. The initial purpose
-	     was to create correlation structures that describe family relationships such 
-	     as kinship and identity-by-descent, which can be used to model family data 
-	     in mixed effects models, such as in the coxme function. Also includes a tool
-	     for pedigree drawing which is focused on producing compact layouts without 
-	     intervention. Recent additions include utilities to trim the pedigree object
-	     with various criteria, and kinship for the X chromosome.
+Depends: R (>= 3.4.0), Matrix, quadprog
+Suggests: knitr
+Imports: graphics, stats, methods
+Description: Routines to handle family data with a pedigree object (2014, <doi: 10.1159/000363105>). The initial purpose was to create correlation structures that describe family relationships such as kinship and identity-by-descent, which can be used to model family data in mixed effects models, such as in the coxme function. Also includes a tool for pedigree drawing which is focused on producing compact layouts without intervention. Recent additions include utilities to trim the pedigree object with various criteria, and kinship for the X chromosome.
 License: GPL (>= 2)
-URL: https://cran.r-project.org/package=kinship2
-RoxygenNote: 7.2.1
 VignetteBuilder: knitr
+URL: https://cran.r-project.org/package=kinship2
 NeedsCompilation: no
-Packaged: 2022-10-05 15:51:07 UTC; sinnwell
+Packaged: 2020-02-10 07:46:30 UTC; ripley
 Author: Jason Sinnwell [aut, cre],
   Terry Therneau [aut],
   Daniel Schaid [ctb],
@@ -30,4 +24,4 @@ Author: Jason Sinnwell [aut, cre],
   Carly Mester [ctb]
 Maintainer: Jason Sinnwell <sinnwell.jason@mayo.edu>
 Repository: CRAN
-Date/Publication: 2022-10-05 16:50:02 UTC
+Date/Publication: 2020-02-10 08:46:53

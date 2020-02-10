@@ -35,8 +35,8 @@
       baseline survey, ever pregnant at the time of baseline survey}
     \item{\code{parity}}{number of births}
     \item{\code{nbreast}}{number of breast biopsies}
-    \item{sex}{M or F}
-    \item{bcpc}{part of one of the families in the breast/prostate
+    \item{\code{sex}}{M or F}
+    \item{\code{bcpc}}{part of one of the families in the breast/prostate
       cancer substudy: 0=no, 1=yes.  Note that subjects who were recruited
       to the overall study after the date of the BP substudy are coded as zero.}
   }
@@ -62,10 +62,6 @@
   For a subset of the families data was gathered on prostate cancer risk
   for male subjects via questionairres sent to men over 40.  Other than
   this, data items other than parentage are limited to the female subjects.
-
-  In ___ a second phase of the study was instituted.  The pedigrees were
-  further extended to the numbers found in this data set, and further
-  data gathered by questionairre.
 }
 \source{Authors of the study}
 
@@ -90,9 +86,6 @@ data(minnbreast)
 breastped <- with(minnbreast, pedigree(id, fatherid, motherid, sex,
                   status=(cancer& !is.na(cancer)), affected=proband,
                    famid=famid))
-print(breastped["8"])
-print(breastped[8])
-#plot(breastped["8"])  #plot family 8, proband is solid, slash for cancers
-#Note that breastped[8] is a different family, since ids are not 1,2,3,...
+
 }
 \keyword{datasets}

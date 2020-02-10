@@ -1,19 +1,4 @@
-#' data.frame from a pedigree object
-#'
-#' Extract the internal data from a pedigree object into a data.frame
-#'
-#' @param x pedigree object
-#' @param ... additional arguments passed to internal methods
-#' @return a data.frame with the data necessary to re-create the pedigree,
-#' minus special relationships.
-#' #' @author Jason Sinnwell
-#' @seealso \code{\link{pedigree}}
-#' @name as.data.frame.pedigree
-NULL
-#> NULL
-
-#' @rdname as.data.frame.pedigree
-#' @export
+# Automatically generated from all.nw using noweb
 
 as.data.frame.pedigree <- function(x, ...) {
 

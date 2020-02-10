@@ -1,7 +1,7 @@
 \section{Pedigree alignment}
 An \emph{aligned} pedigree is an object that contains a pedigree along
 with a set of information that allows for pretty plotting.
-This inormation consists of two parts: 
+This information consists of two parts: 
 a set of vertical and horizontal plotting coordinates along with the
 identifier of the subject to be plotted at each position,
 and a list of connections to be made between parent/child, spouse/spouse,
@@ -45,6 +45,7 @@ The second is a 3 column matrix of spouse pairs, each row indicates the
 left-hand member of the pair, the right-hand member, and which of the two
 is the anchor, i.e., directly connected to thier parent.
 Double and triple marriages can start to get interesting.
+
 
 The [[autohint]] routine is used to create an initial hints list.
 It is a part of the general intention to make the routine do

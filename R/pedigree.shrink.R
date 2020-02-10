@@ -1,45 +1,15 @@
-#' Shrink pedigree object 
-#'
-#' Shrink pedigree object to specified bit size with priority placed on trimming
-#' uninformative subjects. The algorithm is useful for getting a pedigree condensed to 
-#' a minimally informative size for algorithms or testing that are limited by size 
-#' of the pedigree.
-#' @param ped Pedigree object created by the pedigree function,  
-#' @param avail vector of binary availability status (0/1), i.e. having data, or sample available
-#' @param affected vector of binary affected status (0/1/NA). If NULL, uses first column of the pedigree object affected matrix.
-#' @param maxBits Optional, the bit size for which to shrink the pedigree
-#' @param x pedigree.shrink object used in method functions
-#' @param ... optional arguments passed to internal functions
-#' @details 
-#' Iteratively remove subjects from the pedigree. The random removal of members
-#' was previously controlled by a seed argument, but we remove this, forcing users
-#' to control randomness outside the function. First remove uninformative 
-#' subjects, i.e., unavailable (not genotyped) with no available descendants.  
-#' Next, available terminal subjects with unknown phenotype if both parents 
-#' available. Last, iteratively shrinks pedigrees by preferentially removing 
-#' individuals (chosen at random if there are multiple of the same status): 
-#' 1. Subjects with unknown affected status, 
-#' 2. Subjects with unaffected affected status
-#' 3. Affected subjects.
-#' @examples 
-#' data(sample.ped)
-#' pedAll <- pedigree(sample.ped$id, sample.ped$father, sample.ped$mother,
-#'   sample.ped$sex, affected=cbind(sample.ped$affected, sample.ped$avail),
-#'   famid=sample.ped$ped)
-#' ped1 <- pedAll['1']
-#' pedigree.shrink(ped1, maxBits=12, avail=ped1$affected[,2])
-#' 
-#' @author Original by Dan Schaid, updated to kinship2 by Jason Sinnwell
-#' @seealso \code{\link{pedigree}}, \code{\link{plot.pedigree.shrink}}
-#' @name pedigree.shrink
-NULL
-#> NULL
+# Automatically generated from all.nw using noweb
 
-#' @rdname pedigree.shrink
-#' @export
-pedigree.shrink <- function(ped, avail, affected=NULL, maxBits = 16) {
-  if(!inherits(ped, "pedigree"))
-    stop("Must be a pegigree object.\n")  
+pedigree.shrink <- function(ped, avail, affected=NULL, seed=NULL, maxBits = 16){
+  if(class(ped) != "pedigree")
+    stop("Must be a pegigree object.\n")
+  
+  ##set the seed for random selections
+
+  if(is.null(seed))  {
+    seed <- sample(2^20, size=1)
+  }
+  set.seed(seed)
   
   if(any(is.na(avail)))
     stop("NA values not allowed in avail vector.")
@@ -160,43 +130,11 @@ pedigree.shrink <- function(ped, avail, affected=NULL, maxBits = 16) {
               avail=avail,
               pedSizeOriginal = nOriginal,
               pedSizeIntermed = nIntermed,
-              pedSizeFinal  = nFinal)
+              pedSizeFinal  = nFinal,
+              seed = seed)
   
-  class(obj) <- "pedigree.shrink"
+  oldClass(obj) <- "pedigree.shrink"
   
   return(obj)
 } 
 
-#' @rdname pedigree.shrink
-#' @method print pedigree.shrink
-#' @export
-print.pedigree.shrink <- function(x, ...){
-
-    cat("Pedigree Size:\n")
-
-    if(length(x$idTrimmed) > 2)
-    {
-        n <- c(x$pedSizeOriginal, x$pedSizeIntermed, x$pedSizeFinal)
-        b <- c(x$bitSize[1], x$bitSize[2], x$bitSize[length(x$bitSize)])
-        row.nms <- c("Original","Only Informative","Trimmed")
-    } else {
-        n <- c(x$pedSizeOriginal, x$pedSizeIntermed)
-        b <- c(x$bitSize[1], x$bitSize[2])
-        row.nms <- c("Original","Trimmed")
-    }
-    
-    df <- data.frame(N.subj = n, Bits = b)
-    rownames(df) <- row.nms
-    print(df, quote=FALSE)
-    
-    if(!is.null(x$idList$unavail)) 
-        cat("\n Unavailable subjects trimmed:\n", x$idList$unavail, "\n")
-    
-    if(!is.null(x$idList$noninform)) 
-        cat("\n Non-informative subjects trimmed:\n", x$idList$noninform, "\n")
-    
-    if(!is.null(x$idList$affect)) 
-        cat("\n Informative subjects trimmed:\n", x$idList$affect, "\n")
-    
-    invisible()
-}
