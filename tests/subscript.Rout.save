@@ -1,12 +1,13 @@
 
-R version 2.15.0 (2012-03-30)
-Copyright (C) 2012 The R Foundation for Statistical Computing
-ISBN 3-900051-07-0
-Platform: x86_64-unknown-linux-gnu (64-bit)
+R Under development (unstable) (2022-09-11 r82834) -- "Unsuffered Consequences"
+Copyright (C) 2022 The R Foundation for Statistical Computing
+Platform: x86_64-pc-linux-gnu (64-bit)
 
 R is free software and comes with ABSOLUTELY NO WARRANTY.
 You are welcome to redistribute it under certain conditions.
 Type 'license()' or 'licence()' for distribution details.
+
+  Natural language support but running in an English locale
 
 R is a collaborative project with many contributors.
 Type 'contributors()' for more information and
@@ -22,7 +23,6 @@ Type 'q()' to quit R.
 > require(kinship2)
 Loading required package: kinship2
 Loading required package: Matrix
-Loading required package: lattice
 Loading required package: quadprog
 > data(minnbreast)
 > 
@@ -52,4 +52,4 @@ Loading required package: quadprog
 > 
 > proc.time()
    user  system elapsed 
-  3.399   0.131   3.597 
+  2.449   0.160   2.682 
