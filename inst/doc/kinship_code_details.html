@@ -1,0 +1,667 @@
+<!DOCTYPE html>
+
+<html>
+
+<head>
+
+<meta charset="utf-8" />
+<meta name="generator" content="pandoc" />
+<meta http-equiv="X-UA-Compatible" content="IE=EDGE" />
+
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+
+<meta name="author" content="TM Therneau" />
+
+
+<title>Kinship_Matrix_Code_Details</title>
+
+<script>// Pandoc 2.9 adds attributes on both header and div. We remove the former (to
+// be compatible with the behavior of Pandoc < 2.8).
+document.addEventListener('DOMContentLoaded', function(e) {
+  var hs = document.querySelectorAll("div.section[class*='level'] > :first-child");
+  var i, h, a;
+  for (i = 0; i < hs.length; i++) {
+    h = hs[i];
+    if (!/^h[1-6]$/i.test(h.tagName)) continue;  // it should be a header h1-h6
+    a = h.attributes;
+    while (a.length > 0) h.removeAttribute(a[0].name);
+  }
+});
+</script>
+
+<style type="text/css">
+code{white-space: pre-wrap;}
+span.smallcaps{font-variant: small-caps;}
+span.underline{text-decoration: underline;}
+div.column{display: inline-block; vertical-align: top; width: 50%;}
+div.hanging-indent{margin-left: 1.5em; text-indent: -1.5em;}
+ul.task-list{list-style: none;}
+</style>
+
+
+
+<style type="text/css">
+code {
+white-space: pre;
+}
+.sourceCode {
+overflow: visible;
+}
+</style>
+<style type="text/css" data-origin="pandoc">
+pre > code.sourceCode { white-space: pre; position: relative; }
+pre > code.sourceCode > span { line-height: 1.25; }
+pre > code.sourceCode > span:empty { height: 1.2em; }
+.sourceCode { overflow: visible; }
+code.sourceCode > span { color: inherit; text-decoration: inherit; }
+div.sourceCode { margin: 1em 0; }
+pre.sourceCode { margin: 0; }
+@media screen {
+div.sourceCode { overflow: auto; }
+}
+@media print {
+pre > code.sourceCode { white-space: pre-wrap; }
+pre > code.sourceCode > span { display: inline-block; text-indent: -5em; padding-left: 5em; }
+}
+pre.numberSource code
+{ counter-reset: source-line 0; }
+pre.numberSource code > span
+{ position: relative; left: -4em; counter-increment: source-line; }
+pre.numberSource code > span > a:first-child::before
+{ content: counter(source-line);
+position: relative; left: -1em; text-align: right; vertical-align: baseline;
+border: none; display: inline-block;
+-webkit-touch-callout: none; -webkit-user-select: none;
+-khtml-user-select: none; -moz-user-select: none;
+-ms-user-select: none; user-select: none;
+padding: 0 4px; width: 4em;
+color: #aaaaaa;
+}
+pre.numberSource { margin-left: 3em; border-left: 1px solid #aaaaaa; padding-left: 4px; }
+div.sourceCode
+{ }
+@media screen {
+pre > code.sourceCode > span > a:first-child::before { text-decoration: underline; }
+}
+code span.al { color: #ff0000; font-weight: bold; } 
+code span.an { color: #60a0b0; font-weight: bold; font-style: italic; } 
+code span.at { color: #7d9029; } 
+code span.bn { color: #40a070; } 
+code span.bu { color: #008000; } 
+code span.cf { color: #007020; font-weight: bold; } 
+code span.ch { color: #4070a0; } 
+code span.cn { color: #880000; } 
+code span.co { color: #60a0b0; font-style: italic; } 
+code span.cv { color: #60a0b0; font-weight: bold; font-style: italic; } 
+code span.do { color: #ba2121; font-style: italic; } 
+code span.dt { color: #902000; } 
+code span.dv { color: #40a070; } 
+code span.er { color: #ff0000; font-weight: bold; } 
+code span.ex { } 
+code span.fl { color: #40a070; } 
+code span.fu { color: #06287e; } 
+code span.im { color: #008000; font-weight: bold; } 
+code span.in { color: #60a0b0; font-weight: bold; font-style: italic; } 
+code span.kw { color: #007020; font-weight: bold; } 
+code span.op { color: #666666; } 
+code span.ot { color: #007020; } 
+code span.pp { color: #bc7a00; } 
+code span.sc { color: #4070a0; } 
+code span.ss { color: #bb6688; } 
+code span.st { color: #4070a0; } 
+code span.va { color: #19177c; } 
+code span.vs { color: #4070a0; } 
+code span.wa { color: #60a0b0; font-weight: bold; font-style: italic; } 
+</style>
+<script>
+// apply pandoc div.sourceCode style to pre.sourceCode instead
+(function() {
+  var sheets = document.styleSheets;
+  for (var i = 0; i < sheets.length; i++) {
+    if (sheets[i].ownerNode.dataset["origin"] !== "pandoc") continue;
+    try { var rules = sheets[i].cssRules; } catch (e) { continue; }
+    var j = 0;
+    while (j < rules.length) {
+      var rule = rules[j];
+      // check if there is a div.sourceCode rule
+      if (rule.type !== rule.STYLE_RULE || rule.selectorText !== "div.sourceCode") {
+        j++;
+        continue;
+      }
+      var style = rule.style.cssText;
+      // check if color or background-color is set
+      if (rule.style.color === '' && rule.style.backgroundColor === '') {
+        j++;
+        continue;
+      }
+      // replace div.sourceCode by a pre.sourceCode rule
+      sheets[i].deleteRule(j);
+      sheets[i].insertRule('pre.sourceCode{' + style + '}', j);
+    }
+  }
+})();
+</script>
+
+
+
+
+<style type="text/css">body {
+background-color: #fff;
+margin: 1em auto;
+max-width: 700px;
+overflow: visible;
+padding-left: 2em;
+padding-right: 2em;
+font-family: "Open Sans", "Helvetica Neue", Helvetica, Arial, sans-serif;
+font-size: 14px;
+line-height: 1.35;
+}
+#TOC {
+clear: both;
+margin: 0 0 10px 10px;
+padding: 4px;
+width: 400px;
+border: 1px solid #CCCCCC;
+border-radius: 5px;
+background-color: #f6f6f6;
+font-size: 13px;
+line-height: 1.3;
+}
+#TOC .toctitle {
+font-weight: bold;
+font-size: 15px;
+margin-left: 5px;
+}
+#TOC ul {
+padding-left: 40px;
+margin-left: -1.5em;
+margin-top: 5px;
+margin-bottom: 5px;
+}
+#TOC ul ul {
+margin-left: -2em;
+}
+#TOC li {
+line-height: 16px;
+}
+table {
+margin: 1em auto;
+border-width: 1px;
+border-color: #DDDDDD;
+border-style: outset;
+border-collapse: collapse;
+}
+table th {
+border-width: 2px;
+padding: 5px;
+border-style: inset;
+}
+table td {
+border-width: 1px;
+border-style: inset;
+line-height: 18px;
+padding: 5px 5px;
+}
+table, table th, table td {
+border-left-style: none;
+border-right-style: none;
+}
+table thead, table tr.even {
+background-color: #f7f7f7;
+}
+p {
+margin: 0.5em 0;
+}
+blockquote {
+background-color: #f6f6f6;
+padding: 0.25em 0.75em;
+}
+hr {
+border-style: solid;
+border: none;
+border-top: 1px solid #777;
+margin: 28px 0;
+}
+dl {
+margin-left: 0;
+}
+dl dd {
+margin-bottom: 13px;
+margin-left: 13px;
+}
+dl dt {
+font-weight: bold;
+}
+ul {
+margin-top: 0;
+}
+ul li {
+list-style: circle outside;
+}
+ul ul {
+margin-bottom: 0;
+}
+pre, code {
+background-color: #f7f7f7;
+border-radius: 3px;
+color: #333;
+white-space: pre-wrap; 
+}
+pre {
+border-radius: 3px;
+margin: 5px 0px 10px 0px;
+padding: 10px;
+}
+pre:not([class]) {
+background-color: #f7f7f7;
+}
+code {
+font-family: Consolas, Monaco, 'Courier New', monospace;
+font-size: 85%;
+}
+p > code, li > code {
+padding: 2px 0px;
+}
+div.figure {
+text-align: center;
+}
+img {
+background-color: #FFFFFF;
+padding: 2px;
+border: 1px solid #DDDDDD;
+border-radius: 3px;
+border: 1px solid #CCCCCC;
+margin: 0 5px;
+}
+h1 {
+margin-top: 0;
+font-size: 35px;
+line-height: 40px;
+}
+h2 {
+border-bottom: 4px solid #f7f7f7;
+padding-top: 10px;
+padding-bottom: 2px;
+font-size: 145%;
+}
+h3 {
+border-bottom: 2px solid #f7f7f7;
+padding-top: 10px;
+font-size: 120%;
+}
+h4 {
+border-bottom: 1px solid #f7f7f7;
+margin-left: 8px;
+font-size: 105%;
+}
+h5, h6 {
+border-bottom: 1px solid #ccc;
+font-size: 105%;
+}
+a {
+color: #0033dd;
+text-decoration: none;
+}
+a:hover {
+color: #6666ff; }
+a:visited {
+color: #800080; }
+a:visited:hover {
+color: #BB00BB; }
+a[href^="http:"] {
+text-decoration: underline; }
+a[href^="https:"] {
+text-decoration: underline; }
+
+code > span.kw { color: #555; font-weight: bold; } 
+code > span.dt { color: #902000; } 
+code > span.dv { color: #40a070; } 
+code > span.bn { color: #d14; } 
+code > span.fl { color: #d14; } 
+code > span.ch { color: #d14; } 
+code > span.st { color: #d14; } 
+code > span.co { color: #888888; font-style: italic; } 
+code > span.ot { color: #007020; } 
+code > span.al { color: #ff0000; font-weight: bold; } 
+code > span.fu { color: #900; font-weight: bold; } 
+code > span.er { color: #a61717; background-color: #e3d2d2; } 
+</style>
+
+
+
+
+</head>
+
+<body>
+
+
+
+
+<h1 class="title toc-ignore">Kinship_Matrix_Code_Details</h1>
+<h4 class="author">TM Therneau</h4>
+<h4 class="date">24 March, 2024</h4>
+
+
+<div id="TOC">
+<ul>
+<li><a href="#introduction" id="toc-introduction">Introduction</a>
+<ul>
+<li><a href="#pedigree-object" id="toc-pedigree-object">Pedigree
+Object</a></li>
+<li><a href="#pedigreelist-object" id="toc-pedigreelist-object">PedigreeList Object</a></li>
+<li><a href="#makekinship" id="toc-makekinship">MakeKinship</a></li>
+<li><a href="#monozygotic-twins-for-pedigree-object" id="toc-monozygotic-twins-for-pedigree-object">Monozygotic Twins, for
+Pedigree object</a></li>
+</ul></li>
+<li><a href="#older-routines" id="toc-older-routines">Older
+routines</a></li>
+</ul>
+</div>
+
+<div id="introduction" class="section level1">
+<h1>Introduction</h1>
+<p>The kinship matrix is foundational for random effects models with
+family data.<br />
+For <span class="math inline">\(n\)</span> subjects it is an <span class="math inline">\(n \times n\)</span> matrix whose <span class="math inline">\(ij\)</span> element contains the expected fraction
+of alleles that would be identical by descent if we sampled one from
+subject <span class="math inline">\(i\)</span> and another from subject
+<span class="math inline">\(j\)</span>. Note that the diagonal elements
+of the matrix will be 0.5 not 1: when we randomly sample twice from the
+same subject (with replacement) we will get two copies of the gene
+inherited from the father 1/4 of the time, the maternal copy twice (1/4)
+or one of each 1/2 the time. The formal definition is <span class="math inline">\(K(i,i) = 1/4 + 1/4 + 1/2 K(m,f)\)</span> where
+<span class="math inline">\(m\)</span> and <span class="math inline">\(f\)</span> are the father and mother of subject
+<span class="math inline">\(i\)</span>.</p>
+<p>The algorithm used is found in K Lange, , Springer 1997, page
+71–72.</p>
+<p>The key idea of the recursive algorithm for <span class="math inline">\(K(i,j)\)</span> is to condition on the gene
+selection for the first index <span class="math inline">\(i\)</span>.
+Let <span class="math inline">\(m(i)\)</span> and <span class="math inline">\(f(i)\)</span> be the indices of the mother and
+father of subject <span class="math inline">\(i\)</span> and <span class="math inline">\(g\)</span> be the allele randomly sampled from
+subject <span class="math inline">\(i\)</span>, which may of either
+maternal or paternal origin.</p>
+<p><span class="math display">\[\begin{align}
+  K(i,j) &amp;= P(\mbox{$g$ maternal}) * K(m(i), j) +
+            P(\mbox{$g$ paternal}) * K(f(i), j) \label{recur0} \\
+         &amp;= 1/2 K(m(i), j) + 1/2 K(f(i), j)   \label{recur1} \\
+  K(i,i) &amp;= 1/2(1 + K(m(i), f(i))) \label{self}
+\end{align}\]</span></p>
+<p>The key step in equation <span class="math inline">\(\eqref{recur0}\)</span> is if <span class="math inline">\(g\)</span> has a maternal origin, then it is a
+random selection from the two maternal genes, and its IBD state with
+respect to subject <span class="math inline">\(j\)</span> is that of a
+random selection from m(i) to a random selection from <span class="math inline">\(j\)</span>. This is precisely the definition of
+<span class="math inline">\(K(m(i), j)\)</span>. The recursion does not
+work for <span class="math inline">\(K(i,i)\)</span> in equation <span class="math inline">\(\eqref{self}\)</span> since once we select a
+maternal gene the second choice from <span class="math inline">\(j\)</span> cannot use a different maternal
+gene.</p>
+<p>For the recurrence algorithm to work properly we need to compute the
+values of <span class="math inline">\(K\)</span> for any parent before
+the calculations for their children. Pedigree founders (those with no
+parents) are assumed to be unassociated, so for these subjects we have
+<span class="math display">\[\begin{align*}
+  K(i,i) &amp;= 1/2
+  K(i,j) &amp;=0 \; i\ne j
+\end{align*}\]</span></p>
+<p>The final formula slightly different for the <span class="math inline">\(X\)</span> chromosome. Equation <span class="math inline">\(\ref{recur0}\)</span> still holds, but for males
+the probability that a selected <span class="math inline">\(X\)</span>
+chromosome is maternal is 1, so when <span class="math inline">\(i\)</span> a male the recurrence formula becomes
+<span class="math inline">\(K(i,j) = K(m(i),j)\)</span>.<br />
+For females it is unchanged. All males will have <span class="math inline">\(K(i,i) = 1\)</span> for the <span class="math inline">\(X\)</span> chromosome.</p>
+In order to have already-defined terms on the right hand side of the
+recurrence formula for each element, subjects need to be processed in
+the following order
+<p>The kindepth routine assigns a plotting depth to each subject in such
+a way that parents are always above children.<br />
+For each depth we need to do the compuations of formula <span class="math inline">\(\eqref{recur}\)</span> twice. The first time it
+will get the relationship between each subject and prior generations
+correct, the second will correctly compute the values between subjects
+on the same level. The computations within any stage of the above list
+can be vectorized, but not those between stages.</p>
+<p>Let [[indx]] be the index of the rows for the generation currently
+being processed, say generation <span class="math inline">\(g\)</span>.<br />
+We add correct computations to the matrix one row at a time; all of the
+calculations depend only on the prior rows with the exception of the
+[i,i] element. This approach leads to a for loop containing operations
+on single rows/columns.</p>
+<p>At one point below we use a vectorized version. It looks like the
+snippet below</p>
+<div class="sourceCode" id="cb1"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb1-1"><a href="#cb1-1" tabindex="-1"></a><span class="cf">for</span> (g <span class="cf">in</span> <span class="dv">1</span><span class="sc">:</span><span class="fu">max</span>(depth)) {</span>
+<span id="cb1-2"><a href="#cb1-2" tabindex="-1"></a>    indx <span class="ot">&lt;-</span> <span class="fu">which</span>(depth<span class="sc">==</span>g)</span>
+<span id="cb1-3"><a href="#cb1-3" tabindex="-1"></a>    kmat[indx,] <span class="ot">&lt;-</span> (kmat[mother[indx],] <span class="sc">+</span> kmat[father[indx], ])<span class="sc">/</span><span class="dv">2</span></span>
+<span id="cb1-4"><a href="#cb1-4" tabindex="-1"></a>    kmat[,indx] <span class="ot">&lt;-</span> (kmat[,mother[indx]] <span class="sc">+</span> kmat[,father[indx],])<span class="sc">/</span><span class="dv">2</span></span>
+<span id="cb1-5"><a href="#cb1-5" tabindex="-1"></a>    <span class="cf">for</span> (j <span class="cf">in</span> indx) kmat[j,j] <span class="ot">&lt;-</span> (<span class="dv">1</span> <span class="sc">+</span> kmat[mother[j], father[j]])<span class="sc">/</span><span class="dv">2</span></span>
+<span id="cb1-6"><a href="#cb1-6" tabindex="-1"></a>}</span></code></pre></div>
+<p>The first line computes all the values for a horizontal stripe of the
+matrix. It will be correct for columns in generations <span class="math inline">\(&lt;g\)</span>, unreliable for generation <span class="math inline">\(g\)</span> with itself because of incomplete
+parental relationships, and zero for higher generations. The second line
+does the vertical stripe, and because of the line before it does have
+the data it needs and so gets all the stripe correct. Except of course
+for the diagonal elements, for which formula <span class="math inline">\(\eqref{recur1}\)</span> does not hold. We fill
+those in last. We know that vectorized calculations are always faster in
+R and I was excited to figure this out. The unfortunate truth is that
+for this code it hardly makes a difference, and for the X chromosome
+calculation leads to impenetrable if-then-else logic.</p>
+<p>The program can be called with a pedigree, a pedigree list, or raw
+data. The first argument is [[id]] instead of the more generic [[x]] for
+backwards compatability with an older version of the routine. We give
+founders a fake parent of subject <span class="math inline">\(n+1\)</span> who is not related to anybody (even
+themself); it avoids some if-then-else constructions.</p>
+<p>For S3 method dispatch to work on pedigree and pedigreeList objects,
+we need to define a kinship(), kinship.default(), kinship.pedigree(),
+and kinship.pedigreeList(). The default version takes the vectors</p>
+<div id="pedigree-object" class="section level2">
+<h2>Pedigree Object</h2>
+<p>The method for a pedigree object is an almost trivial modification.
+Since the mother and father are already indexed into the id list it has
+two lines that are different, those that create mrow and drow. The other
+change is that now we potentially have information available on
+monozygotic twins. If there are any such, then when the second twin of a
+pair is added to the matrix, we need to ensure that the pairs kinship
+coefficient is set to the self-self value. This can be done after each
+level is complete, but before children for that level are computed. If
+there are monozygotic triples, quadruplets, etc. this computation gets
+more involved.</p>
+<p>The total number of monozygotic twins is always small, so it is
+efficient to fix up all the monzygotic twins at each generation. A
+variable [[havemz]] is set to TRUE if there are any, and an index array
+[[mzindex]] is created for matrix subscripting.</p>
+</div>
+<div id="pedigreelist-object" class="section level2">
+<h2>PedigreeList Object</h2>
+<p>For the Minnesota Family Cancer Study there are 461 families and
+29114 subjects. The raw kinship matrix would be 29114 by 29114 which is
+over 5 terabytes of memory, something that clearly will not work within
+S.<br />
+The solution is to store the overall matrix as a sparse Matrix object.
+Each family forms a single block. For this study we have [[n &lt;-
+table(minnbreast$famid); sum(n*(n+1)/2)]] or 1.07 million entries;
+assuming that only the lower half of each matrix is stored. The actual
+size is actually smaller than this, since each family matrix will have
+zeros in it — founders for instance are not related — and those zeros
+are also not stored.</p>
+<p>The result of each per-family call to kinship will be a symmetric
+matrix. We first turn each of these into a dsCMatrix object, a sparse
+symmetric form. The [[bdiag]] function is then used to paste all of
+these individual sparse matrices into a single large matrix.</p>
+<p>Why do we note use [[(i in famlist)]] below? A numeric subscript of
+[[[9]]] %’ selects the ninth family, not the family labeled as 9, so a
+numeric family id would not act as we wished. If all of the subject ids
+are unique, across all families, the final matrix is labeled with the
+subject id, otherwise it is labeled with family/subject.</p>
+</div>
+<div id="makekinship" class="section level2">
+<h2>MakeKinship</h2>
+<p>The older [<a href="#makekinship">makekinship</a>] function, from
+before the creation of pedigreeList objects, accepts the raw identifier
+data, along with a special family code for unrelated subjects, as
+produced by the [[makefamid]] function. All the unrelated subjects are
+put at the front of the kinship matrix in this case rather than within
+the family. Because unrelateds get put into a fake family, we cannot
+create a rational family/subject identifier; the id must be unique
+across families. We include a copy of the routine for backwards
+compatability, but do not anticipate any new usage of it. Like most
+routines, this starts out with a collection of error checks.</p>
+</div>
+<div id="monozygotic-twins-for-pedigree-object" class="section level2">
+<h2>Monozygotic Twins, for Pedigree object</h2>
+Return now to the question of monzygotic sets, used specifically in the
+kinship for pedigree objects. Consider the following rather difficult
+example:
+<p>Subjects 1, 2, 3, and 7 form a monozygotic quadruple, 5/6 and 9/10
+are monzygotic pairs.<br />
+First create a vector which contains for each subject the lowest index
+of a monozygotic twin for that subject.<br />
+For non-twins it can have any value.<br />
+For this example that vector is set to 1 for subjects 1, 2, 3, and 7, to
+5 for 5 and 6, and to 9 for 9 and 10. Creating this requires a short
+while loop. Once this is in hand we can identify the sets.</p>
+<p>Next make a matrix that has a row for every possible pair. Finally,
+remove the rows that are identical. The result is a set of all pairs of
+observations in the matrix that correspond to monozygotic pairs.</p>
+</div>
+</div>
+<div id="older-routines" class="section level1">
+<h1>Older routines</h1>
+<p>For testing purposes we have a version of the kinship function prior
+to addition of the chrtype argument.</p>
+<div class="sourceCode" id="cb2"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb2-1"><a href="#cb2-1" tabindex="-1"></a>oldkinship <span class="ot">&lt;-</span> <span class="cf">function</span>(id, ...) {</span>
+<span id="cb2-2"><a href="#cb2-2" tabindex="-1"></a>    <span class="fu">UseMethod</span>(<span class="st">&#39;oldkinship&#39;</span>)</span>
+<span id="cb2-3"><a href="#cb2-3" tabindex="-1"></a>    }</span>
+<span id="cb2-4"><a href="#cb2-4" tabindex="-1"></a></span>
+<span id="cb2-5"><a href="#cb2-5" tabindex="-1"></a>oldkinship.default <span class="ot">&lt;-</span> <span class="cf">function</span>(id, dadid, momid, ...) {</span>
+<span id="cb2-6"><a href="#cb2-6" tabindex="-1"></a>    n <span class="ot">&lt;-</span> <span class="fu">length</span>(id)</span>
+<span id="cb2-7"><a href="#cb2-7" tabindex="-1"></a>    <span class="cf">if</span> (n<span class="sc">==</span><span class="dv">1</span>) </span>
+<span id="cb2-8"><a href="#cb2-8" tabindex="-1"></a>        <span class="fu">return</span>(<span class="fu">matrix</span>(.<span class="dv">5</span>,<span class="dv">1</span>,<span class="dv">1</span>, <span class="at">dimnames=</span><span class="fu">list</span>(id, id)))</span>
+<span id="cb2-9"><a href="#cb2-9" tabindex="-1"></a>    <span class="cf">if</span> (<span class="fu">any</span>(<span class="fu">duplicated</span>(id))) <span class="fu">stop</span>(<span class="st">&quot;All id values must be unique&quot;</span>)</span>
+<span id="cb2-10"><a href="#cb2-10" tabindex="-1"></a>    kmat <span class="ot">&lt;-</span> <span class="fu">diag</span>(n<span class="sc">+</span><span class="dv">1</span>) <span class="sc">/</span><span class="dv">2</span></span>
+<span id="cb2-11"><a href="#cb2-11" tabindex="-1"></a>    kmat[n<span class="sc">+</span><span class="dv">1</span>,n<span class="sc">+</span><span class="dv">1</span>]    <span class="ot">&lt;-</span> <span class="dv">0</span> </span>
+<span id="cb2-12"><a href="#cb2-12" tabindex="-1"></a></span>
+<span id="cb2-13"><a href="#cb2-13" tabindex="-1"></a>    pdepth <span class="ot">&lt;-</span> <span class="fu">kindepth</span>(id, dadid, momid)</span>
+<span id="cb2-14"><a href="#cb2-14" tabindex="-1"></a>    mrow <span class="ot">&lt;-</span> <span class="fu">match</span>(momid, id, <span class="at">nomatch=</span>n<span class="sc">+</span><span class="dv">1</span>) <span class="co">#row number of the mother</span></span>
+<span id="cb2-15"><a href="#cb2-15" tabindex="-1"></a>    drow <span class="ot">&lt;-</span> <span class="fu">match</span>(dadid, id, <span class="at">nomatch=</span>n<span class="sc">+</span><span class="dv">1</span>) <span class="co">#row number of the dad </span></span>
+<span id="cb2-16"><a href="#cb2-16" tabindex="-1"></a></span>
+<span id="cb2-17"><a href="#cb2-17" tabindex="-1"></a>    <span class="cf">for</span> (depth <span class="cf">in</span> <span class="dv">1</span><span class="sc">:</span><span class="fu">max</span>(pdepth)) {</span>
+<span id="cb2-18"><a href="#cb2-18" tabindex="-1"></a>        indx <span class="ot">&lt;-</span> (<span class="dv">1</span><span class="sc">:</span>n)[pdepth<span class="sc">==</span>depth]</span>
+<span id="cb2-19"><a href="#cb2-19" tabindex="-1"></a>        <span class="cf">for</span> (i <span class="cf">in</span> indx) {</span>
+<span id="cb2-20"><a href="#cb2-20" tabindex="-1"></a>            mom <span class="ot">&lt;-</span> mrow[i]</span>
+<span id="cb2-21"><a href="#cb2-21" tabindex="-1"></a>            dad <span class="ot">&lt;-</span> drow[i]</span>
+<span id="cb2-22"><a href="#cb2-22" tabindex="-1"></a>            kmat[i,]  <span class="ot">&lt;-</span> kmat[,i] <span class="ot">&lt;-</span> (kmat[mom,] <span class="sc">+</span> kmat[dad,])<span class="sc">/</span><span class="dv">2</span></span>
+<span id="cb2-23"><a href="#cb2-23" tabindex="-1"></a>            kmat[i,i] <span class="ot">&lt;-</span> (<span class="dv">1</span><span class="sc">+</span> kmat[mom,dad])<span class="sc">/</span><span class="dv">2</span></span>
+<span id="cb2-24"><a href="#cb2-24" tabindex="-1"></a>            }</span>
+<span id="cb2-25"><a href="#cb2-25" tabindex="-1"></a>        }</span>
+<span id="cb2-26"><a href="#cb2-26" tabindex="-1"></a>    </span>
+<span id="cb2-27"><a href="#cb2-27" tabindex="-1"></a>    kmat <span class="ot">&lt;-</span> kmat[<span class="dv">1</span><span class="sc">:</span>n,<span class="dv">1</span><span class="sc">:</span>n]</span>
+<span id="cb2-28"><a href="#cb2-28" tabindex="-1"></a>    <span class="fu">dimnames</span>(kmat) <span class="ot">&lt;-</span> <span class="fu">list</span>(id, id)</span>
+<span id="cb2-29"><a href="#cb2-29" tabindex="-1"></a>    kmat</span>
+<span id="cb2-30"><a href="#cb2-30" tabindex="-1"></a>    }</span>
+<span id="cb2-31"><a href="#cb2-31" tabindex="-1"></a></span>
+<span id="cb2-32"><a href="#cb2-32" tabindex="-1"></a>oldkinship.pedigree <span class="ot">&lt;-</span> <span class="cf">function</span>(id, ...) {</span>
+<span id="cb2-33"><a href="#cb2-33" tabindex="-1"></a>    n <span class="ot">&lt;-</span> <span class="fu">length</span>(id<span class="sc">$</span>id)</span>
+<span id="cb2-34"><a href="#cb2-34" tabindex="-1"></a>    <span class="cf">if</span> (n<span class="sc">==</span><span class="dv">1</span>) </span>
+<span id="cb2-35"><a href="#cb2-35" tabindex="-1"></a>        <span class="fu">return</span>(<span class="fu">matrix</span>(.<span class="dv">5</span>,<span class="dv">1</span>,<span class="dv">1</span>, <span class="at">dimnames=</span><span class="fu">list</span>(id<span class="sc">$</span>id, id<span class="sc">$</span>id)))</span>
+<span id="cb2-36"><a href="#cb2-36" tabindex="-1"></a>    <span class="cf">if</span> (<span class="fu">any</span>(<span class="fu">duplicated</span>(id<span class="sc">$</span>id))) <span class="fu">stop</span>(<span class="st">&quot;All id values must be unique&quot;</span>)</span>
+<span id="cb2-37"><a href="#cb2-37" tabindex="-1"></a>    kmat <span class="ot">&lt;-</span> <span class="fu">diag</span>(n<span class="sc">+</span><span class="dv">1</span>) <span class="sc">/</span><span class="dv">2</span></span>
+<span id="cb2-38"><a href="#cb2-38" tabindex="-1"></a>    kmat[n<span class="sc">+</span><span class="dv">1</span>,n<span class="sc">+</span><span class="dv">1</span>]    <span class="ot">&lt;-</span> <span class="dv">0</span> </span>
+<span id="cb2-39"><a href="#cb2-39" tabindex="-1"></a></span>
+<span id="cb2-40"><a href="#cb2-40" tabindex="-1"></a>    pdepth <span class="ot">&lt;-</span> <span class="fu">kindepth</span>(id)</span>
+<span id="cb2-41"><a href="#cb2-41" tabindex="-1"></a>    mrow <span class="ot">&lt;-</span> <span class="fu">ifelse</span>(id<span class="sc">$</span>mindex <span class="sc">==</span><span class="dv">0</span>, n<span class="sc">+</span><span class="dv">1</span>, id<span class="sc">$</span>mindex)</span>
+<span id="cb2-42"><a href="#cb2-42" tabindex="-1"></a>    drow <span class="ot">&lt;-</span> <span class="fu">ifelse</span>(id<span class="sc">$</span>findex <span class="sc">==</span><span class="dv">0</span>, n<span class="sc">+</span><span class="dv">1</span>, id<span class="sc">$</span>findex)</span>
+<span id="cb2-43"><a href="#cb2-43" tabindex="-1"></a></span>
+<span id="cb2-44"><a href="#cb2-44" tabindex="-1"></a>    <span class="co"># Are there any MZ twins to worry about?</span></span>
+<span id="cb2-45"><a href="#cb2-45" tabindex="-1"></a>    <span class="cf">if</span> (<span class="sc">!</span><span class="fu">is.null</span>(id<span class="sc">$</span>relation) <span class="sc">&amp;&amp;</span> <span class="fu">any</span>(id<span class="sc">$</span>relation<span class="sc">$</span>code<span class="sc">==</span><span class="st">&quot;MZ twin&quot;</span>)) {</span>
+<span id="cb2-46"><a href="#cb2-46" tabindex="-1"></a>        havemz <span class="ot">&lt;-</span> <span class="cn">TRUE</span></span>
+<span id="cb2-47"><a href="#cb2-47" tabindex="-1"></a>        temp <span class="ot">&lt;-</span> <span class="fu">which</span>(id<span class="sc">$</span>relation<span class="sc">$</span>code<span class="sc">==</span><span class="st">&quot;MZ twin&quot;</span>)</span>
+<span id="cb2-48"><a href="#cb2-48" tabindex="-1"></a>        <span class="do">## drop=FALSE added in case only one MZ twin set</span></span>
+<span id="cb2-49"><a href="#cb2-49" tabindex="-1"></a>        mzmat <span class="ot">&lt;-</span> <span class="fu">as.matrix</span>(id<span class="sc">$</span>relation[,<span class="fu">c</span>(<span class="st">&quot;indx1&quot;</span>, <span class="st">&quot;indx2&quot;</span>)])[temp,,drop<span class="ot">=</span><span class="cn">FALSE</span>]</span>
+<span id="cb2-50"><a href="#cb2-50" tabindex="-1"></a></span>
+<span id="cb2-51"><a href="#cb2-51" tabindex="-1"></a>        <span class="co"># any triples, quads, etc?</span></span>
+<span id="cb2-52"><a href="#cb2-52" tabindex="-1"></a>        <span class="cf">if</span> (<span class="fu">any</span>(<span class="fu">table</span>(mzmat) <span class="sc">&gt;</span> <span class="dv">1</span>)) { <span class="co">#yes there are</span></span>
+<span id="cb2-53"><a href="#cb2-53" tabindex="-1"></a>            <span class="co"># each group id will be min(member id)</span></span>
+<span id="cb2-54"><a href="#cb2-54" tabindex="-1"></a>            mzgrp <span class="ot">&lt;-</span> <span class="dv">1</span><span class="sc">:</span><span class="fu">max</span>(mzmat)  <span class="co">#each person a group</span></span>
+<span id="cb2-55"><a href="#cb2-55" tabindex="-1"></a>            indx <span class="ot">&lt;-</span> <span class="fu">sort</span>(<span class="fu">unique</span>(<span class="fu">as.vector</span>(mzmat)))</span>
+<span id="cb2-56"><a href="#cb2-56" tabindex="-1"></a>            <span class="co"># The loop below will take k-1 iterations for a set labeled as</span></span>
+<span id="cb2-57"><a href="#cb2-57" tabindex="-1"></a>            <span class="co">#   1:2, 2:3, ...(k-1):k;  this is the worst case.</span></span>
+<span id="cb2-58"><a href="#cb2-58" tabindex="-1"></a>            <span class="cf">while</span>(<span class="dv">1</span>) {</span>
+<span id="cb2-59"><a href="#cb2-59" tabindex="-1"></a>                z1 <span class="ot">&lt;-</span> mzgrp[mzmat[,<span class="dv">1</span>]]</span>
+<span id="cb2-60"><a href="#cb2-60" tabindex="-1"></a>                z2 <span class="ot">&lt;-</span> mzgrp[mzmat[,<span class="dv">2</span>]]</span>
+<span id="cb2-61"><a href="#cb2-61" tabindex="-1"></a>                <span class="cf">if</span> (<span class="fu">all</span>(z1 <span class="sc">==</span> z2)) <span class="cf">break</span></span>
+<span id="cb2-62"><a href="#cb2-62" tabindex="-1"></a>                mzgrp[indx] <span class="ot">&lt;-</span> <span class="fu">tapply</span>(<span class="fu">c</span>(z1, z1, z2, z2), <span class="fu">c</span>(mzmat,mzmat), min)</span>
+<span id="cb2-63"><a href="#cb2-63" tabindex="-1"></a>            }</span>
+<span id="cb2-64"><a href="#cb2-64" tabindex="-1"></a>            <span class="co"># Now mzgrp = min person id for each person in a set</span></span>
+<span id="cb2-65"><a href="#cb2-65" tabindex="-1"></a>            matlist <span class="ot">&lt;-</span> <span class="fu">tapply</span>(mzmat, mzgrp[mzmat], <span class="cf">function</span>(x) {</span>
+<span id="cb2-66"><a href="#cb2-66" tabindex="-1"></a>                x <span class="ot">&lt;-</span> <span class="fu">sort</span>(<span class="fu">unique</span>(x))</span>
+<span id="cb2-67"><a href="#cb2-67" tabindex="-1"></a>                temp <span class="ot">&lt;-</span> <span class="fu">cbind</span>(<span class="fu">rep</span>(x, <span class="at">each=</span><span class="fu">length</span>(x)), <span class="fu">rep</span>(x, <span class="fu">length</span>(x)))</span>
+<span id="cb2-68"><a href="#cb2-68" tabindex="-1"></a>                temp[temp[,<span class="dv">1</span>] <span class="sc">!=</span> temp[,<span class="dv">2</span>],]</span>
+<span id="cb2-69"><a href="#cb2-69" tabindex="-1"></a>                })</span>
+<span id="cb2-70"><a href="#cb2-70" tabindex="-1"></a>            }</span>
+<span id="cb2-71"><a href="#cb2-71" tabindex="-1"></a>        <span class="cf">else</span> {  <span class="co">#no triples, easier case</span></span>
+<span id="cb2-72"><a href="#cb2-72" tabindex="-1"></a>            matlist <span class="ot">&lt;-</span> <span class="fu">tapply</span>(mzmat, <span class="fu">row</span>(mzmat), <span class="cf">function</span>(x) </span>
+<span id="cb2-73"><a href="#cb2-73" tabindex="-1"></a>                            <span class="fu">matrix</span>(x[<span class="fu">c</span>(<span class="dv">1</span>,<span class="dv">2</span>,<span class="dv">2</span>,<span class="dv">1</span>)],<span class="dv">2</span>), <span class="at">simplify=</span><span class="cn">FALSE</span>)</span>
+<span id="cb2-74"><a href="#cb2-74" tabindex="-1"></a>            }</span>
+<span id="cb2-75"><a href="#cb2-75" tabindex="-1"></a>        }</span>
+<span id="cb2-76"><a href="#cb2-76" tabindex="-1"></a>    <span class="cf">else</span> havemz <span class="ot">&lt;-</span> <span class="cn">FALSE</span></span>
+<span id="cb2-77"><a href="#cb2-77" tabindex="-1"></a></span>
+<span id="cb2-78"><a href="#cb2-78" tabindex="-1"></a>    <span class="cf">for</span> (depth <span class="cf">in</span> <span class="dv">1</span><span class="sc">:</span><span class="fu">max</span>(pdepth)) {</span>
+<span id="cb2-79"><a href="#cb2-79" tabindex="-1"></a>        indx <span class="ot">&lt;-</span> (<span class="dv">1</span><span class="sc">:</span>n)[pdepth<span class="sc">==</span>depth]</span>
+<span id="cb2-80"><a href="#cb2-80" tabindex="-1"></a>        <span class="cf">for</span> (i <span class="cf">in</span> indx) {</span>
+<span id="cb2-81"><a href="#cb2-81" tabindex="-1"></a>            mom <span class="ot">&lt;-</span> mrow[i]</span>
+<span id="cb2-82"><a href="#cb2-82" tabindex="-1"></a>            dad <span class="ot">&lt;-</span> drow[i]</span>
+<span id="cb2-83"><a href="#cb2-83" tabindex="-1"></a>            kmat[i,]  <span class="ot">&lt;-</span> kmat[,i] <span class="ot">&lt;-</span> (kmat[mom,] <span class="sc">+</span> kmat[dad,])<span class="sc">/</span><span class="dv">2</span></span>
+<span id="cb2-84"><a href="#cb2-84" tabindex="-1"></a>            kmat[i,i] <span class="ot">&lt;-</span> (<span class="dv">1</span><span class="sc">+</span> kmat[mom,dad])<span class="sc">/</span><span class="dv">2</span></span>
+<span id="cb2-85"><a href="#cb2-85" tabindex="-1"></a>            }</span>
+<span id="cb2-86"><a href="#cb2-86" tabindex="-1"></a>        <span class="cf">if</span> (havemz) {</span>
+<span id="cb2-87"><a href="#cb2-87" tabindex="-1"></a>            <span class="cf">for</span> (i <span class="cf">in</span> <span class="dv">1</span><span class="sc">:</span><span class="fu">length</span>(matlist)) {</span>
+<span id="cb2-88"><a href="#cb2-88" tabindex="-1"></a>                temp <span class="ot">&lt;-</span> matlist[[i]]</span>
+<span id="cb2-89"><a href="#cb2-89" tabindex="-1"></a>                kmat[temp] <span class="ot">&lt;-</span> kmat[temp[<span class="dv">1</span>], temp[<span class="dv">1</span>]]</span>
+<span id="cb2-90"><a href="#cb2-90" tabindex="-1"></a>            }</span>
+<span id="cb2-91"><a href="#cb2-91" tabindex="-1"></a>        }</span>
+<span id="cb2-92"><a href="#cb2-92" tabindex="-1"></a>    }</span>
+<span id="cb2-93"><a href="#cb2-93" tabindex="-1"></a>    </span>
+<span id="cb2-94"><a href="#cb2-94" tabindex="-1"></a>    kmat <span class="ot">&lt;-</span> kmat[<span class="dv">1</span><span class="sc">:</span>n,<span class="dv">1</span><span class="sc">:</span>n]</span>
+<span id="cb2-95"><a href="#cb2-95" tabindex="-1"></a>    <span class="fu">dimnames</span>(kmat) <span class="ot">&lt;-</span> <span class="fu">list</span>(id<span class="sc">$</span>id, id<span class="sc">$</span>id)</span>
+<span id="cb2-96"><a href="#cb2-96" tabindex="-1"></a>    kmat</span>
+<span id="cb2-97"><a href="#cb2-97" tabindex="-1"></a>}    </span>
+<span id="cb2-98"><a href="#cb2-98" tabindex="-1"></a></span>
+<span id="cb2-99"><a href="#cb2-99" tabindex="-1"></a>oldkinship.pedigreeList <span class="ot">&lt;-</span> <span class="cf">function</span>(id, ...) {</span>
+<span id="cb2-100"><a href="#cb2-100" tabindex="-1"></a>    famlist <span class="ot">&lt;-</span> <span class="fu">unique</span>(id<span class="sc">$</span>famid)</span>
+<span id="cb2-101"><a href="#cb2-101" tabindex="-1"></a>    nfam <span class="ot">&lt;-</span> <span class="fu">length</span>(famlist)</span>
+<span id="cb2-102"><a href="#cb2-102" tabindex="-1"></a>    matlist <span class="ot">&lt;-</span> <span class="fu">vector</span>(<span class="st">&quot;list&quot;</span>, nfam)</span>
+<span id="cb2-103"><a href="#cb2-103" tabindex="-1"></a>    idlist  <span class="ot">&lt;-</span> <span class="fu">vector</span>(<span class="st">&quot;list&quot;</span>, nfam) <span class="co">#the possibly reorderd list of id values</span></span>
+<span id="cb2-104"><a href="#cb2-104" tabindex="-1"></a>   </span>
+<span id="cb2-105"><a href="#cb2-105" tabindex="-1"></a>    <span class="cf">for</span> (i <span class="cf">in</span> <span class="dv">1</span><span class="sc">:</span><span class="fu">length</span>(famlist)) {</span>
+<span id="cb2-106"><a href="#cb2-106" tabindex="-1"></a>        tped <span class="ot">&lt;-</span> id[i]  <span class="co">#pedigree for this family</span></span>
+<span id="cb2-107"><a href="#cb2-107" tabindex="-1"></a>        temp <span class="ot">&lt;-</span> <span class="fu">try</span>(<span class="fu">oldkinship</span>(tped, ...), <span class="at">silent=</span><span class="cn">TRUE</span>)</span>
+<span id="cb2-108"><a href="#cb2-108" tabindex="-1"></a>        <span class="cf">if</span> (<span class="fu">class</span>(temp)<span class="sc">==</span><span class="st">&quot;try-error&quot;</span>) </span>
+<span id="cb2-109"><a href="#cb2-109" tabindex="-1"></a>            <span class="fu">stop</span>(<span class="fu">paste</span>(<span class="st">&quot;In family&quot;</span>, famlist[i], <span class="st">&quot;:&quot;</span>, temp))</span>
+<span id="cb2-110"><a href="#cb2-110" tabindex="-1"></a>        <span class="cf">else</span> matlist[[i]] <span class="ot">&lt;-</span> <span class="fu">as</span>(<span class="fu">forceSymmetric</span>(temp), <span class="st">&quot;dsCMatrix&quot;</span>)</span>
+<span id="cb2-111"><a href="#cb2-111" tabindex="-1"></a>        idlist[[i]] <span class="ot">&lt;-</span> tped<span class="sc">$</span>id</span>
+<span id="cb2-112"><a href="#cb2-112" tabindex="-1"></a>    }</span>
+<span id="cb2-113"><a href="#cb2-113" tabindex="-1"></a></span>
+<span id="cb2-114"><a href="#cb2-114" tabindex="-1"></a>    result <span class="ot">&lt;-</span> <span class="fu">bdiag</span>(matlist)</span>
+<span id="cb2-115"><a href="#cb2-115" tabindex="-1"></a>    <span class="cf">if</span> (<span class="fu">any</span>(<span class="fu">duplicated</span>(id<span class="sc">$</span>id))) </span>
+<span id="cb2-116"><a href="#cb2-116" tabindex="-1"></a>        temp <span class="ot">&lt;-</span><span class="fu">paste</span>(<span class="fu">rep</span>(famlist, <span class="fu">sapply</span>(idlist, length)),</span>
+<span id="cb2-117"><a href="#cb2-117" tabindex="-1"></a>                     <span class="fu">unlist</span>(idlist), <span class="at">sep=</span><span class="st">&#39;/&#39;</span>) </span>
+<span id="cb2-118"><a href="#cb2-118" tabindex="-1"></a>    <span class="cf">else</span> temp <span class="ot">&lt;-</span> <span class="fu">unlist</span>(idlist)</span>
+<span id="cb2-119"><a href="#cb2-119" tabindex="-1"></a>        </span>
+<span id="cb2-120"><a href="#cb2-120" tabindex="-1"></a>    <span class="fu">dimnames</span>(result) <span class="ot">&lt;-</span> <span class="fu">list</span>(temp, temp)</span>
+<span id="cb2-121"><a href="#cb2-121" tabindex="-1"></a>    result</span>
+<span id="cb2-122"><a href="#cb2-122" tabindex="-1"></a>}</span></code></pre></div>
+</div>
+
+
+
+<!-- code folding -->
+
+
+<!-- dynamically load mathjax for compatibility with self-contained -->
+<script>
+  (function () {
+    var script = document.createElement("script");
+    script.type = "text/javascript";
+    script.src  = "https://mathjax.rstudio.com/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML";
+    document.getElementsByTagName("head")[0].appendChild(script);
+  })();
+</script>
+
+</body>
+</html>

@@ -1,4 +1,12 @@
-# Automatically generated from all.nw using noweb
+## Extracted from checks.Rnw
+#This routine tries to remove inconsistencies in spousal hints.
+#These and arise in autohint with complex pedigrees.
+#One can have ABA (subject A is on both the
+#left and the right of B), cycles, etc. 
+#Actually, these used to arise in autohint, I don't know if it's so
+#after the recent rewrite.
+#Users can introduce problems as well if they modify the hints.
+
 check.hint <- function(hints, sex) {
     if (is.null(hints$order)) stop("Missing order component")
     if (!is.numeric(hints$order)) stop("Invalid order component")
@@ -24,6 +32,6 @@ check.hint <- function(hints, sex) {
 
         # Break any loops: A left of B, B left of C, C left of A.
         #  Not yet done 
-      }
+    }
     hints
-  }
+}

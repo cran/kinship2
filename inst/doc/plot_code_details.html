@@ -1,0 +1,473 @@
+<!DOCTYPE html>
+
+<html>
+
+<head>
+
+<meta charset="utf-8" />
+<meta name="generator" content="pandoc" />
+<meta http-equiv="X-UA-Compatible" content="IE=EDGE" />
+
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+
+<meta name="author" content="TM Therneau, JP Sinnwell" />
+
+
+<title>Pedigree_Plot_Details</title>
+
+<script>// Pandoc 2.9 adds attributes on both header and div. We remove the former (to
+// be compatible with the behavior of Pandoc < 2.8).
+document.addEventListener('DOMContentLoaded', function(e) {
+  var hs = document.querySelectorAll("div.section[class*='level'] > :first-child");
+  var i, h, a;
+  for (i = 0; i < hs.length; i++) {
+    h = hs[i];
+    if (!/^h[1-6]$/i.test(h.tagName)) continue;  // it should be a header h1-h6
+    a = h.attributes;
+    while (a.length > 0) h.removeAttribute(a[0].name);
+  }
+});
+</script>
+
+<style type="text/css">
+code{white-space: pre-wrap;}
+span.smallcaps{font-variant: small-caps;}
+span.underline{text-decoration: underline;}
+div.column{display: inline-block; vertical-align: top; width: 50%;}
+div.hanging-indent{margin-left: 1.5em; text-indent: -1.5em;}
+ul.task-list{list-style: none;}
+</style>
+
+
+
+
+
+
+
+<style type="text/css">body {
+background-color: #fff;
+margin: 1em auto;
+max-width: 700px;
+overflow: visible;
+padding-left: 2em;
+padding-right: 2em;
+font-family: "Open Sans", "Helvetica Neue", Helvetica, Arial, sans-serif;
+font-size: 14px;
+line-height: 1.35;
+}
+#TOC {
+clear: both;
+margin: 0 0 10px 10px;
+padding: 4px;
+width: 400px;
+border: 1px solid #CCCCCC;
+border-radius: 5px;
+background-color: #f6f6f6;
+font-size: 13px;
+line-height: 1.3;
+}
+#TOC .toctitle {
+font-weight: bold;
+font-size: 15px;
+margin-left: 5px;
+}
+#TOC ul {
+padding-left: 40px;
+margin-left: -1.5em;
+margin-top: 5px;
+margin-bottom: 5px;
+}
+#TOC ul ul {
+margin-left: -2em;
+}
+#TOC li {
+line-height: 16px;
+}
+table {
+margin: 1em auto;
+border-width: 1px;
+border-color: #DDDDDD;
+border-style: outset;
+border-collapse: collapse;
+}
+table th {
+border-width: 2px;
+padding: 5px;
+border-style: inset;
+}
+table td {
+border-width: 1px;
+border-style: inset;
+line-height: 18px;
+padding: 5px 5px;
+}
+table, table th, table td {
+border-left-style: none;
+border-right-style: none;
+}
+table thead, table tr.even {
+background-color: #f7f7f7;
+}
+p {
+margin: 0.5em 0;
+}
+blockquote {
+background-color: #f6f6f6;
+padding: 0.25em 0.75em;
+}
+hr {
+border-style: solid;
+border: none;
+border-top: 1px solid #777;
+margin: 28px 0;
+}
+dl {
+margin-left: 0;
+}
+dl dd {
+margin-bottom: 13px;
+margin-left: 13px;
+}
+dl dt {
+font-weight: bold;
+}
+ul {
+margin-top: 0;
+}
+ul li {
+list-style: circle outside;
+}
+ul ul {
+margin-bottom: 0;
+}
+pre, code {
+background-color: #f7f7f7;
+border-radius: 3px;
+color: #333;
+white-space: pre-wrap; 
+}
+pre {
+border-radius: 3px;
+margin: 5px 0px 10px 0px;
+padding: 10px;
+}
+pre:not([class]) {
+background-color: #f7f7f7;
+}
+code {
+font-family: Consolas, Monaco, 'Courier New', monospace;
+font-size: 85%;
+}
+p > code, li > code {
+padding: 2px 0px;
+}
+div.figure {
+text-align: center;
+}
+img {
+background-color: #FFFFFF;
+padding: 2px;
+border: 1px solid #DDDDDD;
+border-radius: 3px;
+border: 1px solid #CCCCCC;
+margin: 0 5px;
+}
+h1 {
+margin-top: 0;
+font-size: 35px;
+line-height: 40px;
+}
+h2 {
+border-bottom: 4px solid #f7f7f7;
+padding-top: 10px;
+padding-bottom: 2px;
+font-size: 145%;
+}
+h3 {
+border-bottom: 2px solid #f7f7f7;
+padding-top: 10px;
+font-size: 120%;
+}
+h4 {
+border-bottom: 1px solid #f7f7f7;
+margin-left: 8px;
+font-size: 105%;
+}
+h5, h6 {
+border-bottom: 1px solid #ccc;
+font-size: 105%;
+}
+a {
+color: #0033dd;
+text-decoration: none;
+}
+a:hover {
+color: #6666ff; }
+a:visited {
+color: #800080; }
+a:visited:hover {
+color: #BB00BB; }
+a[href^="http:"] {
+text-decoration: underline; }
+a[href^="https:"] {
+text-decoration: underline; }
+
+code > span.kw { color: #555; font-weight: bold; } 
+code > span.dt { color: #902000; } 
+code > span.dv { color: #40a070; } 
+code > span.bn { color: #d14; } 
+code > span.fl { color: #d14; } 
+code > span.ch { color: #d14; } 
+code > span.st { color: #d14; } 
+code > span.co { color: #888888; font-style: italic; } 
+code > span.ot { color: #007020; } 
+code > span.al { color: #ff0000; font-weight: bold; } 
+code > span.fu { color: #900; font-weight: bold; } 
+code > span.er { color: #a61717; background-color: #e3d2d2; } 
+</style>
+
+
+
+
+</head>
+
+<body>
+
+
+
+
+<h1 class="title toc-ignore">Pedigree_Plot_Details</h1>
+<h4 class="author">TM Therneau, JP Sinnwell</h4>
+<h4 class="date">24 March, 2024</h4>
+
+
+<div id="TOC">
+<ul>
+<li><a href="#introduction" id="toc-introduction">Introduction</a></li>
+<li><a href="#setup" id="toc-setup">Setup</a></li>
+<li><a href="#sizing" id="toc-sizing">Sizing</a>
+<ul>
+<li><a href="#subsetting-and-sub-region" id="toc-subsetting-and-sub-region">Subsetting and Sub-Region</a></li>
+</ul></li>
+<li><a href="#drawing-the-tree" id="toc-drawing-the-tree">Drawing the
+Tree</a>
+<ul>
+<li><a href="#drawbox" id="toc-drawbox">Drawbox</a></li>
+<li><a href="#symbols" id="toc-symbols">Symbols</a></li>
+</ul></li>
+<li><a href="#final-output" id="toc-final-output">Final output</a></li>
+</ul>
+</div>
+
+<div id="introduction" class="section level1">
+<h1>Introduction</h1>
+<p>The plotting function for pedigrees has 5 tasks 1. Gather information
+and check the data. An important step is the call to align.pedigree. 2.
+Set up the plot region and size the symbols. The program wants to plot
+circles and squares, so needs to understand the geometry of the paper,
+pedigree size, and text size to get the right shape and size symbols. 3.
+Set up the plot and add the symbols for each subject 4. Add connecting
+lines between spouses, and children with parents 5. Create an invisible
+return value containing the locations.</p>
+<p>Another task, not yet completely understood, and certainly not
+implemented, is how we might break a plot across multiple pages.</p>
+</div>
+<div id="setup" class="section level1">
+<h1>Setup</h1>
+<p>The dull part is first: check all of the input data for correctness.
+The [[sex]] variable is taken from the pedigree so we need not check
+that. The identifier for each subject is by default the [[id]] variable
+from the pedigree, but users often want to add some extra text. The
+status variable can be used to put a line through the symbol of those
+who are deceased, it is an optional part of the pedigree.</p>
+<p>The affected status is a 0/1 matrix of any marker data that the user
+might want to add. It may be attached to the pedigree or added here. It
+can be a vector of length [[n]] or a matrix with [[n]] rows. If it is
+not present, the default is to print open symbols without shading or
+color, which corresponds to a code of 0, while a 1 means to shade the
+symbol.</p>
+<p>If the argment is a matrix, then the shading and/or density value for
+ith column is taken from the ith element of the angle/density
+arguments.</p>
+<p>For purposes within the plot method, NA values in </p>
+</div>
+<div id="sizing" class="section level1">
+<h1>Sizing</h1>
+<p>Now we need to set the sizes. From align.pedigree we will get the
+maximum width and depth. There is one plotted row for each row of the
+returned matrices. The number of columns of the matrices is the max
+width of the pedigree, so there are unused positions in shorter rows,
+these can be identifed by having an nid value of 0. Horizontal locations
+for each point go from 0 to xmax, subjects are at least 1 unit apart; a
+large number will be exactly one unit part. These locations will be at
+the top center of each plotted symbol.</p>
+<p>We would like to to make the boxes about 2.5 characters wide, which
+matches most labels, but no more than 0.9 units wide or .5 units
+high.<br />
+We also want to vertical room for the labels. Which should have at least
+1/2 of stemp2 space above and stemp2 space below.<br />
+The stemp3 variable is the height of labels: users may use multi-line
+ones. Our constraints then are</p>
+<ol style="list-style-type: decimal">
+<li>(box height + label height)*maxlev <span class="math inline">\(\le\)</span> height: the boxes and labels have to
+fit vertically</li>
+<li>(box height) * (maxlev + (maxlev-1)/2) <span class="math inline">\(\le\)</span> height: at least 1/2 a box of space
+between each row of boxes</li>
+<li>(box width) <span class="math inline">\(\le\)</span> stemp1 in
+inches</li>
+<li>(box width) <span class="math inline">\(\le\)</span> 0.8 unit in
+user coordinates, otherwise they appear to touch</li>
+<li>User coordinates go from min(xrange)- 1/2 box width to max(xrange) +
+1/2 box width.</li>
+<li>the box is square (in inches)</li>
+</ol>
+<p>The first 3 of these are easy. The fourth comes into play only for
+very packed pedigrees. Assume that the box were the maximum size of .8
+units, i.e., minimal spacing between them. Then xmin -.45 to xmax + .45
+covers the plot region, the scaling between user coordinates and inches
+is (.8 + xmax-xmin) user = figure region inches, and the box is
+.8*(figure width)/(.8 + xmax-xmin). The transformation from user units
+to inches horizontally depends on the box size, since I need to allow
+for 1/2 a box on the left and right.<br />
+Vertically the range from 1 to nrow spans the tops of the symbols, which
+will be the figure region height less (the height of the text for the
+last row + 1 box); remember that the coordinates point to the top center
+of the box. We want row 1 to plot at the top, which is done by
+appropriate setting of the usr parameter.</p>
+<div id="subsetting-and-sub-region" class="section level2">
+<h2>Subsetting and Sub-Region</h2>
+<p>This section is still experimental and might change. Also, in the
+original documentation by TM Therneau, it is within the sizing section
+above.</p>
+<p>Sometimes a pedigree is too large to fit comfortably on one page. The
+[[subregion]] argument allows one to plot only a portion of the pedigree
+based on the plot region. Along with other tools to select portions of
+the pedigree based on relatedness, such as all the descendents of a
+particular marriage, it gives a tool for addressing this. This breaks
+our original goal of completely automatic plots, but users keep asking
+for more.</p>
+<p>The argument is [[subregion=c(min x, max x, min depth, max depth)]],
+and works by editing away portions of the [[plist]] object returned by
+align.pedigree. First decide what lines to keep. Then take subjects away
+from each line, update spouses and twins, and fix up parentage for the
+line below.</p>
+</div>
+</div>
+<div id="drawing-the-tree" class="section level1">
+<h1>Drawing the Tree</h1>
+<ol style="list-style-type: decimal">
+<li><p>First draw and label the boxes. Definition of the drawbox
+function is deferred until later. symbols code chunk.</p></li>
+<li><p>Draw in the connections, one by one, beginning with spouses.
+lines code chunk.</p></li>
+<li><p>Connect children to parents.</p></li>
+<li><p>Lines/arcs to connect multiple instances of same
+subject.</p></li>
+</ol>
+<p>Details on connecting children to parents. First there are lines up
+from each child, which would be trivial except for twins, triplets, etc.
+Then we draw the horizontal bar across siblings and finally the
+connector from the parent. For twins, the \em{vertical} lines are angled
+towards a common point, the variable is called [[target]] below. The
+horizontal part is easier if we do things family by family. The
+[[plist$twins]] variable is 1/2/3 for a twin on my right, 0
+otherwise.</p>
+<p>Details on arcs. The last set of lines are dotted arcs that connect
+mulitiple instances of a subject on the same line. These instances may
+or may not be on the same line. The arrcconect function draws a
+quadratic arc between locations <span class="math inline">\((x_1,
+y_1)\)</span> and <span class="math inline">\((x_2, y_2\)</span>) whose
+height is 1/2 unit above a straight line connection.</p>
+<div id="drawbox" class="section level2">
+<h2>Drawbox</h2>
+<p>Finally we get to the drawbox function itself, which is fairly
+simple. In 2011 updates, it allows missing, and fixeds up shadings and
+borders. For affected=0, do not fill. For affected=1, fill with
+density-lines and angles. For affected=-1 (missing), fill with
+<em>?</em> in the midpoint of the polygon, with a size adjusted by how
+many columns in affected. For all shapes drawn, make the border the
+color for the person.</p>
+</div>
+<div id="symbols" class="section level2">
+<h2>Symbols</h2>
+<p>There are four sumbols corresponding to the four sex codes: square =
+male, circle = female, diamond= unknown, and triangle =
+terminated.<br />
+They are shaded according to the value(s) of affected status for each
+subject, where 0=unfilled and 1=filled, and filling uses the standard
+arguments of the [[polygon]] function. The nuisance is when the affected
+status is a matrix, in which case the symbol will be divided up into
+sections, clockwise starting at the lower left. I asked Beth about this
+(original author) and there was no particular reason to start at 6
+o-clock, but it is now established as history.</p>
+<p>The first part of the code is to create the collection of polygons
+that will make up the symbol. These are then used again and again. The
+collection is kept as a list with the four elements square, circle,
+diamond and triangle.</p>
+<p>Each of these is in turn a list with ncol(affected) element, and each
+of those in turn a list of x and y coordinates. There are 3 cases: the
+affected matrix has only one column, partitioning a circle for multiple
+columns, and partitioning the other cases for multiple columns.</p>
+<div id="circfun" class="section level3">
+<h3>Circfun</h3>
+<p>The circle function is quite simple. The number of segments is
+arbitrary, 50 seems to be enough to make the eye happy. We draw the ray
+from 0 to the edge, then a portion of the arc. The polygon function will
+connect back to the center.</p>
+</div>
+<div id="polyfun" class="section level3">
+<h3>Polyfun</h3>
+<p>Now for the interesting one — dividing a polygon into ``pie slices’’.
+In computing this we can’t use the usual <span class="math inline">\(y=
+a + bx\)</span> formula for a line, because it doesn’t work for vertical
+ones (like the sides of the square). Instead we use the alternate
+formulation in terms of a dummy variable <span class="math inline">\(z\)</span>. <span class="math display">\[\begin{eqnarray*}
+  x &amp;=&amp; a + bz \\
+  y &amp;=&amp; c + dz \\
+\end{eqnarray*}\]</span> Furthermore, we choose the constants <span class="math inline">\(a\)</span>, <span class="math inline">\(b\)</span>, <span class="math inline">\(c\)</span>, and <span class="math inline">\(d\)</span> so that the side of our polygon
+correspond to <span class="math inline">\(0 \le z \le 1\)</span>. The
+intersection of a particular ray at angle theta with a particular side
+will satisfy <span class="math display">\[\begin{eqnarray}
+  theta &amp;=&amp; y/x = \frac{a + bz}{c+dz} \nonumber \\
+  z &amp;=&amp; \frac{a\theta -c}{b - d\theta} \label{eq:z} \\
+\end{eqnarray}\]</span></p>
+<p>Equation <span class="math inline">\(\ref{eq:z}\)</span> will lead to
+a division by zero if the ray from the origin does not intersect a side,
+e.g., a vertical divider will be parallel to the sides of a square
+symbol. The only solutions we want have <span class="math inline">\(0
+\le z \le 1\)</span> and are in the
+<code>forward&#39; part of the ray.  This latter  %&#39;</code> is true if the
+inner product <span class="math inline">\(x \cos(\theta) + y
+\sin(\theta) &gt;0\)</span>. Exactly one of the polygon sides will
+satisfy both conditions.</p>
+</div>
+</div>
+</div>
+<div id="final-output" class="section level1">
+<h1>Final output</h1>
+<p>Remind the user of subjects who did not get plotted; these are
+ususally subjects who are married in but without children. Unless the
+pedigree contains spousal information the routine does not know who is
+the spouse. Then restore the plot parameters. This would only not be
+done if someone wants to further annotate the plot. Last, we give a list
+of the plot positions for each subject. Someone who is plotted twice
+will have their first position listed.</p>
+</div>
+
+
+
+<!-- code folding -->
+
+
+<!-- dynamically load mathjax for compatibility with self-contained -->
+<script>
+  (function () {
+    var script = document.createElement("script");
+    script.type = "text/javascript";
+    script.src  = "https://mathjax.rstudio.com/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML";
+    document.getElementsByTagName("head")[0].appendChild(script);
+  })();
+</script>
+
+</body>
+</html>

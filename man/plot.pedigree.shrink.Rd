@@ -1,5 +1,28 @@
 % $Author: sinnwell $ 
 % $Date: 2009/11/19 18:51:47 $ 
+% $Header: /people/biostat3/sinnwell/genet/rpack/PedShrink/RCS/plot.pedigree.shrink.Rd,v 1.4 2009/11/19 18:51:47 sinnwell Exp $ 
+% $Locker:  $ 
+% $Log: plot.pedigree.shrink.Rd,v $
+% Revision 1.4  2009/11/19 18:51:47  sinnwell
+% *** empty log message ***
+%
+% Revision 1.3  2009/11/19 14:33:07  sinnwell
+% *** empty log message ***
+%
+% Revision 1.2  2009/11/17 22:41:31  sinnwell
+% *** empty log message ***
+%
+% Revision 1.1  2009/11/13 22:07:42  sinnwell
+% Initial revision
+%
+% Revision 1.2  2008/07/16 21:31:41  sinnwell
+% update example
+%
+% Revision 1.1  2008/07/16 19:59:36  sinnwell
+% Initial revision
+%
+% 
+%
 
 \name{plot.pedigree.shrink}
 \alias{plot.pedigree.shrink}
@@ -11,7 +34,7 @@ Plot the pedigree object that is the trimmed pedigree.shrink object
 along with colors based on availability and affection status.
 }
 \usage{
-\method{plot}{pedigree.shrink}(x, bigped=FALSE, title="", xlegend="topright", \dots)
+\method{plot}{pedigree.shrink}(x, bigped=FALSE, title="", xlegend="topright", ...)
 }
 \arguments{
 \item{x}{
@@ -31,7 +54,7 @@ with smaller symbol sizes.
   more conveniently, options such as "topright", "right", "left", "bottomleft",
   etc., which is useful for pedigrees that cover most of the plot region.
 }
-\item{\dots}{
+\item{...}{
 Optional arguments to plot method
 }
 }
@@ -48,9 +71,9 @@ ped2 <- pedigree(fam2$id, fam2$father, fam2$mother, fam2$sex,
 shrink2 <- pedigree.shrink(ped2,avail=fam2$avail)
 shrink2
 
-## to plot:
-#plot(ped2)
-#plot.pedigree.shrink(shrink2, title="Sample Pedigree 2")
+plot(ped2)
+
+plot.pedigree.shrink(shrink2, title="Sample Pedigree 2")
 
 
 

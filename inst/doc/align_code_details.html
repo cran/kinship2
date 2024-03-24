@@ -1,0 +1,681 @@
+<!DOCTYPE html>
+
+<html>
+
+<head>
+
+<meta charset="utf-8" />
+<meta name="generator" content="pandoc" />
+<meta http-equiv="X-UA-Compatible" content="IE=EDGE" />
+
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+
+<meta name="author" content="TM Therneau" />
+
+
+<title>Pedigree_plot_alignment_details</title>
+
+<script>// Pandoc 2.9 adds attributes on both header and div. We remove the former (to
+// be compatible with the behavior of Pandoc < 2.8).
+document.addEventListener('DOMContentLoaded', function(e) {
+  var hs = document.querySelectorAll("div.section[class*='level'] > :first-child");
+  var i, h, a;
+  for (i = 0; i < hs.length; i++) {
+    h = hs[i];
+    if (!/^h[1-6]$/i.test(h.tagName)) continue;  // it should be a header h1-h6
+    a = h.attributes;
+    while (a.length > 0) h.removeAttribute(a[0].name);
+  }
+});
+</script>
+
+<style type="text/css">
+code{white-space: pre-wrap;}
+span.smallcaps{font-variant: small-caps;}
+span.underline{text-decoration: underline;}
+div.column{display: inline-block; vertical-align: top; width: 50%;}
+div.hanging-indent{margin-left: 1.5em; text-indent: -1.5em;}
+ul.task-list{list-style: none;}
+</style>
+
+
+
+
+
+
+
+<style type="text/css">body {
+background-color: #fff;
+margin: 1em auto;
+max-width: 700px;
+overflow: visible;
+padding-left: 2em;
+padding-right: 2em;
+font-family: "Open Sans", "Helvetica Neue", Helvetica, Arial, sans-serif;
+font-size: 14px;
+line-height: 1.35;
+}
+#TOC {
+clear: both;
+margin: 0 0 10px 10px;
+padding: 4px;
+width: 400px;
+border: 1px solid #CCCCCC;
+border-radius: 5px;
+background-color: #f6f6f6;
+font-size: 13px;
+line-height: 1.3;
+}
+#TOC .toctitle {
+font-weight: bold;
+font-size: 15px;
+margin-left: 5px;
+}
+#TOC ul {
+padding-left: 40px;
+margin-left: -1.5em;
+margin-top: 5px;
+margin-bottom: 5px;
+}
+#TOC ul ul {
+margin-left: -2em;
+}
+#TOC li {
+line-height: 16px;
+}
+table {
+margin: 1em auto;
+border-width: 1px;
+border-color: #DDDDDD;
+border-style: outset;
+border-collapse: collapse;
+}
+table th {
+border-width: 2px;
+padding: 5px;
+border-style: inset;
+}
+table td {
+border-width: 1px;
+border-style: inset;
+line-height: 18px;
+padding: 5px 5px;
+}
+table, table th, table td {
+border-left-style: none;
+border-right-style: none;
+}
+table thead, table tr.even {
+background-color: #f7f7f7;
+}
+p {
+margin: 0.5em 0;
+}
+blockquote {
+background-color: #f6f6f6;
+padding: 0.25em 0.75em;
+}
+hr {
+border-style: solid;
+border: none;
+border-top: 1px solid #777;
+margin: 28px 0;
+}
+dl {
+margin-left: 0;
+}
+dl dd {
+margin-bottom: 13px;
+margin-left: 13px;
+}
+dl dt {
+font-weight: bold;
+}
+ul {
+margin-top: 0;
+}
+ul li {
+list-style: circle outside;
+}
+ul ul {
+margin-bottom: 0;
+}
+pre, code {
+background-color: #f7f7f7;
+border-radius: 3px;
+color: #333;
+white-space: pre-wrap; 
+}
+pre {
+border-radius: 3px;
+margin: 5px 0px 10px 0px;
+padding: 10px;
+}
+pre:not([class]) {
+background-color: #f7f7f7;
+}
+code {
+font-family: Consolas, Monaco, 'Courier New', monospace;
+font-size: 85%;
+}
+p > code, li > code {
+padding: 2px 0px;
+}
+div.figure {
+text-align: center;
+}
+img {
+background-color: #FFFFFF;
+padding: 2px;
+border: 1px solid #DDDDDD;
+border-radius: 3px;
+border: 1px solid #CCCCCC;
+margin: 0 5px;
+}
+h1 {
+margin-top: 0;
+font-size: 35px;
+line-height: 40px;
+}
+h2 {
+border-bottom: 4px solid #f7f7f7;
+padding-top: 10px;
+padding-bottom: 2px;
+font-size: 145%;
+}
+h3 {
+border-bottom: 2px solid #f7f7f7;
+padding-top: 10px;
+font-size: 120%;
+}
+h4 {
+border-bottom: 1px solid #f7f7f7;
+margin-left: 8px;
+font-size: 105%;
+}
+h5, h6 {
+border-bottom: 1px solid #ccc;
+font-size: 105%;
+}
+a {
+color: #0033dd;
+text-decoration: none;
+}
+a:hover {
+color: #6666ff; }
+a:visited {
+color: #800080; }
+a:visited:hover {
+color: #BB00BB; }
+a[href^="http:"] {
+text-decoration: underline; }
+a[href^="https:"] {
+text-decoration: underline; }
+
+code > span.kw { color: #555; font-weight: bold; } 
+code > span.dt { color: #902000; } 
+code > span.dv { color: #40a070; } 
+code > span.bn { color: #d14; } 
+code > span.fl { color: #d14; } 
+code > span.ch { color: #d14; } 
+code > span.st { color: #d14; } 
+code > span.co { color: #888888; font-style: italic; } 
+code > span.ot { color: #007020; } 
+code > span.al { color: #ff0000; font-weight: bold; } 
+code > span.fu { color: #900; font-weight: bold; } 
+code > span.er { color: #a61717; background-color: #e3d2d2; } 
+</style>
+
+
+
+
+</head>
+
+<body>
+
+
+
+
+<h1 class="title toc-ignore">Pedigree_plot_alignment_details</h1>
+<h4 class="author">TM Therneau</h4>
+<h4 class="date">24 March, 2024</h4>
+
+
+<div id="TOC">
+<ul>
+<li><a href="#pedigree-alignment" id="toc-pedigree-alignment">Pedigree
+alignment</a></li>
+<li><a href="#hints" id="toc-hints">Hints</a>
+<ul>
+<li><a href="#autohint" id="toc-autohint">Autohint</a></li>
+<li><a href="#fixup-autohint" id="toc-fixup-autohint">Fixup-autohint</a></li>
+<li><a href="#find-spouse-and-find-sibs" id="toc-find-spouse-and-find-sibs">Find-spouse and find-sibs</a></li>
+<li><a href="#fixup2" id="toc-fixup2">Fixup2</a></li>
+</ul></li>
+<li><a href="#align.pedigree" id="toc-align.pedigree">Align.pedigree</a>
+<ul>
+<li><a href="#setup1--align.pedigree" id="toc-setup1--align.pedigree">Setup1 -align.pedigree</a></li>
+<li><a href="#align-founders" id="toc-align-founders">align-founders</a></li>
+<li><a href="#align-finish" id="toc-align-finish">Align-finish</a></li>
+</ul></li>
+<li><a href="#alignped1" id="toc-alignped1">alignped1</a>
+<ul>
+<li><a href="#alignped1-part1" id="toc-alignped1-part1">alignped1-part1</a></li>
+<li><a href="#alignped-part2" id="toc-alignped-part2">alignped-part2</a></li>
+<li><a href="#alignped1--part3" id="toc-alignped1--part3">alignped1
+-part3</a></li>
+</ul></li>
+<li><a href="#alignped2" id="toc-alignped2">alignped2</a></li>
+<li><a href="#alignped3" id="toc-alignped3">alignped3</a>
+<ul>
+<li><a href="#alignped3--slide" id="toc-alignped3--slide">alignped3
+-slide</a></li>
+<li><a href="#alignped3---merge" id="toc-alignped3---merge">alignped3 -
+merge</a></li>
+</ul></li>
+<li><a href="#alignped4" id="toc-alignped4">alignped4</a>
+<ul>
+<li><a href="#alignped4---sub-part1" id="toc-alignped4---sub-part1">alignped4 - sub-part1</a></li>
+<li><a href="#alignped4-sub-part2" id="toc-alignped4-sub-part2">alignped4: sub-part2</a></li>
+</ul></li>
+</ul>
+</div>
+
+<div id="pedigree-alignment" class="section level1">
+<h1>Pedigree alignment</h1>
+<p>An pedigree is an object that contains a pedigree along with a set of
+information that allows for pretty plotting. This information consists
+of two parts: a set of vertical and horizontal plotting coordinates
+along with the identifier of the subject to be plotted at each position,
+and a list of connections to be made between parent/child,
+spouse/spouse, and twin/twin. Creating this aligment turned out to be
+one of the more difficult parts of the project, and is the area where
+significant further work could be done.<br />
+All the routines in this section completely ignore the [[id]] component
+of a pedigree; everyone is indexed solely by their row number in the
+object.</p>
+</div>
+<div id="hints" class="section level1">
+<h1>Hints</h1>
+The first part of the work has to do with a [<a href="#hints">hints</a>]
+list for each pedigree. It consists of 3 parts:
+<p>The default starting values for all of these are simple: founders are
+processed in the order in which they appear in the data set, children
+appear in the order they are found in the data set, husbands are to the
+left of their wives, and a marriage is plotted at the leftmost spouse. A
+simple example where we want to bend these rules is when two families
+marry, and the pedigrees for both extend above the wedded pair.<br />
+In the joint pedigree the pair should appear as the right-most child in
+the left hand family, and as the left-most child in the right hand
+family. With respect to founders, assume that a family has three
+lineages with a marriage between 1 and 2, and another between 2 and 3.
+In the joint pedigree the sets should be 1, 2, 3 from left to right.</p>
+<p>The hints consist of a list with two components. The first is a
+vector of numbers of the same length as the pedigree, used to order the
+female founders and to order siblings within family. For subjects not
+part of either of these the value can be arbitrary.<br />
+The second is a 3 column matrix of spouse pairs, each row indicates the
+left-hand member of the pair, the right-hand member, and which of the
+two is the anchor, i.e., directly connected to thier parent.<br />
+Double and triple marriages can start to get interesting.</p>
+<div id="autohint" class="section level2">
+<h2>Autohint</h2>
+The [<a href="#autohint">autohint</a>] routine is used to create an
+initial hints list. It is a part of the general intention to make the
+routine do pretty good’’ drawings automatically. The basic algorithm is
+trial and error.
+<p>The routine makes no attempt to reorder founders. It just is nott
+smart enough to figure that out.</p>
+<p>The first thing to be done is to check on twins. They are a nuisance,
+since twins need to move together. The [[ped$relation]] object has a
+factor in it, so first turn that into numeric. We create 3 vectors:
+[[twinrel]] is a matrix containing pairs of twins and their relation, it
+is a subset of the incoming [[relation]] matrix. The [[twinset]] vector
+identifies twins, it is 0 for anyone who is not a part of a
+multiple-birth set, and a unique id for each member of a set.<br />
+We use the minimum row number of the members of the set as the id.
+[[twinord]] is a starting order vector for the set; it mostly makes sure
+that there are no ties (who knows what a user may have used for starting
+values.)</p>
+<p>A recent addition is to carry forward packaged and align to kindepth
+and align.pedigree.</p>
+<div id="shift-in-autohint" class="section level3">
+<h3>Shift in autohint</h3>
+<p>Next is an internal function that rearranges someone to be the
+leftmost or rightmost of his/her siblings. The only real complication is
+twins – if one of them moves the other has to move too.<br />
+And we need to keep the monozygotics together within a band of triplets.
+Algorithm: if the person to be moved is part of a twinset, first move
+all the twins to the left end (or right as the case may be), then move
+all the monozygotes to the left, then move the subject himself to the
+left.</p>
+</div>
+<div id="init-autohint" class="section level3">
+<h3>init-autohint</h3>
+<p>Now, get an ordering of the pedigree to use as the starting
+point.<br />
+The numbers start at 1 on each level. We do not need the final
+<sub>prettify</sub> step, hence align=F. If there is a hints structure
+entered, we retain its non-zero entries, otherwise people are put into
+the order of the data set. We allow the hints input to be only an order
+vector. Twins are then further reordered.</p>
+</div>
+</div>
+<div id="fixup-autohint" class="section level2">
+<h2>Fixup-autohint</h2>
+The result coming back from align.pedigree is a set of vectors and
+matrices:
+<p>Now, walk down through the levels one by one. A candidate subject is
+one who appears twice on the level, once under his/her parents and once
+somewhere else as a spouse. Move this person and spouse the the ends of
+their sibships and add a marriage hint. Figure <span class="math inline">\(\ref{fig:auto1}\)</span> shows a simple case. The
+input data set has the subjects ordered from 1–11, the left panel is the
+result without hints which processes subjects in the order encountered.
+The return values from [<a href="#align.pedigree">align.pedigree</a>]
+have subject 9 shown twice. The first is when he is recognized as the
+spouse of subject 4, the second as the child of 6–7.</p>
+The basic logic is
+<p>This logic works 9 times out of 10, at least for human pedigrees.
+We’ll look at more complex cases below when looking at the [[duporder]]
+(order the duplicates) function, which returns a matrix with columns 1
+and 2 being a pair of duplicates, and 3 a direction. Note that in the
+following code [[idlist]] refers to the row numbers of each subject in
+the pedigree, not to their label [[ped$id]].</p>
+<div id="duporder---autohint" class="section level3">
+<h3>duporder - autohint</h3>
+<p>For the case shown in figure <span class="math inline">\(\ref{fig:align1}\)</span> the [[duporder]]
+function will return a single row array with values (2, 6, 1), the first
+two being the positions of the duplicated subject.<br />
+The anchor will be 2 since that is the copy connected to parents The
+direction is TRUE, since the spouse is to the left of the anchor point.
+The id is 9, sibs are 8, 9, 10, and the shift function will create
+position hints of 2,1,3, which will cause them to be listed in the order
+9, 8, 10.</p>
+<p>The value of spouse is 3 (third position in the row), subjects 3,4,
+and 5 are reordered, and finally the line (4,9,1) is added to the sptemp
+matrix.<br />
+In this particular case the final element could be a 1 or a 2, since
+both are connected to their parents.</p>
+<p>Figure <span class="math inline">\(\ref{fig:align2}\)</span> shows a
+more complex case with several arcs. In the upper left is a double
+marry-in. The [[anchor]] variable in the above code will be (2,2) since
+both copies have an anchored spouse. The left and right sets of sibs are
+reordered (even though the left one does not need it), and two lines are
+added to the sptemp matrix: (5,11,1) and (11,9,2).</p>
+<p>On the upper right is a pair of overlapping arcs. In the final tree
+we want to put sibling 28 to the right of 29 since that will allow one
+node to join, but if we process the subjects in lexical order the code
+will first shift 28 to the right and then later shift over 29. The
+duporder function tries to order the duplicates into a matrix so that
+the closest ones are processed last. The definition of close is based
+first on whether the families touch, and second on the actual distance.
+The third column of the matrix hints at whether the marriage should be
+plotted at the left (1) or right (2) position of the pair. The goal for
+this is to spread apart families of cousins; in the example to not have
+the children of 28/31 plotted under the 21/22 grandparents, and those
+for 29/32 under the 25/26 grandparents. The logic for this column is
+very ad hoc: put children near the edges.</p>
+</div>
+</div>
+<div id="find-spouse-and-find-sibs" class="section level2">
+<h2>Find-spouse and find-sibs</h2>
+<p>Finally, here are two helper routines. Finding my spouse can be
+interesting – suppose we have a listing with Shirley, Fred, Carl, me on
+the line with the first three marked as spouse=TRUE – it means that she
+has been married to all 3 of us. First we find the string from rpos to
+lpos that is a marriage block; 99% of the time this will be of length 2
+of course. Then find the person in that block who is opposite sex, and
+check that they are connected. The routine is called with a left-right
+position in the alignment arrays and returns a position.</p>
+<p>The findsibs function starts with a position and returns a position
+as well, and is much simpler than findspouse.</p>
+</div>
+<div id="fixup2" class="section level2">
+<h2>Fixup2</h2>
+<p>At this point the most common situation will be what is shown in
+figure. The variable [[anchor]] is (2,1) showing that the left hand copy
+of subject 9 is connected to an anchored spouse and the right hand copy
+is himself anchored. The proper addition to the spouselist is [[(4, 9,
+dpairs)]], where the last is the hint from the dpairs routine as to
+which of the parents is the one to follow further when drawing the
+entire pedigree. (When drawing a pedigree and there is a child who can
+be reached from multiple founders, we only want to find the child
+once.)</p>
+<p>The double marry-in found in figure <span class="math inline">\(\ref{fig:auto2}\)</span>, subject 11, leads to
+value of (2,2) for the [[anchor]] variable. The proper addition to the
+[[sptemp]] matrix in this case will be two rows, (5, 11, 1) indicating
+that 5 should be plotted left of 11 for the 5-11 marriage, with the
+first partner as the anchor, and a second row (11, 9, 2). This will
+cause the common spouse to be plotted in the middle.</p>
+<p>Multiple marriages can lead to unanchored subjects.<br />
+In the left hand portion of figure <span class="math inline">\(\ref{fig:auto3}\)</span> we have two double
+marriages, one on the left and one on the right with anchor values of
+(0,2) and (2,0), respectively.<br />
+We add two marriages to the return list to ensure that both print in the
+correct left-right order; the 14-4 one is correct by default but it is
+easier to output a line than check sex orders.</p>
+<p>The left panel of figure <span class="math inline">\(\ref{fig:auto3}\)</span> shows a case where
+subject 11 marries into the pedigree but also has a second spouse. The
+[[anchor]] variable for this case will be (2, 0); the first instance of
+11 has a spouse tied into the tree above, the second instance has no
+upward connections. In the top row, subject 6 has values of (0, 0) since
+neither connection has an upward parent.<br />
+In the right hand panel subject 2 has an anchor variable of (0,1).</p>
+</div>
+</div>
+<div id="align.pedigree" class="section level1">
+<h1>Align.pedigree</h1>
+The top level routine for alignment has 5 arguments
+The result coming back from align.pedigree is a set of vectors and
+matrices:
+<div id="setup1--align.pedigree" class="section level2">
+<h2>Setup1 -align.pedigree</h2>
+Start with some setup. Throughout this routine the row number is used as
+a subject id (ignoring the actual id label).
+<p>When importing data from autohint, that routine’s spouse matrix has
+column 1 = subject plotted on the left, 2 = subject plotted on the
+right. The [[spouselist]] array has column 1=husband, 2=wife. Hence the
+clumsy looking ifelse below. The autohint format is more congenial to
+users, who might modify the output, the spouselist format easier for the
+code.</p>
+</div>
+<div id="align-founders" class="section level2">
+<h2>align-founders</h2>
+The [[alignped]] routine does the alignment using 3 co-routines:
+<p>Call [<a href="#alignped1">alignped1</a>] sequentially with each
+founder pair and merge the results.<br />
+A founder pair is a married pair, neither of which has a father.</p>
+</div>
+<div id="align-finish" class="section level2">
+<h2>Align-finish</h2>
+Now finish up. There are 4 tasks to do:
+<div id="finish-align2" class="section level3">
+<h3>Finish align(2)</h3>
+The twins array is of the same shape as the spouse and nid arrays: one
+row per level giving data for the subjects plotted on that row. In this
+case they are
+</div>
+<div id="finish-align3" class="section level3">
+<h3>Finish align(3)</h3>
+<p>At this point the pedigree has been arranged, with the positions in
+each row going from 1 to (number of subjects in the row). (For a packed
+pedigree, which is the usual case). Having everything pushed to the left
+margin is not very pretty, now we fix that. Note that alignped4 wants a
+T/F spouse matrix: it does not care about your degree of relationship to
+the spouse.</p>
+</div>
+</div>
+</div>
+<div id="alignped1" class="section level1">
+<h1>alignped1</h1>
+This is the first of the three co-routines. It is called with a single
+subject, and returns the subtree founded on said subject, as though it
+were the only tree.<br />
+We only go down the pedigree, not up. Input arguments are
+<p>The return argument is a set of matrices as described in section
+<span class="math inline">\(\ref{sect:alignped}\)</span>, along with the
+spouselist matrix. The latter has marriages removed as they are
+processed.</p>
+<div id="alignped1-part1" class="section level2">
+<h2>alignped1-part1</h2>
+In this routine the [[nid]] array consists of the final nid array + 1/2
+of the final spouse array. The basic algorithm is simple.<br />
+
+<p>Note that the [[spouselist]] matrix will only contain spouse pairs
+that are not yet processed. The logic for anchoring is slightly tricky.
+First, if row 4 of the spouselist matrix is 0, we anchor at the first
+opportunity, i.e. now.. Also note that if spouselist[,3]==spouselist[,4]
+it is the husband who is the anchor (just write out the
+possibilities).</p>
+</div>
+<div id="alignped-part2" class="section level2">
+<h2>alignped-part2</h2>
+<p>Create the set of 3 return structures, which will be matrices with
+(1+nspouse) columns. If there are children then other routines will
+widen the result.</p>
+</div>
+<div id="alignped1--part3" class="section level2">
+<h2>alignped1 -part3</h2>
+<p>Now we have a list of spouses that should be dealt with and the the
+correponding columns of the spouselist matrix.<br />
+Create the two complimentary lists lspouse and rspouse to denote those
+plotted on the left and on the right. For someone with lots of spouses
+we try to split them evenly. If the number of spouses is odd, then men
+should have more on the right than on the left, women more on the right.
+Any hints in the spouselist matrix override. We put the undecided
+marriages closest to [[x]], then add predetermined ones to the left and
+right. The majority of marriages will be undetermined singletons, for
+which nleft will be 1 for female (put my husband to the left) and 0 for
+male. In one bug found by plotting canine data, lspouse could initially
+be empty but length(rspouse)&gt; 1. This caused nleft&gt;length(indx). A
+fix was to not let indx to be indexed beyond its length, fix by JPS
+5/2013.</p>
+<div id="alignped1--part4" class="section level3">
+<h3>alignped1 -part4</h3>
+<p>The spouses are in the pedigree, now look below. For each spouse get
+the list of children. If there are any we call alignped2 to generate
+their tree and then mark the connection to their parent. If multiple
+marriages have children we need to join the trees. ### alignped1
+-part5</p>
+<p>To finish up we need to splice together the tree made up from all the
+kids, which only has data from lev+1 down, with the data here.<br />
+There are 3 cases. The first and easiest is when no children were found.
+The second, and most common, is when the tree below is wider than the
+tree here, in which case we add the data from this level onto theirs.
+The third is when below is narrower, for instance an only child.</p>
+</div>
+</div>
+</div>
+<div id="alignped2" class="section level1">
+<h1>alignped2</h1>
+<p>This routine takes a collection of siblings, grows the tree for each,
+and appends them side by side into a single tree. The input arguments
+are the same as those to [<a href="#alignped1">alignped1</a>] with the
+exception that [[x]] will be a vector. This routine does nothing to the
+spouselist matrix, but needs to pass it down the tree and back since one
+of the routines called by [<a href="#alignped2">alignped2</a>] might
+change the matrix.</p>
+<p>The code below has one non-obvious special case. Suppose that two
+sibs marry.<br />
+When the first sib is processed by [<a href="#alignped1">alignped1</a>]
+then both partners (and any children) will be added to the rval
+structure below. When the second sib is processed they will come back as
+a 1 element tree (the marriage will no longer be on the spouselist),
+which should be added onto rval. The rule thus is to not add any 1
+element tree whose value (which must be x[i]) is already in the rval
+structure for this level. (Where did Curt Olswold. find these
+families?)</p>
+</div>
+<div id="alignped3" class="section level1">
+<h1>alignped3</h1>
+<p>The third alignment co-routine merges two pedigree trees which are
+side by side into a single object. The primary special case is when the
+rightmost person in the left tree is the same as the leftmost person in
+the right tree; we need not plot two copies of the same person side by
+side. (When initializing the output structures do not worry about this -
+there is no harm if they are a column bigger than finally needed.)
+Beyond that the work is simple bookkeeping.</p>
+<div id="alignped3--slide" class="section level2">
+<h2>alignped3 -slide</h2>
+<p>For the unpacked case, which is the traditional way to draw a
+pedigree when we can assume the paper is infinitely wide, all parents
+are centered over their children. In this case we think if the two trees
+to be merged as solid blocks. On input they both have a left margin of
+0. Compute how far over we have to slide the right tree.</p>
+</div>
+<div id="alignped3---merge" class="section level2">
+<h2>alignped3 - merge</h2>
+Now merge the two trees. Start at the top level and work down.
+</div>
+</div>
+<div id="alignped4" class="section level1">
+<h1>alignped4</h1>
+<p>The alignped4 routine is the final step of alignment. It attempts to
+line up children under parents and put spouses and siblings `close’ to
+each other, to the extent possible within the constraints of page width.
+This routine used to be the most intricate and complex of the set, until
+I realized that the task could be cast as constrained quadradic
+optimization. The current code does necessary setup and then calls the
+[[quadprog]] function.<br />
+At one point I investigated using one of the simpler least-squares
+routines where <span class="math inline">\(\beta\)</span> is constrained
+to be non-negative. However a problem can only be translated into that
+form if the number of constraints is less than the number of parameters,
+which is not true in this problem.</p>
+<p>There are two important parameters for the function. One is the user
+specified maximum width. The smallest possible width is the maximum
+number of subjects on a line, if the user suggestion is too low it is
+increased to that 1+ that amount (to give just a little wiggle room).
+The other is a vector of 2 alignment parameters <span class="math inline">\(a\)</span> and <span class="math inline">\(b\)</span>. For each set of siblings <span class="math inline">\({x}\)</span> with parents at <span class="math inline">\(p_1\)</span> and <span class="math inline">\(p_2\)</span> the alignment penalty is <span class="math display">\[
+   (1/k^a)\sum{i=1}{k} (x_i - (p_1 + p_2)^2
+\]</span> where <span class="math inline">\(k\)</span> is the number of
+siblings in the set. Using the fact that <span class="math inline">\(\sum(x_i-c)^2 = \sum(x_i-\mu)^2 +
+k(c-\mu)^2\)</span>, when <span class="math inline">\(a=1\)</span> then
+moving a sibship with <span class="math inline">\(k\)</span> sibs one
+unit to the left or right of optimal will incur the same cost as moving
+one with only 1 or two sibs out of place. If <span class="math inline">\(a=0\)</span> then large sibships are harder to
+move than small ones, with the default value <span class="math inline">\(a=1.5\)</span> they are slightly easier to move
+than small ones. The rationale for the default is as long as the parents
+are somewhere between the first and last siblings the result looks
+fairly good, so we are more flexible with the spacing of a large family.
+By tethering all the sibs to a single spot they tend are kept close to
+each other. The alignment penalty for spouses is <span class="math inline">\(b(x_1 - x_2)^2\)</span>, which tends to keep them
+together. The size of <span class="math inline">\(b\)</span> controls
+the relative importance of sib-parent and spouse-spouse closeness.</p>
+<div id="alignped4---sub-part1" class="section level2">
+<h2>alignped4 - sub-part1</h2>
+<p>We start by adding in these penalties. The total number of parameters
+in the alignment problem (what we hand to quadprog) is the set of
+[[sum(n)]] positions. A work array myid keeps track of the parameter
+number for each position so that it is easy to find. There is one extra
+penalty added at the end. Because the penalty amount would be the same
+if all the final positions were shifted by a constant, the penalty
+matrix will not be positive definite; solve.QP does not like<br />
+this. We add a tiny amount of leftward pull to the widest line.</p>
+</div>
+<div id="alignped4-sub-part2" class="section level2">
+<h2>alignped4: sub-part2</h2>
+<p>Next come the constraints. If there are <span class="math inline">\(k\)</span> subjects on a line there will be <span class="math inline">\(k+1\)</span> constraints for that line. The first
+point must be <span class="math inline">\(\ge 0\)</span>, each
+subesquent one must be at least 1 unit to the right, and the final point
+must be <span class="math inline">\(\le\)</span> the max width.</p>
+</div>
+</div>
+
+
+
+<!-- code folding -->
+
+
+<!-- dynamically load mathjax for compatibility with self-contained -->
+<script>
+  (function () {
+    var script = document.createElement("script");
+    script.type = "text/javascript";
+    script.src  = "https://mathjax.rstudio.com/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML";
+    document.getElementsByTagName("head")[0].appendChild(script);
+  })();
+</script>
+
+</body>
+</html>
