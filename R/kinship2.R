@@ -48,6 +48,14 @@ NULL
 ## < restart R >
 ## library(kinship2, lib.loc = "../testinstalls/")
 
+## Startup Message
+.onAttach <- function(lib, pkg) {
+    
+    packageStartupMessage(paste0("Warning: ", pkg, " package is deprecated for R <= 4.5; switch functionality to Pedixplorer from BioConductor"), appendLF = FALSE)
+
+}
+ 
+
 #### to upload to CRAN
 ## Update DESCRIPTION, README.md, NEWS.md, and cran-comments.md
 # devtools::revdep_check()

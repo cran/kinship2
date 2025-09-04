@@ -21,7 +21,7 @@ options(width = 100)
 Introduction
 ===============
 
-This document is a brief tutorial for the [kinship2 package](https://www.karger.com/Article/Pdf/363105), with examples of creating pedigree objects and kinship matrices, and other pedigree 
+This document is a brief tutorial for the [kinship2 package](https://pmc.ncbi.nlm.nih.gov/articles/PMC4154601/), with examples of creating pedigree objects and kinship matrices, and other pedigree 
 utilities.  If the kinship2 package is not loaded, we load it now.
 
 ```{r, load, echo=TRUE}

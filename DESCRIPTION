@@ -1,5 +1,6 @@
 Package: kinship2
-Version: 1.9.6.1
+Version: 1.9.6.2
+Date: 2025-09-03
 Title: Pedigree Functions
 Authors@R: c(
 	person("Jason", "Sinnwell", email="sinnwell.jason@mayo.edu", role=c("aut","cre")),
@@ -18,10 +19,10 @@ Description: Routines to handle family data with a pedigree object. The initial 
 	     with various criteria, and kinship for the X chromosome.
 License: GPL (>= 2)
 URL: https://cran.r-project.org/package=kinship2
-RoxygenNote: 7.2.1
+RoxygenNote: 7.2.3
 VignetteBuilder: knitr
 NeedsCompilation: no
-Packaged: 2024-03-24 10:56:31 UTC; hornik
+Packaged: 2025-09-03 20:13:17 UTC; sinnwell
 Author: Jason Sinnwell [aut, cre],
   Terry Therneau [aut],
   Daniel Schaid [ctb],
@@ -29,4 +30,4 @@ Author: Jason Sinnwell [aut, cre],
   Carly Mester [ctb]
 Maintainer: Jason Sinnwell <sinnwell.jason@mayo.edu>
 Repository: CRAN
-Date/Publication: 2024-03-24 14:45:15 UTC
+Date/Publication: 2025-09-04 04:40:02 UTC

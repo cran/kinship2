@@ -38,7 +38,6 @@ ibdMatrix(id1, id2, x, idmap, diagonal)
    used for kinship matrices.
 }
 \seealso{
-  \code{\link{kinship}},
-  \code{\link{Matrix}}
+  \code{\link{kinship}}
 }
 \keyword{genetics}

@@ -1,13 +1,11 @@
 
-R Under development (unstable) (2022-09-11 r82834) -- "Unsuffered Consequences"
-Copyright (C) 2022 The R Foundation for Statistical Computing
-Platform: x86_64-pc-linux-gnu (64-bit)
+R Under development (unstable) (2025-08-27 r88724) -- "Unsuffered Consequences"
+Copyright (C) 2025 The R Foundation for Statistical Computing
+Platform: x86_64-pc-linux-gnu
 
 R is free software and comes with ABSOLUTELY NO WARRANTY.
 You are welcome to redistribute it under certain conditions.
 Type 'license()' or 'licence()' for distribution details.
-
-  Natural language support but running in an English locale
 
 R is a collaborative project with many contributors.
 Type 'contributors()' for more information and
@@ -24,7 +22,7 @@ Type 'q()' to quit R.
 Loading required package: kinship2
 Loading required package: Matrix
 Loading required package: quadprog
-> data(minnbreast)
+Warning: kinship2 package is deprecated for R <= 4.5; switch functionality to Pedixplorer from BioConductor> data(minnbreast)
 > 
 > minnped <- with(minnbreast, pedigree(id, fatherid, motherid, sex,
 +                                      affected=cancer, famid=famid))
@@ -52,4 +50,4 @@ Loading required package: quadprog
 > 
 > proc.time()
    user  system elapsed 
-  2.449   0.160   2.682 
+  2.075   0.103   2.262 
